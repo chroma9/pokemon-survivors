@@ -89,9 +89,36 @@ export const collectTrainerGifts = async (relay: string) => {
 }
 
 const REV = 'ps:trainerSaveRevision'
+const BASELINE = 'ps:trainerSaveBaseline'
 let syncBusy = false
 let syncPending = false
-/** Merge server and device progress, then CAS upload. Save changes during the upload run another pass. */
+
+/** A remembered snapshot identifies which incubator changed since this browser last synchronized.
+ * Eggs are consumables: merging two egg arrays by maximum count resurrects hatched eggs.
+ */
+const baselineSave = (): ReturnType<typeof loadSave> | null => {
+  try {
+    const raw = localStorage.getItem(BASELINE)
+    return raw ? parseSaveData(JSON.parse(raw)) : null
+  } catch { return null }
+}
+const sameEggs = (a: ReturnType<typeof loadSave>, b: ReturnType<typeof loadSave>) =>
+  JSON.stringify(a.eggs) === JSON.stringify(b.eggs)
+
+/** Choose the authoritative egg inventory while still merging permanent progress normally. */
+const mergeTrainerSave = (cloud: ReturnType<typeof loadSave>, local: ReturnType<typeof loadSave>, revision: number) => {
+  const combined = mergeSaves(cloud, local)
+  const baseline = baselineSave()
+  const seenRevision = Number(localStorage.getItem(REV))
+  // A browser which just hatched or collected an egg must not receive the old egg back.
+  // For a new browser, the cloud wins; for a browser with no local edits, cloud wins too.
+  const localChanged = baseline ? !sameEggs(local, baseline) : revision > 0 && seenRevision === revision
+  const cloudChanged = baseline ? !sameEggs(cloud, baseline) : false
+  const eggs = localChanged && (!cloudChanged || seenRevision === revision) ? local.eggs : cloud.eggs
+  return { ...combined, eggs }
+}
+
+/** Merge server and device progress, then CAS upload. A fresh local edit reruns syncing. */
 export const syncTrainerSave = async (relay: string) => {
   if (!trainerToken()) return { synced: false, reason: 'signedOut' }
   if (syncBusy) { syncPending = true; return { synced: false, reason: 'busy' } }
@@ -100,14 +127,19 @@ export const syncTrainerSave = async (relay: string) => {
     for (let attempt = 0; attempt < 4; attempt++) {
       const cloud = await request(relay, 'save') as { revision: number; data: unknown; updated: number }
       const local = loadSave()
-      const merged = cloud.data === null ? local : mergeSaves(parseSaveData(cloud.data), local)
+      const merged = cloud.data === null ? local : mergeTrainerSave(parseSaveData(cloud.data), local, cloud.revision)
       const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
       if (result.status === 409) continue
       const body = await result.json()
       if (!result.ok) throw Error(body.error ?? 'Cloud save failed')
       localStorage.setItem(REV, String(body.revision))
-      // Always merge with the latest local save to preserve progress earned during the network round-trip.
-      writeSave(mergeSaves(merged, loadSave()))
+      // Keep changes made during the HTTP request and schedule another sync.
+      const latest = loadSave()
+      if (JSON.stringify(latest) !== JSON.stringify(local)) {
+        writeSave(mergeTrainerSave(merged, latest, body.revision))
+        syncPending = true
+      } else writeSave(merged)
+      localStorage.setItem(BASELINE, JSON.stringify(merged))
       return { synced: true, revision: body.revision }
     }
     throw Error('Save changed on another device; please retry synchronization')
