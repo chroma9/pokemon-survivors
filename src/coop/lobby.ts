@@ -1,4 +1,4 @@
-import { PLAYABLE_IDS, type PlayableId } from '../data/hatchlings'
+import { PLAYABLE, type PlayableId } from '../data/hatchlings'
 import { isVersusPick, type Team, type VersusPick } from '../data/versus'
 import type { CoopInvite } from '../game/friends'
 import { NO_RANKS } from '../game/meta'
@@ -40,7 +40,7 @@ export const buildAdvice = (o: { own: string; room: string | null; latest: strin
 }
 
 /** The Pokémon a player brings to a room: their partner, unless it's a legend (the Legend mode stays solo, `COOP_LOCKS`), then the first starter. */
-export const coopStarter = (partner: PlayableId) => PLAYABLE_IDS.find((id) => id === partner) ?? PLAYABLE_IDS[0]!
+export const coopStarter = (partner: PlayableId): PlayableId => Object.prototype.hasOwnProperty.call(PLAYABLE, partner) ? partner : 'charmander'
 
 /** An Arena seat's loadout: the Pokémon and the side it asks for (the match brings nothing from the save: no ranks, no shiny). */
 export const arenaLoadout = (starter: VersusPick, team: Team): CoopPick => ({ starter, ranks: { ...NO_RANKS }, shiny: false, team })

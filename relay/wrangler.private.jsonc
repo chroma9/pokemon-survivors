@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // The dev relay (`npm run deploy`). Production is `env.production` below (`npm run deploy:prod`).
+  "name": "chroma9-survivors-coop",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // ShardObject: the rooms, many per object. v3 deleted RoomObject, the one room per object of the rooms made before
+  // shards (all expired by then). Migrations only ever append.
+  "durable_objects": {
+    "bindings": [
+      { "name": "SHARDS", "class_name": "ShardObject" },
+      { "name": "VAULT", "class_name": "Vault" },
+      { "name": "MATCHMAKER", "class_name": "Matchmaker" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RoomObject", "Vault"] },
+    { "tag": "v2", "new_sqlite_classes": ["ShardObject"] },
+    { "tag": "v3", "deleted_classes": ["RoomObject"] },
+    { "tag": "v4", "new_sqlite_classes": ["Matchmaker"] }
+  ],
+  // Per IP, per Cloudflare location. Generous: a whole carrier NAT can sit behind one IP.
+  "ratelimits": [
+    { "name": "CREATE_LIMIT", "namespace_id": "4101", "simple": { "limit": 30, "period": 60 } },
+    { "name": "CONNECT_LIMIT", "namespace_id": "4102", "simple": { "limit": 300, "period": 60 } }
+  ],
+  // ALLOW_GUESTS: the dev relay and local `wrangler dev` seat guests (the soak, in-tab bots, dev builds); production doesn't.
+  // ROOMS_PER_SHARD: the rooms one ShardObject holds at most (README, "Limits and costs").
+  // Matchmaker (v4): the Arena's queue. SIM_BUILD_URL (production only): the site's current build, the only one it takes;
+  // without it the dev relay's queue takes every build (Vercel previews share it).
+  // ARENA_API_URL (production only): where Arena reports and MMR lookups go, signed with the ARENA_REPORT_SECRET secret.
+  "vars": {
+    "CLERK_ISSUER": "https://chroma9-survivors.pages.dev",
+    "ALLOWED_ORIGINS": "https://chroma9-survivors.pages.dev,https://coop-mode.chroma9-survivors.pages.dev",
+    "ALLOW_GUESTS": "on",
+    "ROOMS_PER_SHARD": "24"
+  }
+}
