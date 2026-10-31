@@ -55,7 +55,7 @@ const json = (body: unknown, status = 200, headers: HeadersInit = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } })
 
 const cors = (origin: string | null): Record<string, string> =>
-  origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' } : {}
+  origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', Vary: 'Origin' } : {}
 
 const ipOf = (request: Request) => request.headers.get('CF-Connecting-IP') ?? 'unknown'
 
