@@ -149,6 +149,7 @@ export default {
       return json({ ok }, ok ? 200 : 409, headers)
     }
     if (path.startsWith('/trainers/') ) {
+      try {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'trainer:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       if ((path === '/trainers/login' || path === '/trainers/register') && !(await env.TRAINER_AUTH_LIMIT.limit({ key: 'trainer-login:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const store = env.TRAINER_ACCOUNTS.getByName('global')
@@ -195,6 +196,10 @@ export default {
         return json(profile ? { profile } : { error: 'missing' }, profile ? 200 : 404, headers)
       }
       return new Response('Not found', { status: 404, headers })
+      } catch (error) {
+        console.error('trainer endpoint failed', { path, message: error instanceof Error ? error.message : String(error) })
+        return json({ error: 'server' }, 500, headers)
+      }
     }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
     const ws = path.match(/^\/rooms\/([^/]+)\/ws$/)
