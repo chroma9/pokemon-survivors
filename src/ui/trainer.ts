@@ -74,8 +74,10 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   }
   draw(accountState())
   const offState = onAccountChange(draw)
+  const cloudChanged = () => draw(accountState())
+  window.addEventListener('ps:trainer-changed', cloudChanged)
   const offKey = input.onKey((key) => key === 'KeyC' && open())
-  return { el, dispose: () => (offState(), offKey()) }
+  return { el, dispose: () => (offState(), offKey(), window.removeEventListener('ps:trainer-changed', cloudChanged)) }
 }
 
 /** Month and year of a date, in the current language (`10/2026`). */
@@ -267,6 +269,8 @@ export const trainerCardScreen = (
   }
 
   const offState = onAccountChange(() => build(false))
+  const cloudChanged = () => build(false)
+  window.addEventListener('ps:trainer-changed', cloudChanged)
   const offKeys = input.onKey((key) => !sub && (key === 'Escape' || key === 'Backspace') && close())
 
   const dispose = () => {
@@ -274,6 +278,7 @@ export const trainerCardScreen = (
     sub?.dispose()
     nav?.off()
     offState()
+    window.removeEventListener('ps:trainer-changed', cloudChanged)
     offKeys()
     el.remove()
   }
