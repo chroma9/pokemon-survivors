@@ -365,7 +365,7 @@ const PERSONAL: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>([
  * legendary's defeat counting toward its capture, a night boss ticking the
  * Caça aos Fantasmas off (the Noite das Bruxas is off in co-op anyway).
  */
-const SOLO_ONLY: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>(['legendBeaten', 'nightBoss'])
+const SOLO_ONLY: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>(['nightBoss'])
 
 /**
  * Whether an event of the simulation is this client's to see and hear: the
