@@ -118,6 +118,11 @@ export default {
     const headers = cors(origin)
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
     // The Worker answering is the check: no Durable Object is touched, so a flood of these costs nothing past the edge.
+    if (path === '/candy-goal' && request.method === 'GET') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'candy-goal:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const total = await env.TRAINER_ACCOUNTS.getByName('global').communityCandyGoal()
+      return json(total, 200, { ...headers, 'Cache-Control': 'public, max-age=60' })
+    }
     if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
     // Verify an admin browser session without exposing the secret to the frontend bundle.
     if (path === '/admin/verify' && request.method === 'POST') {
