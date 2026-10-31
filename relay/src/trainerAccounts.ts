@@ -1,7 +1,9 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { Env } from './env'
+import { FRIEND_MILESTONES, REFERRAL, WELCOME_GIFT } from '../../src/game/referral'
+import type { Gift } from '../../src/game/gifts'
 
-type User = { id: string; handle: string; name: string; salt: string; verifier: string; created: number }
+type User = { id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
 type Session = { id: string; expires: number }
 const encoder = new TextEncoder()
 const hex = (a: Uint8Array) => [...a].map((n) => n.toString(16).padStart(2, '0')).join('')
@@ -19,16 +21,19 @@ const expiresIn = 30 * 24 * 3600 * 1000
 
 /** Single global account directory. All credentials and session hashes remain within this Durable Object. */
 export class TrainerAccounts extends DurableObject<Env> {
-  async register(handleInput: unknown, passInput: unknown, nameInput: unknown) {
+  async register(handleInput: unknown, passInput: unknown, nameInput: unknown, inviterInput?: unknown) {
     const handle = handleOf(handleInput)
     const pass = clean(passInput)
     const name = clean(nameInput).slice(0, 24)
     if (!handle || pass.length < 12 || pass.length > 128 || name.length < 1) return { error: 'invalid' }
     if (await this.ctx.storage.get('name:' + handle)) return { error: 'taken' }
+    const inviterHandle = handleOf(inviterInput)
+    const inviterId = inviterHandle ? await this.ctx.storage.get<string>('name:' + inviterHandle) : null
     const id = crypto.randomUUID()
     const salt = hex(bytes(16))
-    const u: User = { id, handle, name, salt, verifier: await derive(pass, salt), created: Date.now() }
+    const u: User = { id, handle, name, salt, verifier: await derive(pass, salt), created: Date.now(), referredBy: inviterId ?? null, referralRuns: 0, referralCounted: false }
     await this.ctx.storage.put({ ['user:' + id]: u, ['name:' + handle]: id })
+    if (inviterId) await this.ctx.storage.put('gift:' + id + ':welcome', { id: 'private-ref-welcome-' + id, content: WELCOME_GIFT, reason: { kind: 'welcome', from: inviterHandle } } satisfies Gift)
     return this.issue(u)
   }
   async login(handleInput: unknown, passInput: unknown) {
@@ -68,6 +73,48 @@ export class TrainerAccounts extends DurableObject<Env> {
     const changed = { ...user, name }
     await this.ctx.storage.put('user:' + user.id, changed)
     return publicProfile(changed)
+  }
+  /** Private-fork referrals; the account, never localStorage, owns credit and gift IDs. */
+  async referrals(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    const all = await this.ctx.storage.list<User>({ prefix: 'user:' })
+    const friends = [...all.values()].filter((u) => u.referredBy === user.id).map((u) => ({ handle: u.handle, name: u.name, runs: u.referralRuns ?? 0, counted: u.referralCounted === true }))
+    return { handle: user.handle, link: '?ref=' + user.handle, friends, counted: friends.filter((u) => u.counted).length, milestones: FRIEND_MILESTONES.map((m) => ({ friends: m.friends, reached: friends.filter((u) => u.counted).length >= m.friends })) }
+  }
+  async gifts(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    const gifts = await this.ctx.storage.list<Gift>({ prefix: 'gift:' + user.id + ':' })
+    return [...gifts.values()]
+  }
+  /**
+   * A run submission is currently client-attested, not an authoritative match result.
+   * Never use this endpoint for tradeable or paid rewards without server verification.
+   */
+  async referralRun(token: string, runId: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' }
+    if (typeof runId !== 'string' || !/^[a-zA-Z0-9_-]{16,80}$/.test(runId)) return { error: 'invalid' }
+    if (!user.referredBy || user.referralCounted) return { ok: true, counted: Boolean(user.referralCounted) }
+    const key = 'run:' + user.id + ':' + runId
+    if (await this.ctx.storage.get(key)) return { ok: true, counted: false }
+    await this.ctx.storage.put(key, true)
+    const runs = Math.min(REFERRAL.runs, (user.referralRuns ?? 0) + 1)
+    const updated = { ...user, referralRuns: runs, referralCounted: runs >= REFERRAL.runs }
+    await this.ctx.storage.put('user:' + user.id, updated)
+    if (updated.referralCounted) {
+      const all = await this.ctx.storage.list<User>({ prefix: 'user:' })
+      const counted = [...all.values()].filter((u) => u.referredBy === user.referredBy && u.referralCounted).length
+      for (const milestone of FRIEND_MILESTONES) {
+        if (counted < milestone.friends) continue
+        for (let i = 0; i < milestone.gifts.length; i++) {
+          const giftId = 'private-ref-' + user.referredBy + '-' + milestone.friends + '-' + i
+          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content: milestone.gifts[i], reason: { kind: 'friends', count: milestone.friends } } satisfies Gift)
+        }
+      }
+    }
+    return { ok: true, counted: updated.referralCounted, runs }
   }
   async logout(token: string) {
     if (/^[0-9a-f]{64}$/.test(token)) await this.ctx.storage.delete('session:' + await digest(token))
