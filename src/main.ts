@@ -185,7 +185,8 @@ import { noteDraw, type NetStats } from './coop/netStats'
 import type { CloseWhy, CoopClient } from './coop/client'
 import { arenaLoadout, arenaSeat, coopAccess, coopStarter, freshInvites } from './coop/lobby'
 import { REF_PARAM } from './game/referral'
-import { trainerToken, submitTrainerReferralRun } from './trainerAccounts'
+import { scheduleTrainerSave } from './trainerAccounts'
+import { trainerToken, submitTrainerReferralRun, scheduleTrainerSave } from './trainerAccounts'
 import { PROTOCOL, VPS_HOMES, parseRoomCode, type RoomView } from './net/protocol'
 import { isRecord } from './game/parse'
 import type { CoopInvite } from './game/friends'
@@ -4411,3 +4412,6 @@ if (import.meta.env.DEV) {
     },
   })
 }
+
+// Sync saves after local updates; the cloud client debounces, merges, and retries revisions.
+window.addEventListener('ps:save-written', () => { const relay = coopUrl(); if (relay) scheduleTrainerSave(relay) })
