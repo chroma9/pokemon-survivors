@@ -4,9 +4,9 @@ import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
-import { PLAYABLE } from '../data/hatchlings'
-import { pendingPicks, pickShiny, shinyChoices } from '../game/shinyPicks'
-import { loadSave, writeSave } from './save'
+import { pendingPicks } from '../game/shinyPicks'
+import { loadSave } from './save'
+import { shinyPicker } from './supporters'
 import { changeTrainerPassword, collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
@@ -25,10 +25,10 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     }
     close()
   })
-  const dispose = () => { if (disposed) return; disposed = true; offKeys(); el.remove() }
+  const dispose = () => { if (disposed) return; disposed = true; shinyScreen?.dispose(); shinyScreen = null; offKeys(); el.remove() }
   let mode: 'signin' | 'register' = 'signin'
   let passwordPanel = false
-  let shinyPanel = false
+  let shinyScreen: Screen | null = null
   let message = ''
   let busy = false
   const line = (tag: keyof HTMLElementTagNameMap, value: string, cls = '') => h(tag, { class: cls }, value)
@@ -85,28 +85,6 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       })
       if (!user.mustChangePassword) button('Cancel', async () => { passwordPanel = false })
       append(line('small', 'Changing your password signs out all other devices.'))
-    } else if (user && shinyPanel) {
-      append(line('h3', 'Choose your shiny Pokémon'))
-      append(line('p', 'Redeem one Supporter ticket for a shiny starter or egg family. This choice is permanent.'))
-      const ticket = pendingPicks(loadSave())[0]
-      const choices = shinyChoices(loadSave())
-      if (!ticket) { shinyPanel = false; append(line('p', 'No unused shiny tickets.')) }
-      else if (choices.length === 0) append(line('p', 'You already own every eligible shiny Pokémon.'))
-      else {
-        const picker = h('select', { class: 'box', 'aria-label': 'Choose shiny Pokémon' }) as HTMLSelectElement
-        for (const id of choices) picker.append(h('option', { value: id }, PLAYABLE[id].name))
-        append(picker)
-        button('Redeem shiny ticket', async () => {
-          const id = picker.value as typeof choices[number]
-          if (!window.confirm('Use your shiny ticket for ' + PLAYABLE[id].name + '? This cannot be undone.')) return
-          const next = pickShiny(loadSave(), ticket.id, id)
-          if (!next) throw Error('Ticket or Pokémon is no longer available.')
-          writeSave(next)
-          await syncTrainerSave(relay)
-          shinyPanel = false
-        })
-      }
-      button('Back to Trainer Account', async () => { shinyPanel = false })
     } else if (user) {
       append(h('div', { class: 'trainer-account-identity' }, line('h3', user.name), line('p', '@' + user.handle), line('p', 'Supporter: ' + (user.supporterTier ?? 'None'))))
       const id = line('small', 'Trainer ID: ' + user.id)
@@ -124,7 +102,10 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
         await syncTrainerSave(relay)
       }, false)
       const tickets = pendingPicks(loadSave()).length
-      if (tickets) button('Choose shiny Pokémon (' + tickets + ' ticket' + (tickets === 1 ? '' : 's') + ')', async () => { shinyPanel = true })
+      if (tickets) button('Choose shiny Pokémon (' + tickets + ' ticket' + (tickets === 1 ? '' : 's') + ')', async () => {
+        el.classList.add('hidden')
+        shinyScreen = shinyPicker(root, input, { play: () => { shinyScreen?.dispose(); shinyScreen = null; el.classList.remove('hidden'); render() } }, () => { shinyScreen = null; el.classList.remove('hidden'); render() }, () => syncTrainerSave(relay))
+      }, false)
       const name = field('Display name', 'New trainer name', 'text', 'nickname')
       button('Change display name', async () => { await renameTrainer(relay, name.value) })
       button('Change password', async () => { passwordPanel = true })
@@ -164,5 +145,5 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     }, false)
   }
   render()
-  return { el, dispose }
+  return { el, tick: (time) => shinyScreen?.tick?.(time), dispose }
 }
