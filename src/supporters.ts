@@ -1,4 +1,5 @@
 import { accountUserId, onAccountChange } from './account'
+import { currentTrainer } from './trainerAccounts'
 import { apiCall } from './api'
 import type { PollKind, PollOption } from './data/supporters'
 import type { Save } from './game/meta'
@@ -39,6 +40,8 @@ export const knownStatus = (): SupporterStatus | null => {
  * (the badge, the companion), never anything in a run.
  */
 export const knownTier = (save: Save): SupporterTier | null => {
+  const privateTier = currentTrainer()?.supporterTier
+  if (privateTier) return privateTier
   const status = knownStatus()
   return status ? status.tier : savedSupporterTier(save)
 }
