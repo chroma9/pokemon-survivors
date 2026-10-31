@@ -138,6 +138,16 @@ export default {
       const result = await env.TRAINER_ACCOUNTS.getByName('global').resetPassword(data?.handle, data?.password)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
     }
+    if (path === '/admin/shiny-tickets' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-shiny-ticket:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: unknown; count?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantShinyTickets(data?.handle, data?.count)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
     if (path === '/admin/supporter' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-supporter:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
