@@ -33,6 +33,18 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
     }).catch(() => null)
     return response?.ok ? 'ps: password reset; old sessions invalidated' : 'ps.resetPassword: failed (HTTP ' + (response?.status ?? 'offline') + ')'
   },
+  shinyTickets: async (handle: string, count = 1) => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (!/^[a-z0-9_]{3,20}$/i.test(handle) || !Number.isInteger(count) || count < 1 || count > 10) return 'ps.shinyTickets: use a valid username and 1-10 tickets'
+    const url = relay()
+    if (!url) return 'ps.shinyTickets: relay unavailable'
+    const res = await fetch(url + '/admin/shiny-tickets', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, count }),
+    }).catch(() => null)
+    return res?.ok ? 'ps: granted ' + count + ' shiny-choice ticket(s) to @' + handle : 'ps.shinyTickets: failed (HTTP ' + (res?.status ?? 'offline') + ')'
+  },
   supporter: async (handle: string, tier: 'supporter' | 'gold' | 'diamond' | null) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     if (!/^[a-z0-9_]{3,20}$/i.test(handle) || (tier !== null && !['supporter', 'gold', 'diamond'].includes(tier))) return 'ps.supporter: invalid trainer or tier'
