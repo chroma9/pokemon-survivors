@@ -5,79 +5,116 @@ import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
-/** Account management integrated into the game's Settings screen navigation. */
+/** Cloud account management, using the same card and button vocabulary as the game. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
   const el = h('div', { class: 'screen shell dim settings-screen trainer-profile-screen' })
-  const panel = h('section', { class: 'box settings-rows' })
+  const panel = h('section', { class: 'box trainer-account-panel' })
+  Object.assign(panel.style, { width: 'min(100%, 480px)', margin: '18px auto', padding: 'clamp(16px, 4vw, 28px)', boxSizing: 'border-box' })
   const close = () => { dispose(); later(onClose) }
-  el.append(topBar({ left: backButton(close), title: 'Trainer Profile' }), shellBody(h('div', { class: 'settings-panel' }, panel)))
+  el.append(topBar({ left: backButton(close), title: 'Trainer Account' }), shellBody(h('div', { class: 'settings-panel' }, panel)))
   root.append(el)
+  let disposed = false
   const offKeys = input.onKey((key) => {
-    if (key === 'Escape' || key === 'Backspace') {
-      if (document.activeElement instanceof HTMLInputElement) {
-        if (key === 'Backspace') return
-        document.activeElement.blur()
-      }
-      close()
+    if (key !== 'Escape' && key !== 'Backspace') return
+    if (document.activeElement instanceof HTMLInputElement) {
+      if (key === 'Backspace') return
+      document.activeElement.blur()
     }
+    close()
   })
-  const dispose = () => { offKeys(); el.remove() }
-  const elem = (tag: string, value?: string) => {
-    const node = document.createElement(tag)
-    if (value) node.textContent = value
-    panel.append(node)
-    return node
+  const dispose = () => { if (disposed) return; disposed = true; offKeys(); el.remove() }
+  let mode: 'signin' | 'register' = 'signin'
+  let message = ''
+  let busy = false
+  const line = (tag: string, value: string, cls = '') => h(tag, { class: cls }, value)
+  const append = (...nodes: Node[]) => panel.append(...nodes)
+  const field = (label: string, placeholder: string, type = 'text', autocomplete = 'off') => {
+    const wrapper = h('label', { class: 'trainer-account-field' })
+    Object.assign(wrapper.style, { display: 'grid', gap: '6px', margin: '14px 0', textAlign: 'left' })
+    const value = h('input', { class: 'box', placeholder, type, autocomplete }) as HTMLInputElement
+    Object.assign(value.style, { width: '100%', padding: '10px', minHeight: '44px', boxSizing: 'border-box' })
+    wrapper.append(line('span', label), value)
+    append(wrapper)
+    return value
   }
-  const field = (placeholder: string, type = 'text') => {
-    const node = elem('input') as HTMLInputElement
-    node.placeholder = placeholder
-    node.type = type
-    node.autocomplete = type === 'password' ? 'current-password' : 'off'
-    Object.assign(node.style, { display: 'block', width: '95%', padding: '8px', margin: '8px 0', boxSizing: 'border-box' })
-    return node
-  }
-  const action = (label: string, fn: () => Promise<unknown>, rerender = true) => {
-    const node = elem('button', label) as HTMLButtonElement
-    Object.assign(node.style, { margin: '4px', padding: '7px', cursor: 'pointer' })
+  const button = (label: string, handler: () => Promise<unknown>, rerender = true) => {
+    const node = h('button', { class: 'btn', type: 'button' }, label) as HTMLButtonElement
+    Object.assign(node.style, { width: '100%', display: 'block', margin: '10px 0', minHeight: '44px' })
     node.onclick = async () => {
+      if (busy) return
+      busy = true
       node.disabled = true
-      try { await fn(); if (rerender) render(); else node.disabled = false } catch (e) { status.textContent = e instanceof Error ? e.message : String(e); node.disabled = false }
+      node.textContent = 'Working…'
+      try {
+        await handler()
+        if (disposed) return
+        if (rerender) { message = ''; render() } else { node.disabled = false; node.textContent = label }
+      } catch (error) {
+        if (!disposed) { message = error instanceof Error ? error.message : String(error); render() }
+      } finally { busy = false }
     }
+    append(node)
+    return node
   }
-  let status: HTMLElement
   const render = () => {
     panel.replaceChildren()
-    elem('h3', 'Trainer Profile')
-    status = elem('p', '')
     const relay = coopUrl()
-    if (!relay) { status.textContent = 'Co-op relay unavailable'; return }
     const user = currentTrainer()
+    append(line('h2', user ? 'Your Trainer Card' : mode === 'signin' ? 'Welcome back, Trainer!' : 'Become a Trainer'))
+    append(line('p', user ? 'Your progress follows you across devices.' : 'One account for your Pokémon and your cloud save.'))
+    const status = line('p', message, 'trainer-account-status')
+    status.setAttribute('role', 'status')
+    Object.assign(status.style, { minHeight: '18px', overflowWrap: 'anywhere' })
+    append(status)
+    if (!relay) { status.textContent = 'The private relay is unavailable.'; return }
     if (user) {
-      elem('strong', user.name + ' (@' + user.handle + ')')
-      elem('p', 'Trainer ID: ' + user.id)
-      const name = field('New display name')
-      action('Update name', async () => { await renameTrainer(relay, name.value) })
-      action('Refresh profile', async () => { await refreshTrainer(relay) })
-      action('Sync cloud save now', async () => {
+      append(line('h3', user.name), line('p', '@' + user.handle))
+      const id = line('small', 'Trainer ID: ' + user.id)
+      Object.assign(id.style, { overflowWrap: 'anywhere', display: 'block', marginBottom: '16px' })
+      append(id)
+      button('Sync cloud save', async () => {
         const result = await syncTrainerSave(relay)
-        status.textContent = result.synced ? 'Cloud save synchronized (revision ' + result.revision + ')' : 'Sync already in progress'
+        message = result.synced ? 'Cloud save synchronized (revision ' + result.revision + ')' : 'A synchronization is already running.'
+        status.textContent = message
       }, false)
-      action('Sign out', async () => { await logoutTrainer(relay) })
+      button('Refresh Trainer Card', async () => { await refreshTrainer(relay) })
+      const name = field('Display name', 'New trainer name', 'text', 'nickname')
+      button('Change display name', async () => { await renameTrainer(relay, name.value) })
+      button('Sign out', async () => { await logoutTrainer(relay) })
     } else {
-      elem('p', 'Sign in to sync your trainer identity across browsers.')
-      const handle = field('Username (3–20 letters/numbers/_)')
-      const password = field('Password (12+ characters)', 'password')
-      const name = field('Display name')
-      action('Sign in', async () => { await loginTrainer(relay, handle.value, password.value) })
-      action('Create account', async () => { await registerTrainer(relay, handle.value, password.value, name.value) })
+      const tabs = h('div', { class: 'trainer-account-tabs' })
+      Object.assign(tabs.style, { display: 'flex', gap: '8px', margin: '16px 0' })
+      for (const [value, caption] of [['signin', 'Sign in'], ['register', 'Create account']] as const) {
+        const tab = h('button', { class: 'btn', type: 'button' }, caption) as HTMLButtonElement
+        Object.assign(tab.style, { flex: '1', opacity: mode === value ? '1' : '.65' })
+        tab.setAttribute('aria-pressed', String(mode === value))
+        tab.onclick = () => { mode = value; message = ''; render() }
+        tabs.append(tab)
+      }
+      append(tabs)
+      const handle = field('Username', '3–20 letters, numbers, or _', 'text', 'username')
+      const name = mode === 'register' ? field('Display name', 'What other trainers see', 'text', 'nickname') : null
+      const password = field('Password', mode === 'signin' ? 'Your password' : 'At least 12 characters', 'password', mode === 'signin' ? 'current-password' : 'new-password')
+      const toggle = h('label', {}, h('input', { type: 'checkbox' }), ' Show password')
+      const check = toggle.querySelector('input') as HTMLInputElement
+      check.onchange = () => { password.type = check.checked ? 'text' : 'password' }
+      append(toggle)
+      button(mode === 'signin' ? 'Sign in' : 'Create trainer account', async () => {
+        if (!handle.value.trim() || !password.value) throw Error('Enter your username and password.')
+        if (mode === 'register') {
+          if (password.value.length < 12) throw Error('Password must contain at least 12 characters.')
+          if (!name?.value.trim()) throw Error('Enter your display name.')
+          await registerTrainer(relay, handle.value, password.value, name.value)
+        } else await loginTrainer(relay, handle.value, password.value)
+      })
     }
-    elem('hr')
-    elem('p', 'Look up a trainer')
-    const lookup = field('Username')
-    action('View profile', async () => {
+    append(h('hr'), line('h3', 'Find a Trainer'))
+    const lookup = field('Trainer username', 'Search by username')
+    button('View Trainer Profile', async () => {
       const profile = await trainerLookup(relay, lookup.value)
-      status.textContent = profile.name + ' (@' + profile.handle + ') — Trainer ID: ' + profile.id
-    })
+      message = profile.name + ' (@' + profile.handle + ') — Trainer ID: ' + profile.id
+      status.textContent = message
+    }, false)
   }
   render()
   return { el, dispose }
