@@ -29,7 +29,7 @@ const bytes = (n: number) => crypto.getRandomValues(new Uint8Array(n))
 const digest = async (value: string) => hex(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value))))
 const derive = async (pass: string, salt: string) => {
   const key = await crypto.subtle.importKey('raw', encoder.encode(pass), 'PBKDF2', false, ['deriveBits'])
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', iterations: 210000, salt: encoder.encode(salt) }, key, 256)
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', iterations: 100000, salt: encoder.encode(salt) }, key, 256)
   return hex(new Uint8Array(bits))
 }
 const clean = (v: unknown) => typeof v === 'string' ? v.trim() : ''
