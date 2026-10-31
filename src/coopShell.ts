@@ -72,8 +72,9 @@ const local: Store = {
  * (co-op is for signed-in players); dev builds keep it, as guests on the dev relay.
  */
 export const coopUrl = (): string | null => {
-  if (!accountsEnabled && !import.meta.env.DEV) return null
-  return (import.meta.env.DEV ? local.get(URL_KEY) : null) ?? import.meta.env.VITE_COOP_URL ?? (import.meta.env.DEV ? DEV_RELAY : null)
+  // A private deployment may use a guest-enabled relay without the official accounts API.
+  // Never fall back to upstream servers in a production build.
+  return import.meta.env.VITE_COOP_URL ?? (import.meta.env.DEV ? local.get(URL_KEY) ?? DEV_RELAY : null)
 }
 
 export const setCoopUrl = (url: string | null) => (url ? local.set(URL_KEY, url) : local.remove(URL_KEY))
@@ -105,7 +106,7 @@ export const coopName = () => {
   const handle = accountHandle()
   if (handle) return `@${handle}`
   // No handle yet (the shell asks for one before co-op): never shown in practice.
-  if (!import.meta.env.DEV) return '?'
+  if (!import.meta.env.DEV && !import.meta.env.VITE_COOP_URL) return '?'
   const kept = local.get(NAME_KEY)
   if (kept) return kept
   const name = `Dev ${Math.floor(1000 + Math.random() * 9000)}`
@@ -118,7 +119,7 @@ export const coopName = () => {
  * (`ps:devToken`, for a local API) isn't a Clerk token and the relay would
  * refuse it, so co-op plays as a guest there.
  */
-const coopToken = async () => (import.meta.env.DEV && local.get('ps:devToken') ? null : sessionToken())
+const coopToken = async () => (!accountsEnabled || (import.meta.env.DEV && local.get('ps:devToken')) ? null : sessionToken())
 
 const browserDeps = (url: string, store: Store, token: () => Promise<string | null>, name: () => string): CoopDeps => ({
   url,
