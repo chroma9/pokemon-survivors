@@ -1,3 +1,4 @@
+import { privateAdminConsole, verifyPrivateAdmin } from './privateAdmin'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
 import './ui/style.css'
@@ -107,7 +108,7 @@ import { clearSpot, featureAt, featuresNear, footOf, inSolid } from './game/terr
 import { TERRAIN, type SolidKind } from './data/terrain'
 import type { LandmarkId } from './data/landmarks'
 import { dexNews, dexStatus, mergeDex, recordRun, type Pokedex } from './game/dex'
-import { runEarnings, wonRun, type ConvertedEggs } from './game/meta'
+import { parseSave, runEarnings, wonRun, type ConvertedEggs } from './game/meta'
 import { missionStatus, type MissionStatus } from './game/missions'
 import { summarizeRun, type RunSummary } from './game/tally'
 import { parseHandle, rankable, runMode, runResult } from './game/ranking'
@@ -184,6 +185,7 @@ import { noteDraw, type NetStats } from './coop/netStats'
 import type { CloseWhy, CoopClient } from './coop/client'
 import { arenaLoadout, arenaSeat, coopAccess, coopStarter, freshInvites } from './coop/lobby'
 import { REF_PARAM } from './game/referral'
+import { trainerToken, submitTrainerReferralRun, scheduleTrainerSave, syncTrainerSave } from './trainerAccounts'
 import { PROTOCOL, VPS_HOMES, parseRoomCode, type RoomView } from './net/protocol'
 import { isRecord } from './game/parse'
 import type { CoopInvite } from './game/friends'
@@ -840,9 +842,15 @@ const recordProgress = (r: Run) => {
  * the way out, which only sends again if the run went on into endless mode.
  * Quits in the first minute aren't worth a line on the profile.
  */
+const referralReported = new WeakSet<Run>()
 const rankRun = (r: Run) => {
   const result = runResult(r.game, __GAME_VERSION__)
   if (!rankable(result)) return
+  if (!referralReported.has(r) && trainerToken()) {
+    referralReported.add(r)
+    const relay = coopUrl()
+    if (relay) void submitTrainerReferralRun(relay, crypto.randomUUID()).catch((err) => console.warn('Referral run could not be recorded', err))
+  }
   if (r.ranked) r.rank = r.ranked.submit(result, r.recorder.replay)
   // The first challenge run of the day that counts is this device's attempt; it grows if it goes on into endless mode.
   const c = r.challenge
@@ -2245,6 +2253,13 @@ const endCoopRun = (r: Run, c: CoopRun) => {
   // An Arena match reports its own end (`versus_end`, `reportVersus`).
   if (!g.versus) track('coop', { step: 'end', players: g.players.length, minute: Math.floor(g.time / 60), outcome, difficulty: g.difficulty })
   reportNet(c, outcome)
+  // Count a genuine completed co-op run toward private trainer referrals.
+  // Leaving an unfinished room and Arena matches must not count.
+  if (!g.versus && (wonRun(g) || coopOver(g)) && !referralReported.has(r) && trainerToken()) {
+    referralReported.add(r)
+    const relay = coopUrl()
+    if (relay) void submitTrainerReferralRun(relay, crypto.randomUUID()).catch((err) => console.warn('Co-op referral run could not be recorded', err))
+  }
   r.overlay?.dispose()
   r.closeText?.()
   r.hud.dispose()
@@ -4150,6 +4165,59 @@ const devArena = (cmd?: string, arg?: string, then?: string) => {
 }
 
 // `ps.biome('cave')` and `ps.weather('rain')` stage a run for screenshots (they hold until the next scheduled change).
+if (!import.meta.env.DEV) {
+  const authorized = () => verifyPrivateAdmin(coopUrl())
+  const backup = () => {
+    if (!localStorage.getItem('ps:adminSaveBackup')) localStorage.setItem('ps:adminSaveBackup', JSON.stringify(loadSave()))
+  }
+  const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
+  Object.assign(window, { ps: {
+    ...commands,
+    spawn: async (kind: EnemyId, count = 1, target?: string) => {
+      if (run?.coop) return commands.spawn(kind, count, target)
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!Object.hasOwn(ENEMIES, kind) || !Number.isInteger(count) || count < 1 || count > 20) return 'ps.spawn: invalid enemy/count'
+      if (!run) return 'ps.spawn: start a run first'
+      devSpawn(kind, count)
+      return 'ps: local enemies spawned'
+    },
+    unlockFamily: async (id?: HatchlingId, shiny = false) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(HATCHLINGS, id)) return 'ps: unknown Pokémon family'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : HATCHLING_IDS
+      writeSave({ ...save, hatched: { ...save.hatched, ...Object.fromEntries(ids.map((i) => [i, { shiny }])) } })
+      return 'ps: family unlocks saved'
+    },
+    unlockShiny: async (id?: PlayableId) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(PLAYABLE, id)) return 'ps: unknown Pokémon'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : (Object.keys(PLAYABLE) as PlayableId[])
+      writeSave({ ...save, shinyStarters: ids.reduce(unlockShinyStarter, save.shinyStarters) })
+      return 'ps: shiny unlocks saved'
+    },
+    restoreBackup: async () => {
+      if (!await authorized()) return 'ps: unauthorized'
+      const stored = localStorage.getItem('ps:adminSaveBackup')
+      if (!stored) return 'ps: no pre-cheat save backup'
+      writeSave(parseSave(stored))
+      return 'ps: original save restored; refresh the page'
+    },
+    money: async (amount = 20000) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) return 'ps.money: amount must be 1–1000000'
+      backup()
+      const save = loadSave()
+      writeSave({ ...save, wallet: save.wallet + amount })
+      return 'ps: money added; refresh menus to see your balance'
+    },
+  } })
+}
+
+
 if (import.meta.env.DEV) {
   const withRun = (fn: (g: Game) => void) => (run ? fn(run.game) : console.warn('ps: start a run first'))
   Object.assign(window, {
@@ -4350,3 +4418,9 @@ if (import.meta.env.DEV) {
     },
   })
 }
+
+// Sync saves after local updates; the cloud client debounces, merges, and retries revisions.
+window.addEventListener('ps:save-written', () => { const relay = coopUrl(); if (relay) scheduleTrainerSave(relay) })
+
+// Resume cloud save synchronization for a trainer who stayed signed in.
+if (trainerToken()) queueMicrotask(() => { const relay = coopUrl(); if (relay) void syncTrainerSave(relay).catch((err) => console.warn('Trainer cloud sync unavailable', err)) })

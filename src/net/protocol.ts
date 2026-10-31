@@ -137,7 +137,7 @@ export type Frame = { t: 'frame'; from: number; to: number; ticks: readonly Tick
 export type SnapshotRef = { tick: number; h: string; parts: number }
 
 /** Who a seat belongs to: a signed-in Clerk user (verified by the relay) or a guest id kept by the device (dev and local relays only). */
-export type Auth = { kind: 'clerk'; token: string } | { kind: 'guest'; id: string }
+export type Auth = { kind: 'clerk'; token: string } | { kind: 'trainer'; token: string } | { kind: 'guest'; id: string }
 
 export type Phase = 'lobby' | 'playing' | 'ended'
 
@@ -410,6 +410,7 @@ const parseHash = (v: unknown) => (typeof v === 'string' && /^[0-9a-zA-Z_-]{1,32
 /** A hello's (or the Arena queue's) auth, or null. */
 export const parseAuth = (v: unknown): Auth | null => {
   if (!isRecord(v)) return null
+  if (v.kind === 'trainer') return typeof v.token === 'string' && /^[0-9a-f]{64}$/.test(v.token) ? { kind: 'trainer', token: v.token } : null
   if (v.kind === 'clerk') return typeof v.token === 'string' && v.token.length > 0 && v.token.length <= LIMITS.token ? { kind: 'clerk', token: v.token } : null
   if (v.kind === 'guest') return typeof v.id === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.id) ? { kind: 'guest', id: v.id } : null
   return null

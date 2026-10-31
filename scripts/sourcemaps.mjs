@@ -6,8 +6,9 @@
 import { spawnSync } from 'node:child_process'
 import { readdir, rm } from 'node:fs/promises'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const DIST = join(new URL('..', import.meta.url).pathname, 'dist')
+const DIST = join(fileURLToPath(new URL('..', import.meta.url)), 'dist')
 
 if (process.env.POSTHOG_CLI_API_KEY && process.env.POSTHOG_CLI_PROJECT_ID) {
   const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7)

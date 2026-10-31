@@ -1,4 +1,5 @@
 import { accountHandle, accountsEnabled, sessionToken } from './account'
+import { currentTrainer, trainerToken } from './trainerAccounts'
 import { track, type RunPerf } from './analytics'
 import { bank, bankKey, paysAnything, type BankDelta, type Store } from './coop/bank'
 import { createBot, botPick, type Bot } from './coop/bot'
@@ -105,6 +106,8 @@ export const setCoopVpsUrl = (home: VpsHome, url: string | null) => (url ? local
  * guests, fall back to a name kept on the device; bots bring their own.
  */
 export const coopName = () => {
+  const privateProfile = currentTrainer()
+  if (privateProfile && trainerToken()) return privateProfile.name
   const handle = accountHandle()
   if (handle) return `@${handle}`
   // No handle yet (the shell asks for one before co-op): never shown in practice.
@@ -131,6 +134,7 @@ const browserDeps = (url: string, store: Store, token: () => Promise<string | nu
   fetch: (u, init) => fetch(u, init),
   store,
   token,
+  trainerToken,
   name,
   now: () => performance.now(),
   random: Math.random,

@@ -12,19 +12,22 @@
     "bindings": [
       { "name": "SHARDS", "class_name": "ShardObject" },
       { "name": "VAULT", "class_name": "Vault" },
-      { "name": "MATCHMAKER", "class_name": "Matchmaker" }
+      { "name": "MATCHMAKER", "class_name": "Matchmaker" },
+      { "name": "TRAINER_ACCOUNTS", "class_name": "TrainerAccounts" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["RoomObject", "Vault"] },
     { "tag": "v2", "new_sqlite_classes": ["ShardObject"] },
     { "tag": "v3", "deleted_classes": ["RoomObject"] },
-    { "tag": "v4", "new_sqlite_classes": ["Matchmaker"] }
+    { "tag": "v4", "new_sqlite_classes": ["Matchmaker"] },
+    { "tag": "v5", "new_sqlite_classes": ["TrainerAccounts"] }
   ],
   // Per IP, per Cloudflare location. Generous: a whole carrier NAT can sit behind one IP.
   "ratelimits": [
     { "name": "CREATE_LIMIT", "namespace_id": "4101", "simple": { "limit": 30, "period": 60 } },
-    { "name": "CONNECT_LIMIT", "namespace_id": "4102", "simple": { "limit": 300, "period": 60 } }
+    { "name": "CONNECT_LIMIT", "namespace_id": "4102", "simple": { "limit": 300, "period": 60 } },
+    { "name": "TRAINER_AUTH_LIMIT", "namespace_id": "4103", "simple": { "limit": 10, "period": 60 } }
   ],
   // ALLOW_GUESTS: the dev relay and local `wrangler dev` seat guests (the soak, in-tab bots, dev builds); production doesn't.
   // ROOMS_PER_SHARD: the rooms one ShardObject holds at most (README, "Limits and costs").

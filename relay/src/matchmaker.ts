@@ -66,7 +66,7 @@ export const parseQueueMessage = (raw: string): QueueClientMessage | null => {
       const format = m.format === undefined ? 'standard' : parseArenaFormat(m.format) === m.format ? parseArenaFormat(m.format) : null
       // A rematch party says how many it waits for: at most a team of its format.
       const size = m.size === undefined || m.size === null ? null : typeof m.size === 'number' && Number.isInteger(m.size) && m.size >= 1 && m.size <= arenaPlayers(format ?? 'standard') / 2 ? m.size : undefined
-      if (!auth || !kind || party === undefined || size === undefined || !build || !starter || !format) return null
+      if (!auth || auth.kind === 'trainer' || !kind || party === undefined || size === undefined || !build || !starter || !format) return null
       if (kind === 'ranked' && !ARENA_FORMATS[format].ranked) return null
       return { t: 'queue', kind, ...(format !== 'standard' && { format }), starter, party, ...(size !== null && party !== null && { size }), build, auth }
     }

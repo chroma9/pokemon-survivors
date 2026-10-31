@@ -1,4 +1,6 @@
 import { COOP } from '../data/coop'
+import { ENEMIES, type EnemyId } from '../data/enemies'
+import { spawnEnemy } from './enemies'
 import { VERSUS } from '../data/versus'
 import { driveBots } from './versusBots'
 import { stepVersus } from './versus'
@@ -30,6 +32,8 @@ export type PickScreen = Exclude<PlayerPhase, 'playing' | 'evolving'>
 export type TickEntry =
   /** The stick changed: `moveCode` (0 stands still, 1..224 are 32 directions × 7 speeds). It holds until the next one. */
   | { slot: number; kind: 'move'; code: number }
+  /** Authenticated, relay-generated admin event; never accepted from player input. */
+  | { slot: number; kind: 'adminSpawn'; enemy: EnemyId; count: number }
   /** The special attack, the Mega button and the manual moves (Quick Attack), pressed this tick. */
   | { slot: number; kind: 'special' | 'mega' | 'lunge' }
   /**
@@ -84,6 +88,8 @@ export const parseTickEntry = (raw: unknown, players: number): TickEntry | null 
   if (!isRecord(raw) || !isIndex(raw.slot, players - 1) || typeof raw.kind !== 'string') return null
   const { slot, kind } = raw
   switch (kind) {
+    case 'adminSpawn':
+      return typeof raw.enemy === 'string' && Object.hasOwn(ENEMIES, raw.enemy) && isIndex(raw.count, 20) && raw.count > 0 ? { slot, kind, enemy: raw.enemy as EnemyId, count: raw.count } : null
     case 'move':
       return isIndex(raw.code, MAX_CODE) ? { slot, kind, code: raw.code } : null
     case 'special':
@@ -217,6 +223,15 @@ const applyEntry = (g: Game, e: TickEntry, inputs: StepInput[]) => {
   const input = inputs[e.slot]
   if (!p || !input || p.gone || g.phase === 'gameover') return
   switch (e.kind) {
+    case 'adminSpawn': {
+      if (g.versus) return
+      const base = Math.atan2(p.facing.y, p.facing.x)
+      for (let i = 0; i < e.count; i++) {
+        const angle = base + (i - (e.count - 1) / 2) * 0.35
+        spawnEnemy(g, e.enemy, p.x + Math.cos(angle) * 90, p.y + Math.sin(angle) * 90)
+      }
+      return
+    }
     case 'move':
       if (!p.away) coop.held[p.slot] = e.code
       return

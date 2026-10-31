@@ -102,7 +102,7 @@ export const ABUSE = { drops: 600, window: 10_000 } as const
 export type Gen = { secret: () => string; seed: () => number }
 
 /** Who a verified `hello` belongs to: `u:<clerk user id>` or `g:<guest id>`. */
-export type Identity = { id: string; account: boolean }
+export type Identity = { id: string; account: boolean; name?: string }
 
 export type Seat = {
   seat: number
@@ -561,6 +561,19 @@ const stamp = (state: State, entry: Entry) => {
 
 const inRun = (run: Run, seat: number) => run.start.players.some((p) => p.seat === seat) && !run.left.includes(seat)
 
+/** Only internal admin endpoints may inject this entry into a room. */
+export const adminSpawn = (state: State, enemy: string, count: number, target?: string): boolean => {
+  const room = state.room
+  const run = room?.run
+  if (!room || room.phase !== 'playing' || !run || run.ended) return false
+  const eligible = run.start.players.filter((p) => !run.left.includes(p.seat))
+  const named = target ? room.seats.find((s) => s.name.toLowerCase() === target.toLowerCase()) : undefined
+  const player = target ? eligible.find((p) => p.seat === named?.seat) : eligible.find((p) => p.seat !== room.host) ?? eligible[0]
+  if (!player) return false
+  stamp(state, [player.seat, 'adminSpawn', enemy, count])
+  return true
+}
+
 /** A seat was heard from: in a run it comes back from `away`. */
 const heard = (state: State, room: Room, seat: Seat, now: number): Effect[] => {
   state.live.lastSeen.set(seat.seat, now)
@@ -605,7 +618,7 @@ export const hello = (state: State, connId: ConnId, h: Hello, identity: Identity
     if (room.phase === 'playing' || room.seats.length >= seatCap(room) || room.banned.includes(identity.id) || stranger) return refuse(connId, 'unavailable')
     let n = 0
     while (room.seats.some((s) => s.seat === n)) n++
-    seat = { seat: n, identity: identity.id, secret: state.gen.secret(), name: h.name, account: identity.account, loadout: null, ready: false, build: h.build, ua: conn.ua, offlineSince: now, away: false }
+    seat = { seat: n, identity: identity.id, secret: state.gen.secret(), name: identity.name ?? h.name, account: identity.account, loadout: null, ready: false, build: h.build, ua: conn.ua, offlineSince: now, away: false }
     room.seats.push(seat)
     room.seats.sort((a, b) => a.seat - b.seat)
     room.host ??= seat.seat
@@ -734,6 +747,8 @@ export const message = (state: State, connId: ConnId, msg: ClientMessage | null,
       if (room.phase !== 'lobby' || !isHost || msg.code === room.code || room.lock) return out
       return [...out, ...moveRoom(state, room, msg.code)]
     case 'in':
+      // Clients cannot forge privileged entries, even if they know their room's code.
+      if (msg.k === 'adminSpawn') return out
       if (live) stamp(state, [seat.seat, msg.k, ...msg.d])
       return out
     case 'hb':

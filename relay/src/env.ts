@@ -1,6 +1,7 @@
 import type { Matchmaker } from './matchmakerObject'
 import type { ShardObject } from './shardObject'
 import type { Vault } from './vault'
+import type { TrainerAccounts } from './trainerAccounts'
 
 /** The relay's bindings (`wrangler.jsonc`), plus `ADMIN_TOKEN` from `wrangler secret put`. */
 export type Env = {
@@ -9,9 +10,11 @@ export type Env = {
   /** The rooms a shard holds at most (`capOf`; default `DEFAULT_ROOMS_PER_SHARD`). */
   ROOMS_PER_SHARD?: string
   VAULT: DurableObjectNamespace<Vault>
+  TRAINER_ACCOUNTS: DurableObjectNamespace<TrainerAccounts>
   /** Per IP and Cloudflare location: rooms created, and sockets opened. */
   CREATE_LIMIT: RateLimit
   CONNECT_LIMIT: RateLimit
+  TRAINER_AUTH_LIMIT: RateLimit
   /** The Clerk instance whose session tokens sign players in (its JWKS is under `/.well-known/jwks.json`). */
   CLERK_ISSUER: string
   /** Comma-separated origins the game is served from; `*` stands for one DNS label (`https://*.vercel.app`). */
@@ -23,6 +26,8 @@ export type Env = {
   ALLOW_GUESTS?: string
   /** Bearer token of the admin endpoints (desync dumps). Unset, they answer 404. */
   ADMIN_TOKEN?: string
+  /** Separate browser game-admin token; never embedded in a client bundle. */
+  GAME_ADMIN_TOKEN?: string
   /** The Arena's matchmaker (`/arena/queue`), one object. */
   MATCHMAKER: DurableObjectNamespace<Matchmaker>
   /** The API the Arena's match reports and MMR lookups go to (`https://api.pokemonsurvivors.com`). Unset: nothing is posted. */
