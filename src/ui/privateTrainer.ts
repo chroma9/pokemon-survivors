@@ -3,7 +3,7 @@ import type { Screen } from './screens'
 import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
-import { collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, trainerReferrals } from '../trainerAccounts'
+import { collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, trainerReferrals, syncTrainerSave } from '../trainerAccounts'
 
 /** Account management integrated into the game's Settings screen navigation. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -58,6 +58,10 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       const name = field('New display name')
       action('Update name', async () => { await renameTrainer(relay, name.value) })
       action('Refresh profile', async () => { await refreshTrainer(relay) })
+      action('Sync cloud save now', async () => {
+        const result = await syncTrainerSave(relay)
+        status.textContent = result.synced ? 'Cloud save synchronized (revision ' + result.revision + ')' : 'Sync already in progress'
+      }, false)
       elem('hr')
       elem('h3', 'Invite friends')
       elem('p', 'Friends qualify after 3 completed runs.')
