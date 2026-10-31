@@ -8,7 +8,7 @@ Status: **preview implementation; validate builds and multiplayer before merging
 - Editable display name (maximum 24 characters)
 - Account registration and sign-in with a separate password (minimum 12 characters)
 - Cloudflare Durable Object account storage
-- PBKDF2-SHA-256 password verifier, per-account random salt, 210,000 iterations
+- PBKDF2-SHA-256 password verifier, per-account random salt, 100,000 iterations
 - 256-bit random session bearer tokens, stored hashed on the server, with a 30-day expiry
 - Logout revokes the current token
 - Public profile lookup by handle; no password/session information returned
