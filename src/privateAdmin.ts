@@ -47,6 +47,18 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
     const result = await res.json().catch(() => null) as { error?: string } | null
     return res.ok ? 'ps: sent ' + (shiny ? 'shiny ' : '') + family + ' Mystery Gift to @' + handle : 'ps.givePokemon: ' + (result?.error ?? 'failed') + ' (HTTP ' + res.status + ')'
   },
+  grantTitle: async (handle: string, title: 'developer' | 'tester') => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (!/^[a-z0-9_]{3,20}$/i.test(handle) || (title !== 'developer' && title !== 'tester')) return 'ps.grantTitle: invalid trainer or title'
+    const url = relay()
+    if (!url) return 'ps.grantTitle: relay unavailable'
+    const res = await fetch(url + '/admin/grant-title', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, title }),
+    }).catch(() => null)
+    return res?.ok ? 'ps: sent ' + title + ' title to @' + handle : 'ps.grantTitle: failed (HTTP ' + (res?.status ?? 'offline') + ')'
+  },
   shinyTickets: async (handle: string, count = 1) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     if (!/^[a-z0-9_]{3,20}$/i.test(handle) || !Number.isInteger(count) || count < 1 || count > 10) return 'ps.shinyTickets: use a valid username and 1-10 tickets'
