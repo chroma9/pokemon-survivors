@@ -33,6 +33,20 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
     }).catch(() => null)
     return response?.ok ? 'ps: password reset; old sessions invalidated' : 'ps.resetPassword: failed (HTTP ' + (response?.status ?? 'offline') + ')'
   },
+  givePokemon: async (handle: string, family: string, shiny = false) => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (!/^[a-z0-9_]{3,20}$/i.test(handle) || !/^[a-z0-9_]{2,40}$/i.test(family) || typeof shiny !== 'boolean') return 'ps.givePokemon: invalid username, Pokémon or shiny flag'
+    const url = relay()
+    if (!url) return 'ps.givePokemon: relay unavailable'
+    const res = await fetch(url + '/admin/give-pokemon', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, family: family.toLowerCase(), shiny }),
+    }).catch(() => null)
+    if (!res) return 'ps.givePokemon: relay unreachable'
+    const result = await res.json().catch(() => null) as { error?: string } | null
+    return res.ok ? 'ps: sent ' + (shiny ? 'shiny ' : '') + family + ' Mystery Gift to @' + handle : 'ps.givePokemon: ' + (result?.error ?? 'failed') + ' (HTTP ' + res.status + ')'
+  },
   shinyTickets: async (handle: string, count = 1) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     if (!/^[a-z0-9_]{3,20}$/i.test(handle) || !Number.isInteger(count) || count < 1 || count > 10) return 'ps.shinyTickets: use a valid username and 1-10 tickets'
