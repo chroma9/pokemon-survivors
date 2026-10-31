@@ -1088,17 +1088,10 @@ export const titleScreen = (
     // Rebuilt with the same partner (`refresh`), a walk it's taking goes on and this lobby keeps its `leave`.
     if (!leave || was?.dex !== stage.partner.dex || was.shiny !== stage.partner.shiny) leave = actions.meadow.meet(stage.partner)
     tickers = [outbreak.tick, stage.tick]
-    const openHall = () => (select('hall', false), playSfx('select'), lobbyPress('hall'), later(() => openOver((focus) => actions.supporters(focus, hallCall()))))
-    const hall = navigable(rails ? hallTile(openHall) : hallCard(openHall), 'hall')
     const invites = (accountsEnabled || Boolean(currentTrainer())) ? [pressable(rails ? invitesTile() : invitesCard(), 'friends')] : []
-    // On the rails the profiles leave the lobby for the Discord screen (and Ajustes → Sobre); landscape phones hold them in the top bar.
-    const community = rails
-      ? [pressable(discordTile(), 'discord')]
-      : landscape
-        ? []
-        : [h('div', { class: 'lobby-community' }, pressable(discordCard(), 'discord'), ...SOCIAL_IDS.map((id) => pressable(socialCard(id), id)))]
     const dojo = rails ? [pressable(dojoTile(true), 'dojo')] : []
-    const side = h('div', { class: 'lobby-side' }, ...(rails ? [gift] : []), hall, ...invites, ...dojo, ...community, ...(rails ? [explore] : []))
+    // Keep the referral card; hide Hall of Fame and all social/community cards from the lobby panel.
+    const side = h('div', { class: 'lobby-side' }, ...(rails ? [gift] : []), ...invites, ...dojo, ...(rails ? [explore] : []))
     // A friend's invite needs the room of a banner: under the partner on the rails, under the Hall elsewhere.
     const notice = rails ? h('div', { class: 'lobby-notice' }) : side
     inviteBanner(notice, press('invite'), (banner) => navigable(banner, 'invite'))
