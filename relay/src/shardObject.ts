@@ -239,7 +239,7 @@ export class ShardObject extends DurableObject<Env> {
   async spawnAdminEnemy(code: string, enemy: string, count: number, target?: string): Promise<boolean> {
     const shell = this.rooms.get(code)
     if (!shell) return false
-    const done = adminSpawn(shell.state, enemy, count)
+    const done = adminSpawn(shell.state, enemy, count, target)
     if (done) this.scheduleAlarm()
     return done
   }
