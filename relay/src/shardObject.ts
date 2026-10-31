@@ -237,6 +237,17 @@ export class ShardObject extends DurableObject<Env> {
 
   /** Internal Durable Object action; only the Worker exposes it after verifying the admin secret. */
   /** Sanitized room telemetry for the private Developer Observatory. No seat secrets or identities. */
+  /** Only active seats; matching the displayed in-game name, not account credentials. */
+  async findObservatoryPlayer(name: string) {
+    const found: string[] = []
+    for (const shell of this.rooms.values()) {
+      const room = shell.state.room
+      if (!room?.run || room.phase !== 'playing') continue
+      if (room.seats.some((seat) => seat.offlineSince === null && seat.name.toLowerCase() === name.toLowerCase())) found.push(room.code)
+    }
+    return found
+  }
+
   async observeAdminRoom(code: string) {
     const room = this.rooms.get(code)?.state.room
     if (!room) return null
