@@ -562,11 +562,13 @@ const stamp = (state: State, entry: Entry) => {
 const inRun = (run: Run, seat: number) => run.start.players.some((p) => p.seat === seat) && !run.left.includes(seat)
 
 /** Only internal admin endpoints may inject this entry into a room. */
-export const adminSpawn = (state: State, enemy: string, count: number): boolean => {
+export const adminSpawn = (state: State, enemy: string, count: number, target?: string): boolean => {
   const room = state.room
   const run = room?.run
   if (!room || room.phase !== 'playing' || !run || run.ended) return false
-  const player = run.start.players.find((p) => !run.left.includes(p.seat))
+  const eligible = run.start.players.filter((p) => !run.left.includes(p.seat))
+  const named = target ? room.seats.find((s) => s.name.toLowerCase() === target.toLowerCase()) : undefined
+  const player = target ? eligible.find((p) => p.seat === named?.seat) : eligible.find((p) => p.seat !== room.host) ?? eligible[0]
   if (!player) return false
   stamp(state, [player.seat, 'adminSpawn', enemy, count])
   return true
