@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { Env } from './env'
+import { HATCHLINGS, type HatchlingId } from '../../src/data/hatchlings'
 // Keep Worker-only referral definitions independent of browser game modules.
 // These mirror src/game/referral.ts; verify both when changing rewards.
 type ReferralContent =
@@ -110,6 +111,22 @@ export class TrainerAccounts extends DurableObject<Env> {
   }
   /** Only the authenticated Worker administrator may call this RPC from the route. */
   /** Issue event shiny-choice tickets, independently of paid supporter status. */
+  /** Admin-issued Pokémon Mystery Gift for a specific private Trainer Account. */
+  async grantPokemon(handleInput: unknown, familyInput: unknown, shinyInput: unknown) {
+    const handle = handleOf(handleInput)
+    const family = typeof familyInput === 'string' ? familyInput.toLowerCase() : ''
+    if (!handle || !Object.hasOwn(HATCHLINGS, family) || typeof shinyInput !== 'boolean') return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const giftId = 'private-event-pokemon-' + crypto.randomUUID()
+    await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+      id: giftId,
+      content: { kind: 'pokemonGift', family: family as HatchlingId, shiny: shinyInput },
+      reason: { kind: 'staff', from: null },
+    })
+    return { ok: true, handle: user.handle, family, shiny: shinyInput, giftId }
+  }
   async grantShinyTickets(handleInput: unknown, countInput: unknown) {
     const handle = handleOf(handleInput)
     if (!handle || !Number.isInteger(countInput) || (countInput as number) < 1 || (countInput as number) > 10) return { error: 'invalid' }
