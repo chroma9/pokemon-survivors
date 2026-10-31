@@ -10,7 +10,7 @@ export const verifyPrivateAdmin = async (relay: string | null, value = localStor
   }
 }
 
-export const privateAdminConsole = (relay: () => string | null) => ({
+export const privateAdminConsole = (relay: () => string | null, room: () => string | null) => ({
   password: async (token: string) => {
     if (!await verifyPrivateAdmin(relay(), token)) return 'ps: invalid token'
     localStorage.setItem(TOKEN_KEY, token)
