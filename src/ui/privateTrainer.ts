@@ -36,12 +36,12 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     Object.assign(node.style, { display: 'block', width: '95%', padding: '8px', margin: '8px 0', boxSizing: 'border-box' })
     return node
   }
-  const action = (label: string, fn: () => Promise<unknown>) => {
+  const action = (label: string, fn: () => Promise<unknown>, rerender = true) => {
     const node = elem('button', label) as HTMLButtonElement
     Object.assign(node.style, { margin: '4px', padding: '7px', cursor: 'pointer' })
     node.onclick = async () => {
       node.disabled = true
-      try { await fn(); render() } catch (e) { status.textContent = e instanceof Error ? e.message : String(e); node.disabled = false }
+      try { await fn(); if (rerender) render(); else node.disabled = false } catch (e) { status.textContent = e instanceof Error ? e.message : String(e); node.disabled = false }
     }
   }
   let status: HTMLElement
@@ -75,7 +75,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       action('Collect referral gifts', async () => {
         const outcome = await collectTrainerGifts(relay)
         status.textContent = outcome.applied.length + ' gifts collected, ' + outcome.blocked.length + ' waiting for egg slots.'
-      })
+      }, false)
       action('Sign out', async () => { await logoutTrainer(relay) })
     } else {
       elem('p', 'Sign in to sync your trainer identity across browsers.')
