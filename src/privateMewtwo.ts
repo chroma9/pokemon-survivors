@@ -1,16 +1,16 @@
-import { API_URL, accountState, onAccountChange, sessionToken } from './account'
-import { timeoutSignal } from './net/timeout'
+import { accountHandle, accountState, onAccountChange } from './account'
 
-/** Client-side presentation only; the server checks Clerk's verified admin allowlist. */
+/** Private cosmetic option. Username gating is a UI convenience, not security. */
 export type MewtwoAppearance = 'normal' | 'clone'
-let permitted = false
+const ALLOWED_HANDLE = 'chroma9'
 let selected: MewtwoAppearance = 'normal'
 const listeners = new Set<() => void>()
 const notify = () => { for (const fn of listeners) fn() }
 
+export const canUseMewtwoClone = () =>
+  accountState().kind === 'signedIn' && accountHandle()?.toLowerCase() === ALLOWED_HANDLE
 export const mewtwoAppearance = (): MewtwoAppearance =>
-  permitted && accountState().kind === 'signedIn' ? selected : 'normal'
-export const canUseMewtwoClone = () => permitted && accountState().kind === 'signedIn'
+  canUseMewtwoClone() ? selected : 'normal'
 export const onMewtwoAppearanceChange = (fn: () => void) => {
   listeners.add(fn)
   return () => void listeners.delete(fn)
@@ -20,29 +20,9 @@ export const setMewtwoAppearance = (form: MewtwoAppearance) => {
   selected = form
   notify()
 }
-/** Defaults to Normal whenever authentication, entitlement, or connectivity fails. */
-export const refreshMewtwoAppearancePermission = async () => {
-  permitted = false
+
+// Switch back to Normal on account transitions to prevent stale selections.
+onAccountChange(() => {
   selected = 'normal'
   notify()
-  if (!API_URL || accountState().kind !== 'signedIn') return
-  const token = await sessionToken()
-  if (!token || accountState().kind !== 'signedIn') return
-  try {
-    const res = await fetch(`${API_URL}/me/private-forms`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: timeoutSignal(5000),
-    })
-    if (!res.ok) return
-    const body: unknown = await res.json()
-    if (accountState().kind !== 'signedIn') return
-    permitted = typeof body === 'object' && body !== null && 'mewtwoClone' in body && body.mewtwoClone === true
-    notify()
-  } catch {
-    // No permission while offline; Normal remains playable.
-  }
-}
-
-// Re-evaluate on sign-in and sign-out; never retain an entitlement across accounts.
-onAccountChange(() => { void refreshMewtwoAppearancePermission() })
-void refreshMewtwoAppearancePermission()
+})
