@@ -95,7 +95,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
         status.textContent = message
       }, false)
       button('Refresh Trainer Card', async () => { await refreshTrainer(relay) })
-      button('Collect supporter rewards', async () => {
+      button('Collect Mystery Gifts', async () => {
         const outcome = await collectTrainerGifts(relay)
         message = outcome.applied.length + ' rewards collected' + (outcome.blocked.length ? '; ' + outcome.blocked.length + ' waiting for incubator space' : '')
         status.textContent = message
