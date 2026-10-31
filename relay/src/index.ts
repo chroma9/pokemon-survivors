@@ -128,6 +128,16 @@ export default {
       const authorized = Boolean(secret && supplied) && crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))
       return json({ admin: authorized }, authorized ? 200 : 401, headers)
     }
+    if (path === '/admin/supporter' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-supporter:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: string; tier?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantSupporter(data?.handle, data?.tier)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
     if (path === '/admin/spawn' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-spawn:' + ipOf(request) })).success) return json({ ok: false }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
