@@ -561,6 +561,17 @@ const stamp = (state: State, entry: Entry) => {
 
 const inRun = (run: Run, seat: number) => run.start.players.some((p) => p.seat === seat) && !run.left.includes(seat)
 
+/** Only internal admin endpoints may inject this entry into a room. */
+export const adminSpawn = (state: State, enemy: string, count: number): boolean => {
+  const room = state.room
+  const run = room?.run
+  if (!room || room.phase !== 'playing' || !run || run.ended) return false
+  const player = run.start.players.find((p) => !run.left.includes(p.seat))
+  if (!player) return false
+  stamp(state, [player.seat, 'adminSpawn', enemy, count])
+  return true
+}
+
 /** A seat was heard from: in a run it comes back from `away`. */
 const heard = (state: State, room: Room, seat: Seat, now: number): Effect[] => {
   state.live.lastSeen.set(seat.seat, now)
@@ -734,6 +745,8 @@ export const message = (state: State, connId: ConnId, msg: ClientMessage | null,
       if (room.phase !== 'lobby' || !isHost || msg.code === room.code || room.lock) return out
       return [...out, ...moveRoom(state, room, msg.code)]
     case 'in':
+      // Clients cannot forge privileged entries, even if they know their room's code.
+      if (msg.k === 'adminSpawn') return out
       if (live) stamp(state, [seat.seat, msg.k, ...msg.d])
       return out
     case 'hb':
