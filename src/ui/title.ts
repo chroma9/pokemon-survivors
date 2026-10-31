@@ -13,7 +13,6 @@ import { nextMilestone } from '../game/referral'
 import { missionStatus } from '../game/missions'
 import { playsShiny } from '../game/shinyPicks'
 import type { ArenaHubTab } from './arenaHub'
-import { tierRank, type WallEntry } from '../game/supporters'
 import { formatNumber, locale, t } from '../i18n'
 import { arenaIcon, bulbIcon, coinIcon, coopIcon, discordIcon, eggIcon, giftIcon, itemIcon, medalIcon, newsIcon, pawIcon, pokeballIcon, ribbonIcon, socialIcon, sparkleIcon, surveyIcon } from '../render/art'
 import { logoScale, titleLogo } from '../render/logo'
@@ -32,8 +31,8 @@ import { challengeToday, halloweenToday, loadAttempt, loadSave, outbreakToday, t
 import { festivalCard, festivalCardShows, festivalTile, type FestivalTab } from './festival'
 import { fillHalloweenCard, halloweenCard, halloweenCardShows, halloweenTile } from './halloween'
 import { countedFriends, loadInvites } from './invites'
+import { contentLine } from './gifts'
 import { isUnread, latestUpdate } from './news'
-import { hallFace, hallPortrait, type HallOpen } from './supporters'
 import { surveyWaiting, takeSurveyOffer } from './survey'
 import type { Screen } from './screens'
 import { gearButton, helpButton, iconButton, railTile, shellBody, topBar, walletChip } from './shell'
@@ -398,25 +397,6 @@ const exploreButton = () => {
     { class: 'lobby-explore box', type: 'button', 'aria-label': m.exploreLabel, title: m.exploreLabel },
     h('img', { src: pawIcon(), alt: '' }),
     h('b', {}, m.explore),
-  )
-}
-
-/* ---------------- Hall da Fama ---------------- */
-
-/** Who the Hall card shows first: Diamond, then Gold, then supporters, then who came first. */
-const byStanding = (a: WallEntry, b: WallEntry) => tierRank(b.tier) - tierRank(a.tier) || a.since.localeCompare(b.since)
-
-/**
- * A supporter's round face, ringed in their tier's color: the portrait of
- * the Pokémon they stand with on the Hall (shiny if so), or their name's
- * initial from an API from before the Hall.
- */
-const wallFace = (e: WallEntry) => {
-  const face = hallFace(e.pokemon)
-  return h(
-    'span',
-    { class: `hall-face ${e.tier}${face ? ' portrait' : ''}`, title: e.name, 'aria-hidden': 'true' },
-    face ? hallPortrait(face) : ([...e.name.trim()][0]?.toUpperCase() ?? '♥'),
   )
 }
 
