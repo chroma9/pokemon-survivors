@@ -108,7 +108,7 @@ import { clearSpot, featureAt, featuresNear, footOf, inSolid } from './game/terr
 import { TERRAIN, type SolidKind } from './data/terrain'
 import type { LandmarkId } from './data/landmarks'
 import { dexNews, dexStatus, mergeDex, recordRun, type Pokedex } from './game/dex'
-import { runEarnings, wonRun, type ConvertedEggs } from './game/meta'
+import { parseSave, runEarnings, wonRun, type ConvertedEggs } from './game/meta'
 import { missionStatus, type MissionStatus } from './game/missions'
 import { summarizeRun, type RunSummary } from './game/tally'
 import { parseHandle, rankable, runMode, runResult } from './game/ranking'
@@ -4184,6 +4184,13 @@ if (!import.meta.env.DEV) {
       const ids = id ? [id] : (Object.keys(PLAYABLE) as PlayableId[])
       writeSave({ ...save, shinyStarters: ids.reduce(unlockShinyStarter, save.shinyStarters) })
       return 'ps: shiny unlocks saved'
+    },
+    restoreBackup: async () => {
+      if (!await authorized()) return 'ps: unauthorized'
+      const stored = localStorage.getItem('ps:adminSaveBackup')
+      if (!stored) return 'ps: no pre-cheat save backup'
+      writeSave(parseSave(stored))
+      return 'ps: original save restored; refresh the page'
     },
     money: async (amount = 20000) => {
       if (!await authorized()) return 'ps: unauthorized'
