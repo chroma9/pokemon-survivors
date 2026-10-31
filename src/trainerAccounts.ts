@@ -1,5 +1,7 @@
 import { applyGift, type Gift } from './game/gifts'
 import { loadSave, writeSave } from './ui/save'
+import { parseSaveData } from './game/meta'
+import { mergeSaves } from './game/sync'
 
 export type TrainerProfile = { id: string; handle: string; name: string; created: number }
 const REF = 'ps:trainerReferral'
@@ -21,6 +23,7 @@ export const registerTrainer = async (relay: string, handle: string, password: s
   const result = await request(relay, 'register', 'POST', { handle, password, name, referrer: localStorage.getItem(REF) })
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
+  queueMicrotask(() => void syncTrainerSave(relay).catch(console.warn))
   return result.profile as TrainerProfile
 }
 export const loginTrainer = async (relay: string, handle: string, password: string) => {
@@ -63,4 +66,42 @@ export const collectTrainerGifts = async (relay: string) => {
     } else if (outcome.status === 'wait') blocked.push(gift.id)
   }
   return { applied, blocked }
+}
+
+const REV = 'ps:trainerSaveRevision'
+let syncBusy = false
+let syncPending = false
+/** Merge server and device progress, then CAS upload. Save changes during the upload run another pass. */
+export const syncTrainerSave = async (relay: string) => {
+  if (!trainerToken()) return { synced: false, reason: 'signedOut' }
+  if (syncBusy) { syncPending = true; return { synced: false, reason: 'busy' } }
+  syncBusy = true
+  try {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const cloud = await request(relay, 'save') as { revision: number; data: unknown; updated: number }
+      const local = loadSave()
+      const merged = cloud.data === null ? local : mergeSaves(parseSaveData(cloud.data), local)
+      const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
+      if (result.status === 409) continue
+      const body = await result.json()
+      if (!result.ok) throw Error(body.error ?? 'Cloud save failed')
+      localStorage.setItem(REV, String(body.revision))
+      // Always merge with the latest local save to preserve progress earned during the network round-trip.
+      writeSave(mergeSaves(merged, loadSave()))
+      return { synced: true, revision: body.revision }
+    }
+    throw Error('Save changed on another device; please retry synchronization')
+  } finally {
+    syncBusy = false
+    if (syncPending) { syncPending = false; queueMicrotask(() => void syncTrainerSave(relay).catch(console.warn)) }
+  }
+}
+let syncTimer: ReturnType<typeof setTimeout> | null = null
+export const scheduleTrainerSave = (relay: string) => {
+  if (!trainerToken()) return
+  if (syncTimer !== null) clearTimeout(syncTimer)
+  syncTimer = setTimeout(() => {
+    syncTimer = null
+    void syncTrainerSave(relay).catch((error) => console.warn('Trainer cloud sync failed', error))
+  }, 3000)
 }
