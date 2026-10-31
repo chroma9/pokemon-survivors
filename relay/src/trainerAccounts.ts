@@ -1,7 +1,25 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { Env } from './env'
-import { FRIEND_MILESTONES, REFERRAL, WELCOME_GIFT } from '../../src/game/referral'
-import type { Gift } from '../../src/game/gifts'
+// Keep Worker-only referral definitions independent of browser game modules.
+// These mirror src/game/referral.ts; verify both when changing rewards.
+type ReferralContent =
+  | { kind: 'egg'; tier: 'friend' | 'ultra' }
+  | { kind: 'title'; title: 'ambassador' }
+  | { kind: 'style'; style: { slot: 'frame'; id: 'ambassador' } }
+  | { kind: 'shinyHatch'; family: 'dratini' }
+type ReferralGift = {
+  id: string
+  content: ReferralContent
+  reason: { kind: 'welcome'; from: string | null } | { kind: 'friends'; count: number }
+}
+const REFERRAL = { runs: 3 } as const
+const WELCOME_GIFT: ReferralContent = { kind: 'egg', tier: 'friend' }
+const FRIEND_MILESTONES: ReadonlyArray<{ friends: number; gifts: readonly ReferralContent[] }> = [
+  { friends: 1, gifts: [{ kind: 'egg', tier: 'friend' }] },
+  { friends: 3, gifts: [{ kind: 'title', title: 'ambassador' }, { kind: 'style', style: { slot: 'frame', id: 'ambassador' } }] },
+  { friends: 5, gifts: [{ kind: 'egg', tier: 'ultra' }] },
+  { friends: 10, gifts: [{ kind: 'shinyHatch', family: 'dratini' }] },
+]
 
 type User = { id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
 type Session = { id: string; expires: number }
@@ -33,7 +51,7 @@ export class TrainerAccounts extends DurableObject<Env> {
     const salt = hex(bytes(16))
     const u: User = { id, handle, name, salt, verifier: await derive(pass, salt), created: Date.now(), referredBy: inviterId ?? null, referralRuns: 0, referralCounted: false }
     await this.ctx.storage.put({ ['user:' + id]: u, ['name:' + handle]: id })
-    if (inviterId) await this.ctx.storage.put('gift:' + id + ':welcome', { id: 'private-ref-welcome-' + id, content: WELCOME_GIFT, reason: { kind: 'welcome', from: inviterHandle } } satisfies Gift)
+    if (inviterId) await this.ctx.storage.put('gift:' + id + ':welcome', { id: 'private-ref-welcome-' + id, content: WELCOME_GIFT, reason: { kind: 'welcome', from: inviterHandle } } satisfies ReferralGift)
     return this.issue(u)
   }
   async login(handleInput: unknown, passInput: unknown) {
@@ -85,7 +103,7 @@ export class TrainerAccounts extends DurableObject<Env> {
   async gifts(token: string) {
     const user = await this.identify(token)
     if (!user) return null
-    const gifts = await this.ctx.storage.list<Gift>({ prefix: 'gift:' + user.id + ':' })
+    const gifts = await this.ctx.storage.list<ReferralGift>({ prefix: 'gift:' + user.id + ':' })
     return [...gifts.values()]
   }
   /**
@@ -112,7 +130,7 @@ export class TrainerAccounts extends DurableObject<Env> {
           const content = milestone.gifts[i]
           if (!content) continue
           const giftId = 'private-ref-' + user.referredBy + '-' + milestone.friends + '-' + i
-          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content, reason: { kind: 'friends', count: milestone.friends } } satisfies Gift)
+          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content, reason: { kind: 'friends', count: milestone.friends } } satisfies ReferralGift)
         }
       }
     }
