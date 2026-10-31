@@ -85,6 +85,22 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
     const body = await res.json().catch(() => null) as { error?: string; gifts?: number } | null
     return res.ok ? `ps: @${handle} assigned ${tier ?? 'no tier'}; ${body?.gifts ?? 0} rewards available` : `ps.supporter: ${body?.error ?? 'request failed'} (HTTP ${res.status})`
   },
+  /** Phase 1 Observatory: inspect co-op room state without joining as a player. */
+  observe: async (roomCode?: string) => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    const code = roomCode ?? room()
+    if (!code) return 'ps.observe: supply a room code or enter an active co-op room'
+    const url = relay()
+    if (!url) return 'ps.observe: relay unavailable'
+    const response = await fetch(url + '/admin/observatory?room=' + encodeURIComponent(code), {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY) },
+    }).catch(() => null)
+    if (!response?.ok) return 'ps.observe: room unavailable (HTTP ' + (response?.status ?? 'offline') + ')'
+    return await response.json() as {
+      code: string; phase: string; run: { tick: number; paused: boolean; players: number } | null;
+      players: { seat: number; name: string; connected: boolean; away: boolean; ready: boolean }[]
+    }
+  },
   spawn: async (enemy: string, count = 1, target?: string) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     const code = room()
