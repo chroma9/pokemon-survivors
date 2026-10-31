@@ -22,8 +22,8 @@ const FRIEND_MILESTONES: ReadonlyArray<{ friends: number; gifts: readonly Referr
 ]
 
 type SupportTier = 'supporter' | 'gold' | 'diamond'
-type User = { supporterTier?: SupportTier | null; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
-type Session = { id: string; expires: number }
+type User = { supporterTier?: SupportTier | null; sessionVersion?: number; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
+type Session = { id: string; expires: number; version?: number }
 const encoder = new TextEncoder()
 const hex = (a: Uint8Array) => [...a].map((n) => n.toString(16).padStart(2, '0')).join('')
 const bytes = (n: number) => crypto.getRandomValues(new Uint8Array(n))
@@ -66,9 +66,22 @@ export class TrainerAccounts extends DurableObject<Env> {
     if (!user || verifier !== user.verifier) return { error: 'invalid' }
     return this.issue(user)
   }
+  /** Admin-initiated credential replacement; preserves the trainer ID, save and rewards. */
+  async resetPassword(handleInput: unknown, passwordInput: unknown) {
+    const handle = handleOf(handleInput)
+    const password = typeof passwordInput === 'string' ? passwordInput : ''
+    if (!handle || password.length < 12 || password.length > 128) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const salt = hex(bytes(16))
+    const verifier = await derive(password, salt)
+    await this.ctx.storage.put('user:' + user.id, { ...user, salt, verifier, sessionVersion: (user.sessionVersion ?? 0) + 1 })
+    return { ok: true, handle: user.handle, sessionsInvalidated: true }
+  }
   private async issue(user: User) {
     const token = hex(bytes(32))
-    await this.ctx.storage.put('session:' + await digest(token), { id: user.id, expires: Date.now() + expiresIn } satisfies Session)
+    await this.ctx.storage.put('session:' + await digest(token), { id: user.id, expires: Date.now() + expiresIn, version: user.sessionVersion ?? 0 } satisfies Session)
     return { token, profile: publicProfile(user) }
   }
   async identify(token: string) {
@@ -77,7 +90,8 @@ export class TrainerAccounts extends DurableObject<Env> {
     const session = await this.ctx.storage.get<Session>(key)
     if (!session) return null
     if (session.expires <= Date.now()) { await this.ctx.storage.delete(key); return null }
-    return await this.ctx.storage.get<User>('user:' + session.id) ?? null
+    const user = await this.ctx.storage.get<User>('user:' + session.id) ?? null
+    return user && (session.version ?? 0) === (user.sessionVersion ?? 0) ? user : null
   }
   /** Only the authenticated Worker administrator may call this RPC from the route. */
   async grantSupporter(handleInput: unknown, tierInput: unknown) {
