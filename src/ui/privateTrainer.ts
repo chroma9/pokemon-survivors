@@ -114,7 +114,8 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
             hatch: (hatch) => {
               saveHatch(loadSave(), hatch.shiny)
               void syncTrainerSave(relay).catch(console.warn)
-              shinyScreen = hatchScene(root, input, hatch, { play: () => {}, done: () => { shinyScreen?.dispose(); show() } })
+              const backToGifts = () => { shinyScreen?.dispose(); show() }
+              shinyScreen = hatchScene(root, input, hatch, { play: backToGifts, done: backToGifts })
             },
           }, {
             inbox: () => waiting,
