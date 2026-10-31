@@ -109,8 +109,10 @@ export class TrainerAccounts extends DurableObject<Env> {
       for (const milestone of FRIEND_MILESTONES) {
         if (counted < milestone.friends) continue
         for (let i = 0; i < milestone.gifts.length; i++) {
+          const content = milestone.gifts[i]
+          if (!content) continue
           const giftId = 'private-ref-' + user.referredBy + '-' + milestone.friends + '-' + i
-          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content: milestone.gifts[i], reason: { kind: 'friends', count: milestone.friends } } satisfies Gift)
+          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content, reason: { kind: 'friends', count: milestone.friends } } satisfies Gift)
         }
       }
     }
