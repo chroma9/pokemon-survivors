@@ -23,6 +23,8 @@ export type Env = {
   ALLOW_GUESTS?: string
   /** Bearer token of the admin endpoints (desync dumps). Unset, they answer 404. */
   ADMIN_TOKEN?: string
+  /** Separate browser game-admin token; never embedded in a client bundle. */
+  GAME_ADMIN_TOKEN?: string
   /** The Arena's matchmaker (`/arena/queue`), one object. */
   MATCHMAKER: DurableObjectNamespace<Matchmaker>
   /** The API the Arena's match reports and MMR lookups go to (`https://api.pokemonsurvivors.com`). Unset: nothing is posted. */
