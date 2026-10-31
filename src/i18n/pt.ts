@@ -1671,8 +1671,8 @@ export const pt = {
     goal: 'META DA COMUNIDADE',
     goalCount: (n: string, goal: string) => `*${n}* / ${goal}`,
     goalWaiting: 'Contando os doces da comunidade…',
-    goalBlurb: (goal: string, cap: string) =>
-      `Todos os treinadores com conta enchem este pote juntos. Com *${goal} doces*, o Darkrai ganha a *Mega Evolução* para todo mundo: desperta como Mega Darkrai no Nv 28 do Modo Lendário e vira Mega na fenda do Pesadelo. Cada treinador conta até ${cap} doces.`,
+    goalBlurb: (goal: string, _cap: string) =>
+      `Todos os treinadores com conta enchem este pote juntos. Com *${goal} doces*, o Darkrai ganha a *Mega Evolução* para todo mundo: desperta como Mega Darkrai no Nv 28 do Modo Lendário e vira Mega na fenda do Pesadelo. Todos os doces contribuídos contam.`,
     goalDone: 'A comunidade conseguiu! A *Mega Darkrai* está liberada para todo mundo: no Modo Lendário, o Darkrai desperta como Mega Darkrai no Nv 28.',
     goalOpened: '*Mega Darkrai liberada!* A comunidade juntou os doces: agora o Darkrai desperta como Mega Darkrai no Modo Lendário.',
   },
