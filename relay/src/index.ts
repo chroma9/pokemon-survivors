@@ -186,7 +186,12 @@ export default {
       }
       if (path === '/trainers/me' && request.method === 'GET') {
         const user = await store.identify(token)
-        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created, supporterTier: user.supporterTier ?? null } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
+        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created, supporterTier: user.supporterTier ?? null, mustChangePassword: user.mustChangePassword === true } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
+      }
+      if (path === '/trainers/password' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { current?: unknown; next?: unknown } | null
+        const result = await store.changePassword(token, data?.current, data?.next)
+        return json(result, 'error' in result ? (result.error === 'unauthorized' ? 401 : 400) : 200, headers)
       }
       if (path === '/trainers/name' && request.method === 'POST') {
         const data = await request.json().catch(() => null) as { name?: string } | null
