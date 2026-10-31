@@ -247,7 +247,7 @@ const companionShiny = (save: ReturnType<typeof loadSave>, id: CompanionId | nul
  * Diamond, a section of the legends the save captured (shiny if caught so).
  * `tier` is the account's (`knownTier`).
  */
-const companionPicker = (root: HTMLElement, input: Input, tier: SupporterTier | null, back: Back): Screen => {
+export const companionPicker = (root: HTMLElement, input: Input, tier: SupporterTier | null, back: Back, sync: () => Promise<unknown> = syncSave): Screen => {
   const m = t().supporters
   const o = overlay(root, input, back)
   const now = loadSave().companion
@@ -273,7 +273,7 @@ const companionPicker = (root: HTMLElement, input: Input, tier: SupporterTier | 
         run: () => {
           const companion = picked ? { id: picked, shiny: shiny && canShiny } : null
           updateSave((s) => ({ ...s, companion }))
-          void syncSave()
+          void sync().catch(console.warn)
           toast(root, companion ? m.companionSaved(companionForm(companion.id).name) : m.companionOff, 2200)
           o.close()
         },
