@@ -14,6 +14,7 @@ export type Env = {
   /** Per IP and Cloudflare location: rooms created, and sockets opened. */
   CREATE_LIMIT: RateLimit
   CONNECT_LIMIT: RateLimit
+  TRAINER_AUTH_LIMIT: RateLimit
   /** The Clerk instance whose session tokens sign players in (its JWKS is under `/.well-known/jwks.json`). */
   CLERK_ISSUER: string
   /** Comma-separated origins the game is served from; `*` stands for one DNS label (`https://*.vercel.app`). */
