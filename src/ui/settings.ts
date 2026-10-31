@@ -6,7 +6,6 @@ import { TRANSLATORS } from '../data/translators'
 import { bugReportsEnabled } from '../bugReport'
 import { bugReportForm } from './bugReport'
 import { openControls } from './controls'
-import { openTrainerProfiles } from './privateTrainer'
 import { AIM_ASSISTS } from './arenaAim'
 import { PRIORITIES } from '../game/versusKit'
 import { h, later } from './dom'
@@ -324,7 +323,6 @@ export const openSettings = (root: HTMLElement, input: Input, onClose: () => voi
         ]
       case 'about':
         return [
-          ...(coopUrl() ? [openRow('Trainer Profile', () => showSub(openTrainerProfiles))] : []),
           ...(bugReportsEnabled ? [openRow(m.reportBug, () => showSub(bugReportForm))] : []),
           ...installRows(m.install, () => showSub(installHelpScreen)), linkRow(m.guide, ROUTES.guide[lang]), linkRow(m.legal, ROUTES.legal[lang]), linkRow(m.github, REPO_URL, true),
           ...SOCIAL_IDS.map((id) => linkRow(t().socials.follow(SOCIALS[id].name), SOCIALS[id].url, true))]
