@@ -164,7 +164,7 @@ const huntBox = (save: ReturnType<typeof loadSave>, waiting: readonly string[]) 
  */
 const goalBox = () => {
   const m = t().halloween
-  const { goal: total, cap } = HALLOWEEN.community
+  const { goal: total } = HALLOWEEN.community
   const el = h('section', { class: 'halloween-goal-box' })
   const paint = (goal: CandyGoal | null) => {
     const fill = goal ? Math.min(1, goal.candies / total) : 0
@@ -175,7 +175,7 @@ const goalBox = () => {
         'div',
         { class: 'halloween-goal-body' },
         h('img', { class: 'halloween-goal-mega', src: formPortraitUrl(LEGENDS.darkrai.line[0].dex, 'mega'), alt: 'Mega Darkrai' }),
-        h('p', { class: 'halloween-hunt-blurb' }, rich(goal?.reached ? m.goalDone : m.goalBlurb(formatNumber(total), formatNumber(cap)))),
+        h('p', { class: 'halloween-hunt-blurb' }, rich(goal?.reached ? m.goalDone : m.goalBlurb(formatNumber(total), ''))),
       ),
       h('span', { class: 'lobby-progress halloween-jar' }, h('span', { style: `width:${Math.round(fill * 1000) / 10}%` })),
     )
