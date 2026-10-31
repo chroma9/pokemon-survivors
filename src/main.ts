@@ -1,3 +1,4 @@
+import { privateAdminConsole } from './privateAdmin'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
 import './ui/style.css'
@@ -4150,6 +4151,8 @@ const devArena = (cmd?: string, arg?: string, then?: string) => {
 }
 
 // `ps.biome('cave')` and `ps.weather('rain')` stage a run for screenshots (they hold until the next scheduled change).
+if (!import.meta.env.DEV) Object.assign(window, { ps: privateAdminConsole(coopUrl) })
+
 if (import.meta.env.DEV) {
   const withRun = (fn: (g: Game) => void) => (run ? fn(run.game) : console.warn('ps: start a run first'))
   Object.assign(window, {
