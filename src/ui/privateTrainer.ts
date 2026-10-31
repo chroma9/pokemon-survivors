@@ -4,7 +4,7 @@ import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
-import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
+import { collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -66,7 +66,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     append(status)
     if (!relay) { status.textContent = 'The private relay is unavailable.'; return }
     if (user) {
-      append(h('div', { class: 'trainer-account-identity' }, line('h3', user.name), line('p', '@' + user.handle)))
+      append(h('div', { class: 'trainer-account-identity' }, line('h3', user.name), line('p', '@' + user.handle), line('p', 'Supporter: ' + (user.supporterTier ?? 'None'))))
       const id = line('small', 'Trainer ID: ' + user.id)
       append(id)
       button('Sync cloud save', async () => {
@@ -75,6 +75,12 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
         status.textContent = message
       }, false)
       button('Refresh Trainer Card', async () => { await refreshTrainer(relay) })
+      button('Collect supporter rewards', async () => {
+        const outcome = await collectTrainerGifts(relay)
+        message = outcome.applied.length + ' rewards collected' + (outcome.blocked.length ? '; ' + outcome.blocked.length + ' waiting for incubator space' : '')
+        status.textContent = message
+        await syncTrainerSave(relay)
+      }, false)
       const name = field('Display name', 'New trainer name', 'text', 'nickname')
       button('Change display name', async () => { await renameTrainer(relay, name.value) })
       button('Sign out', async () => { await logoutTrainer(relay) })
