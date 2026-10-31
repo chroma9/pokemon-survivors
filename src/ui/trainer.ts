@@ -1,4 +1,6 @@
 import { accountState, accountsEnabled, onAccountChange, signIn, signOut, syncSave, type AccountState } from '../account'
+import { currentTrainer } from '../trainerAccounts'
+import { openTrainerProfiles } from './privateTrainer'
 import { isAdmin } from '../admin'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -59,8 +61,9 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   const el = h('button', { class: 'shell-chip trainer-chip box', type: 'button', onclick: open })
   const draw = (s: AccountState) => {
     const m = t().trainer
-    const name = s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest
-    const sub = s.kind === 'guest' && accountsEnabled ? h('span', { class: 'trainer-chip-sub join' }, m.signIn) : titleLine('trainer-chip-sub')
+    const cloud = currentTrainer()
+    const name = cloud ? cloud.name : s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest
+    const sub = !cloud && s.kind === 'guest' && accountsEnabled ? h('span', { class: 'trainer-chip-sub join' }, m.signIn) : titleLine('trainer-chip-sub')
     el.replaceChildren(
       avatar(s, 'small'),
       h('span', { class: 'trainer-chip-who' }, h('b', {}, name), sub),
@@ -140,9 +143,11 @@ export const trainerCardScreen = (
       wide: true,
       run: () => openSub((back) => discordScreen(root, input, back)),
     }
-    if (s.kind !== 'signedIn') return [...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
+    const cloudProfile: Row = { label: currentTrainer() ? 'Cloud Trainer Profile' : 'Create / Sign in to Cloud Trainer Profile', run: () => openSub((back) => openTrainerProfiles(root, input, back)) }
+    if (s.kind !== 'signedIn') return [cloudProfile, ...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
     const handle = s.handle
     return [
+      cloudProfile,
       { label: handle === null ? m.createProfile : m.editProfile, run: () => openSub((back) => profileEditor(root, input, back)) },
       ...(handle ? [{ label: m.viewProfile, run: () => openSub((back) => profileScreen(root, input, handle, back)) }] : []),
       share,
@@ -173,8 +178,9 @@ export const trainerCardScreen = (
     const save = loadSave()
     const { counts, shinies, medals } = trainerTotals(save)
     const ribbons = ribbonCounts(save.ribbons)
-    const name = s.kind === 'signedIn' ? s.name || m.guest : m.guest
-    const handle = s.kind === 'signedIn' && s.handle ? `@${s.handle}` : null
+    const cloud = currentTrainer()
+    const name = cloud?.name ?? (s.kind === 'signedIn' ? s.name || m.guest : m.guest)
+    const handle = cloud ? `@${cloud.handle}` : s.kind === 'signedIn' && s.handle ? `@${s.handle}` : null
     const discord = s.kind === 'signedIn' && s.discord ? s.discord : null
     const stat = (n: number, label: string) => h('span', { class: 'trainer-stat' }, h('b', {}, formatNumber(n)), h('small', {}, label))
     const chips = [
