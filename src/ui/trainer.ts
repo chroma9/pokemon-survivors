@@ -32,7 +32,7 @@ const avatar = (s: AccountState, size: 'small' | 'big') => {
   const signedIn = s.kind === 'signedIn'
   const tier = knownTier(save)
   const face = trainerAvatar(save, tier)
-  const ring = signedIn && tier ? ' supporter' : ''
+  const ring = (signedIn || Boolean(currentTrainer())) && tier ? ' supporter' : ''
   return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
 }
 
@@ -239,7 +239,7 @@ export const trainerCardScreen = (
   const build = (opening: boolean) => {
     if (sub || closed) return
     const s = accountState()
-    const tier = s.kind === 'signedIn' ? knownTier(loadSave()) : null
+    const tier = s.kind === 'signedIn' || currentTrainer() ? knownTier(loadSave()) : null
     askApi(s, tier)
     const a = t().account
     const sync = syncLine(s)
