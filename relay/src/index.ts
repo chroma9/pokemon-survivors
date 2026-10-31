@@ -1,4 +1,5 @@
 import { PROTOCOL, parseRoomCode, type CreateResponse, type Region } from '../../src/net/protocol'
+import { ENEMIES } from '../../src/data/enemies'
 import { parseCreate } from './codes'
 import type { Env } from './env'
 import { allowedOrigin } from './origins'
@@ -138,7 +139,7 @@ export default {
       const code = parseRoomCode(data.room)
       const enemy = data.enemy
       const count = data.count
-      if (!code || typeof enemy !== 'string' || !/^[a-zA-Z][a-zA-Z0-9]{0,39}$/.test(enemy) || !Number.isInteger(count) || (count as number) < 1 || (count as number) > 20) return json({ ok: false }, 400, headers)
+      if (!code || typeof enemy !== 'string' || !Object.hasOwn(ENEMIES, enemy) || !Number.isInteger(count) || (count as number) < 1 || (count as number) > 20) return json({ ok: false }, 400, headers)
       const shard = shardOf(code)
       if (!shard) return json({ ok: false }, 404, headers)
       const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number)
