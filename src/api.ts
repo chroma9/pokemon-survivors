@@ -10,6 +10,7 @@ const TIMEOUT_MS = 10_000
  */
 export const apiCall = async (path: string, init: { method?: string; body?: unknown; auth?: boolean } = {}) => {
   try {
+    if (!API_URL) return { status: 0, body: null }
     const token = init.auth ? await sessionToken() : null
     if (init.auth && !token) return { status: 0, body: null }
     const res = await fetch(`${API_URL}${path}`, {
