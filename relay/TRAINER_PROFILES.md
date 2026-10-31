@@ -45,3 +45,13 @@ Visit the Cloudflare Pages `coop-mode` preview, click **Trainer Profile** in the
 5. Confirm logout and expired/invalid sessions are refused on new connections.
 6. Confirm `ps.admin()` is not affected by logging into a trainer account.
 7. Keep `main` unchanged until tests pass.
+
+## Private referral rewards (preview)
+
+New accounts can register with `?ref=<inviter-handle>`. The server stores the inviter's immutable account ID and awards the newcomer a Friendship Egg. A referred player qualifies after three *distinct rankable run reports*; the inviter's account receives the existing milestone gifts for 1, 3, 5, and 10 qualified friends. Trainer Profile shows an invite link, counts, friends, and a **Collect referral gifts** action.
+
+**Security/testing limitation:** these are currently browser-reported run completions, not authoritative verified match results. The server deduplicates run IDs and requires the logged-in trainer, but a modified client can forge distinct reports. Do not promise fraud-resistant referral rewards until the relay verifies co-op results or an authenticated replay verifier exists.
+
+**Save limitation:** reward IDs prevent repeated claiming in a single existing save, but the private cloud account does not yet synchronize its gameplay save across devices. The gift delivery bridge applies gifts to local saves. Please keep accounts in the test environment and do not treat this as a production-ready anti-abuse system.
+
+Verify existing-account registration vs first-time referral behavior, original referral milestones, 3 run reports and duplicates, local gift application with a full incubator, logout and re-login, and multi-device behavior before releasing. Do not merge `main` during this testing.
