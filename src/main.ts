@@ -185,6 +185,7 @@ import { noteDraw, type NetStats } from './coop/netStats'
 import type { CloseWhy, CoopClient } from './coop/client'
 import { arenaLoadout, arenaSeat, coopAccess, coopStarter, freshInvites } from './coop/lobby'
 import { REF_PARAM } from './game/referral'
+import { trainerToken, submitTrainerReferralRun } from './trainerAccounts'
 import { PROTOCOL, VPS_HOMES, parseRoomCode, type RoomView } from './net/protocol'
 import { isRecord } from './game/parse'
 import type { CoopInvite } from './game/friends'
@@ -841,9 +842,15 @@ const recordProgress = (r: Run) => {
  * the way out, which only sends again if the run went on into endless mode.
  * Quits in the first minute aren't worth a line on the profile.
  */
+const referralReported = new WeakSet<Run>()
 const rankRun = (r: Run) => {
   const result = runResult(r.game, __GAME_VERSION__)
   if (!rankable(result)) return
+  if (!referralReported.has(r) && trainerToken()) {
+    referralReported.add(r)
+    const relay = coopUrl()
+    if (relay) void submitTrainerReferralRun(relay, crypto.randomUUID()).catch((err) => console.warn('Referral run could not be recorded', err))
+  }
   if (r.ranked) r.rank = r.ranked.submit(result, r.recorder.replay)
   // The first challenge run of the day that counts is this device's attempt; it grows if it goes on into endless mode.
   const c = r.challenge
