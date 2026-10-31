@@ -1,4 +1,10 @@
+import { applyGift, type Gift } from './game/gifts'
+import { loadSave, writeSave } from './ui/save'
+
 export type TrainerProfile = { id: string; handle: string; name: string; created: number }
+const REF = 'ps:trainerReferral'
+const landed = new URLSearchParams(location.search).get('ref')
+if (landed && /^[a-z0-9_]{3,20}$/i.test(landed) && !localStorage.getItem(REF)) localStorage.setItem(REF, landed.toLowerCase())
 const KEY = 'ps:trainerSession'
 const PROFILE = 'ps:trainerProfile'
 export const trainerToken = () => localStorage.getItem(KEY)
@@ -12,7 +18,7 @@ const request = async (relay: string, path: string, method = 'GET', body?: unkno
   return result
 }
 export const registerTrainer = async (relay: string, handle: string, password: string, name: string) => {
-  const result = await request(relay, 'register', 'POST', { handle, password, name })
+  const result = await request(relay, 'register', 'POST', { handle, password, name, referrer: localStorage.getItem(REF) })
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
   return result.profile as TrainerProfile
@@ -39,4 +45,22 @@ export const logoutTrainer = async (relay: string) => {
     localStorage.removeItem(KEY)
     localStorage.removeItem(PROFILE)
   }
+}
+
+export type ReferralProgress = { handle: string; link: string; friends: { handle: string; name: string; runs: number; counted: boolean }[]; counted: number; milestones: { friends: number; reached: boolean }[] }
+export const trainerReferrals = async (relay: string) => await request(relay, 'referrals') as ReferralProgress
+export const submitTrainerReferralRun = async (relay: string, runId: string) => await request(relay, 'run', 'POST', { runId })
+/** Gift IDs remain stable across devices; save.gifts makes applying an already claimed gift idempotent. */
+export const collectTrainerGifts = async (relay: string) => {
+  const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  const applied: string[] = []
+  const blocked: string[] = []
+  for (const gift of result.gifts) {
+    const outcome = applyGift(loadSave(), gift)
+    if (outcome.status === 'applied') {
+      writeSave(outcome.save)
+      applied.push(gift.id)
+    } else if (outcome.status === 'wait') blocked.push(gift.id)
+  }
+  return { applied, blocked }
 }
