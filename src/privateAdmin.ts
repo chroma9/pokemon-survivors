@@ -18,6 +18,20 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
   },
   admin: async () => ({ authorized: await verifyPrivateAdmin(relay()), stored: Boolean(localStorage.getItem(TOKEN_KEY)) }),
   logout: () => { localStorage.removeItem(TOKEN_KEY); return 'ps: session cleared' },
+  supporter: async (handle: string, tier: 'supporter' | 'gold' | 'diamond' | null) => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (!/^[a-z0-9_]{3,20}$/i.test(handle) || (tier !== null && !['supporter', 'gold', 'diamond'].includes(tier))) return 'ps.supporter: invalid trainer or tier'
+    const url = relay()
+    if (!url) return 'ps.supporter: relay unavailable'
+    const res = await fetch(url + '/admin/supporter', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, tier }),
+    }).catch(() => null)
+    if (!res) return 'ps.supporter: relay unreachable'
+    const body = await res.json().catch(() => null) as { error?: string; gifts?: number } | null
+    return res.ok ? `ps: @${handle} assigned ${tier ?? 'no tier'}; ${body?.gifts ?? 0} rewards available` : `ps.supporter: ${body?.error ?? 'request failed'} (HTTP ${res.status})`
+  },
   spawn: async (enemy: string, count = 1, target?: string) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     const code = room()
