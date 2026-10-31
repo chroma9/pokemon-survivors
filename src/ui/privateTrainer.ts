@@ -3,7 +3,7 @@ import type { Screen } from './screens'
 import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
-import { collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, trainerReferrals, syncTrainerSave } from '../trainerAccounts'
+import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Account management integrated into the game's Settings screen navigation. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -61,26 +61,6 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       action('Sync cloud save now', async () => {
         const result = await syncTrainerSave(relay)
         status.textContent = result.synced ? 'Cloud save synchronized (revision ' + result.revision + ')' : 'Sync already in progress'
-      }, false)
-      elem('hr')
-      elem('h3', 'Invite friends')
-      elem('p', 'Friends qualify after 3 completed runs.')
-      const referral = elem('p', 'Loading referrals…')
-      const share = elem('button', 'Copy invite link') as HTMLButtonElement
-      share.disabled = true
-      void trainerReferrals(relay).then((result) => {
-        if (!referral.isConnected) return
-        referral.textContent = 'Your referrals: ' + result.counted + ' counted, ' + result.friends.length + ' joined'
-        const link = new URL(location.origin + location.pathname)
-        link.searchParams.set('ref', result.handle)
-        share.disabled = false
-        share.onclick = () => void navigator.clipboard.writeText(link.toString())
-        for (const friend of result.friends) elem('p', friend.name + ' (@' + friend.handle + '): ' + friend.runs + '/3 runs' + (friend.counted ? ' — counted' : ''))
-        for (const step of result.milestones) elem('p', step.friends + ' referrals: ' + (step.reached ? 'Unlocked' : 'Locked'))
-      }).catch(() => { referral.textContent = 'Referral status unavailable' })
-      action('Collect referral gifts', async () => {
-        const outcome = await collectTrainerGifts(relay)
-        status.textContent = outcome.applied.length + ' gifts collected, ' + outcome.blocked.length + ' waiting for egg slots.'
       }, false)
       action('Sign out', async () => { await logoutTrainer(relay) })
     } else {
