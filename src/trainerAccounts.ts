@@ -9,6 +9,19 @@ const landed = new URLSearchParams(location.search).get('ref')
 if (landed && /^[a-z0-9_]{3,20}$/i.test(landed) && !localStorage.getItem(REF)) localStorage.setItem(REF, landed.toLowerCase())
 const KEY = 'ps:trainerSession'
 const PROFILE = 'ps:trainerProfile'
+const SAVE_OWNER = 'ps:trainerSaveOwner'
+const SAVE_KEY = 'ps:save'
+const bindLocalSaveTo = (id: string) => {
+  const previous = localStorage.getItem(SAVE_OWNER)
+  if (previous && previous !== id) {
+    // Keep a recoverable copy. Never silently merge another trainer's local data.
+    const current = localStorage.getItem(SAVE_KEY)
+    if (current !== null) localStorage.setItem('ps:trainerSaveBackup:' + previous, current)
+    localStorage.removeItem(SAVE_KEY)
+  }
+  localStorage.setItem(SAVE_OWNER, id)
+}
+
 export const trainerToken = () => localStorage.getItem(KEY)
 export const currentTrainer = (): TrainerProfile | null => {
   try { return JSON.parse(localStorage.getItem(PROFILE) ?? 'null') as TrainerProfile | null } catch { return null }
@@ -21,6 +34,7 @@ const request = async (relay: string, path: string, method = 'GET', body?: unkno
 }
 export const registerTrainer = async (relay: string, handle: string, password: string, name: string) => {
   const result = await request(relay, 'register', 'POST', { handle, password, name, referrer: localStorage.getItem(REF) })
+  bindLocalSaveTo(result.profile.id)
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
