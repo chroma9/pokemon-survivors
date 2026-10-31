@@ -136,6 +136,27 @@ export class TrainerAccounts extends DurableObject<Env> {
     }
     return { ok: true, counted: updated.referralCounted, runs }
   }
+  /** Optimistic revisioned cloud saves. No unverified client can replace another revision. */
+  async readSave(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    return await this.ctx.storage.get<{ revision: number; data: unknown; updated: number }>('save:' + user.id) ?? { revision: 0, data: null, updated: 0 }
+  }
+  async putSave(token: string, revision: unknown, data: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    if (!Number.isSafeInteger(revision) || (revision as number) < 0 || !data || typeof data !== 'object' || Array.isArray(data)) return { error: 'invalid' as const }
+    const bytes = new TextEncoder().encode(JSON.stringify(data)).byteLength
+    if (bytes > 262144) return { error: 'tooLarge' as const }
+    const key = 'save:' + user.id
+    const old = await this.ctx.storage.get<{ revision: number; data: unknown; updated: number }>(key)
+    if ((old?.revision ?? 0) !== revision) return { error: 'conflict' as const, revision: old?.revision ?? 0 }
+    const next = { revision: (revision as number) + 1, data, updated: Date.now() }
+    await this.ctx.storage.put(key, next)
+    // Preserve the previous revision for manual recovery from accidental corruption.
+    if (old) await this.ctx.storage.put('save-backup:' + user.id, old)
+    return { ok: true as const, revision: next.revision }
+  }
   async logout(token: string) {
     if (/^[0-9a-f]{64}$/.test(token)) await this.ctx.storage.delete('session:' + await digest(token))
   }
