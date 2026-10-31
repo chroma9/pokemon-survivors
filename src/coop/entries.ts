@@ -89,6 +89,10 @@ export const toTickEntry = (e: Entry, slots: ReadonlyMap<number, number>): TickE
   if (slot === undefined) return null
   const raw: Record<string, unknown> = { slot, kind }
   switch (kind) {
+    case 'adminSpawn':
+      raw.enemy = a
+      raw.count = b
+      break
     case 'move':
       raw.code = a
       break
