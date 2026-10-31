@@ -109,6 +109,24 @@ export class TrainerAccounts extends DurableObject<Env> {
     return user && (session.version ?? 0) === (user.sessionVersion ?? 0) ? user : null
   }
   /** Only the authenticated Worker administrator may call this RPC from the route. */
+  /** Issue event shiny-choice tickets, independently of paid supporter status. */
+  async grantShinyTickets(handleInput: unknown, countInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || !Number.isInteger(countInput) || (countInput as number) < 1 || (countInput as number) > 10) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const count = countInput as number
+    for (let i = 0; i < count; i++) {
+      const giftId = 'private-event-shiny-' + crypto.randomUUID()
+      await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+        id: giftId,
+        content: { kind: 'shinyPick' },
+        reason: { kind: 'staff', from: null },
+      })
+    }
+    return { ok: true, handle: user.handle, count }
+  }
   async grantSupporter(handleInput: unknown, tierInput: unknown) {
     const handle = handleOf(handleInput)
     if (!handle || (tierInput !== null && tierInput !== 'supporter' && tierInput !== 'gold' && tierInput !== 'diamond')) return { error: 'invalid' }
