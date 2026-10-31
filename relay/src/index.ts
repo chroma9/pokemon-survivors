@@ -150,6 +150,7 @@ export default {
     }
     if (path.startsWith('/trainers/') ) {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'trainer:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      if ((path === '/trainers/login' || path === '/trainers/register') && !(await env.TRAINER_AUTH_LIMIT.limit({ key: 'trainer-login:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const store = env.TRAINER_ACCOUNTS.getByName('global')
       const token = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       if (path === '/trainers/register' && request.method === 'POST') {
