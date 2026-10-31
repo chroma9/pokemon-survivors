@@ -1,4 +1,4 @@
-import { API_URL, accountState, sessionToken } from './account'
+import { API_URL, accountState, onAccountChange, sessionToken } from './account'
 import { timeoutSignal } from './net/timeout'
 
 /** Client-side presentation only; the server checks Clerk's verified admin allowlist. */
@@ -42,3 +42,7 @@ export const refreshMewtwoAppearancePermission = async () => {
     // No permission while offline; Normal remains playable.
   }
 }
+
+// Re-evaluate on sign-in and sign-out; never retain an entitlement across accounts.
+onAccountChange(() => { void refreshMewtwoAppearancePermission() })
+void refreshMewtwoAppearancePermission()
