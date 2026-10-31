@@ -1,6 +1,7 @@
 import type { Matchmaker } from './matchmakerObject'
 import type { ShardObject } from './shardObject'
 import type { Vault } from './vault'
+import type { TrainerAccounts } from './trainerAccounts'
 
 /** The relay's bindings (`wrangler.jsonc`), plus `ADMIN_TOKEN` from `wrangler secret put`. */
 export type Env = {
@@ -9,6 +10,7 @@ export type Env = {
   /** The rooms a shard holds at most (`capOf`; default `DEFAULT_ROOMS_PER_SHARD`). */
   ROOMS_PER_SHARD?: string
   VAULT: DurableObjectNamespace<Vault>
+  TRAINER_ACCOUNTS: DurableObjectNamespace<TrainerAccounts>
   /** Per IP and Cloudflare location: rooms created, and sockets opened. */
   CREATE_LIMIT: RateLimit
   CONNECT_LIMIT: RateLimit
