@@ -1,3 +1,4 @@
+import { currentTrainer } from '../trainerAccounts'
 import { accountState, accountsEnabled, giftInbox, onAccountChange, onInbox, onSaveSynced, type AccountState } from '../account'
 import { lobbyPress } from '../analytics'
 import { playSfx } from '../engine/audio'
@@ -1089,7 +1090,7 @@ export const titleScreen = (
     tickers = [outbreak.tick, stage.tick]
     const openHall = () => (select('hall', false), playSfx('select'), lobbyPress('hall'), later(() => openOver((focus) => actions.supporters(focus, hallCall()))))
     const hall = navigable(rails ? hallTile(openHall) : hallCard(openHall), 'hall')
-    const invites = accountsEnabled ? [pressable(rails ? invitesTile() : invitesCard(), 'friends')] : []
+    const invites = (accountsEnabled || Boolean(currentTrainer())) ? [pressable(rails ? invitesTile() : invitesCard(), 'friends')] : []
     // On the rails the profiles leave the lobby for the Discord screen (and Ajustes → Sobre); landscape phones hold them in the top bar.
     const community = rails
       ? [pressable(discordTile(), 'discord')]
