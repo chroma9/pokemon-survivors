@@ -1,5 +1,5 @@
-import { coopUrl } from './coopShell'
-import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup } from './trainerAccounts'
+import { coopUrl } from '../coopShell'
+import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup } from '../trainerAccounts'
 
 /** Minimal private-fork account screen; does not depend on the official Clerk server. */
 export const mountTrainerProfiles = () => {
