@@ -23,6 +23,7 @@ export const registerTrainer = async (relay: string, handle: string, password: s
   const result = await request(relay, 'register', 'POST', { handle, password, name, referrer: localStorage.getItem(REF) })
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
   queueMicrotask(() => void syncTrainerSave(relay).catch(console.warn))
   return result.profile as TrainerProfile
 }
@@ -36,6 +37,7 @@ export const trainerLookup = async (relay: string, handle: string) => (await req
 export const refreshTrainer = async (relay: string) => {
   const profile = (await request(relay, 'me')).profile as TrainerProfile
   localStorage.setItem(PROFILE, JSON.stringify(profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
 }
 export const renameTrainer = async (relay: string, name: string) => {
@@ -47,6 +49,7 @@ export const logoutTrainer = async (relay: string) => {
   try { await request(relay, 'logout', 'POST') } finally {
     localStorage.removeItem(KEY)
     localStorage.removeItem(PROFILE)
+    window.dispatchEvent(new Event('ps:trainer-changed'))
   }
 }
 
