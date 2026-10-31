@@ -239,6 +239,26 @@ export class TrainerAccounts extends DurableObject<Env> {
     }
     return { ok: true, counted: updated.referralCounted, runs }
   }
+  /** Sum the largest saved candy jar for each private Trainer Account.
+   * Jars are lifetime totals, not spendable balances. Reading persisted saves
+   * also includes candies earned before this endpoint was deployed.
+   */
+  async communityCandyGoal() {
+    const saves = await this.ctx.storage.list<{ data?: unknown }>({ prefix: 'save:' })
+    let candies = 0
+    for (const record of saves.values()) {
+      const data = record?.data
+      if (!data || typeof data !== 'object' || Array.isArray(data)) continue
+      const halloween = (data as Record<string, unknown>).halloween
+      if (!halloween || typeof halloween !== 'object' || Array.isArray(halloween)) continue
+      const raw = (halloween as Record<string, unknown>).candies
+      if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0) {
+        candies = Math.min(Number.MAX_SAFE_INTEGER, candies + raw)
+      }
+    }
+    return { candies }
+  }
+
   /** Optimistic revisioned cloud saves. No unverified client can replace another revision. */
   async readSave(token: string) {
     const user = await this.identify(token)
