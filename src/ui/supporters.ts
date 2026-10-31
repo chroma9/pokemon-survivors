@@ -162,7 +162,7 @@ const overlay = (root: HTMLElement, input: Input, back: Back) => {
  * egg families. Picking one spends the oldest ticket: an egg family plays its
  * hatching scene (shiny), a starter shows its shiny portrait.
  */
-const shinyPicker = (root: HTMLElement, input: Input, actions: { play: (id: PlayableId) => void }, back: Back): Screen => {
+export const shinyPicker = (root: HTMLElement, input: Input, actions: { play: (id: PlayableId) => void }, back: Back, sync: () => Promise<unknown> = syncSave): Screen => {
   const m = t().supporters
   const o = overlay(root, input, back)
   let picked: PlayableId | null = null
@@ -193,7 +193,7 @@ const shinyPicker = (root: HTMLElement, input: Input, actions: { play: (id: Play
     const next = pickShiny(loadSave(), ticket.id, id)
     if (!next) return
     updateSave(() => next)
-    void syncSave()
+    void sync().catch(console.warn)
     if (!isHatchling(id)) return reveal(id)
     // An egg family hatches for it, shiny, like the Mystery Gift's shiny hatch. The picker goes away (keys included) while it plays.
     o.dispose()
