@@ -7,16 +7,15 @@ import { joystick, type Input, type Stick } from '../engine/input'
 import { formatTime, type Vec } from '../engine/math'
 import { blitPacked, context2d, ellipse } from '../engine/pixelart'
 import { ENEMIES } from '../data/enemies'
-import { HATCHLINGS, PLAYABLE } from '../data/hatchlings'
+import { PLAYABLE } from '../data/hatchlings'
 import { isReady } from '../game/eggs'
-import { DISCORD_GIFT } from '../game/gifts'
 import { nextMilestone } from '../game/referral'
-import { dayKey, missionStatus } from '../game/missions'
-import { pendingPicks, playsShiny } from '../game/shinyPicks'
+import { missionStatus } from '../game/missions'
+import { playsShiny } from '../game/shinyPicks'
 import type { ArenaHubTab } from './arenaHub'
-import { pollToVote, supporterCount, tierRank, type WallEntry } from '../game/supporters'
+import { tierRank, type WallEntry } from '../game/supporters'
 import { formatNumber, locale, t } from '../i18n'
-import { arenaIcon, bulbIcon, coinIcon, coopIcon, discordIcon, eggIcon, giftIcon, heartIcon, itemIcon, medalIcon, newsIcon, pawIcon, pokeballIcon, ribbonIcon, socialIcon, sparkleIcon, supporterIcon, surveyIcon } from '../render/art'
+import { arenaIcon, bulbIcon, coinIcon, coopIcon, discordIcon, eggIcon, giftIcon, itemIcon, medalIcon, newsIcon, pawIcon, pokeballIcon, ribbonIcon, socialIcon, sparkleIcon, surveyIcon } from '../render/art'
 import { logoScale, titleLogo } from '../render/logo'
 import { drawPokemon, loadedSprites, loadSpecies, type Dex } from '../render/sprites'
 import type { LobbyNpc, Place } from '../render/titleScene'
@@ -27,13 +26,11 @@ import { dialogue, type Dialogue, type Speaker } from './dialogue'
 import { judgeSpeaker, lanturnSpeaker, senseiSpeaker, stallSpeaker, stallToday } from './visitors'
 import { inviterName } from '../ranking'
 import { ROUTES, SOCIAL_IDS, SOCIALS, type SocialId } from '../site/routes'
-import { fetchWall, knownStatus } from '../supporters'
 import { h, later, rich } from './dom'
 import { boundKey } from './inputLabels'
 import { challengeToday, halloweenToday, loadAttempt, loadSave, outbreakToday, today } from './save'
 import { festivalCard, festivalCardShows, festivalTile, type FestivalTab } from './festival'
 import { fillHalloweenCard, halloweenCard, halloweenCardShows, halloweenTile } from './halloween'
-import { contentLine } from './gifts'
 import { countedFriends, loadInvites } from './invites'
 import { isUnread, latestUpdate } from './news'
 import { hallFace, hallPortrait, type HallOpen } from './supporters'
@@ -360,62 +357,8 @@ const discordButton = (onClick: () => void) => {
   return el
 }
 
-/**
- * Discord under Convide amigos (wide screens and portrait phones): the linked
- * @username, or, while linking can bring it, the gift it brings (`DISCORD_GIFT`,
- * bobbing like the invites' prize); joining when this build has no accounts.
- */
-const discordCard = () => {
-  const m = t().discord
-  const row = h('span', { class: 'lobby-invites-row' })
-  const prize = h('img', { class: 'lobby-invites-prize', src: contentLine({ content: DISCORD_GIFT }).src, alt: '' })
-  const el = h(
-    'button',
-    { class: 'lobby-invites lobby-discord-card box', type: 'button' },
-    h('img', { class: 'lobby-discord-icon', src: discordIcon(), alt: '' }),
-    h('span', { class: 'lobby-invites-text' }, h('b', {}, m.title), row),
-  )
-  followAccount(el, (s) => {
-    const linked = s.kind === 'signedIn' && s.discord
-    const text = linked ? `✓ @${s.discord}` : accountsEnabled ? m.cardGift(HATCHLINGS[DISCORD_GIFT.family].name) : m.join
-    row.textContent = text
-    if (!linked && accountsEnabled) el.append(prize)
-    else prize.remove()
-    el.setAttribute('aria-label', `${m.title}: ${text}`)
-  })
-  return el
-}
-
-/** Discord as a rail tile: a green ✓ once linked, or, while linking can bring it, the gift it brings bobbing on its corner. */
-const discordTile = () => {
-  const m = t().discord
-  const done = h('em', { class: 'lobby-badge done' }, '✓')
-  const prize = h('img', { class: 'lobby-invites-prize rail-prize', src: contentLine({ content: DISCORD_GIFT }).src, alt: '' })
-  const el = railTile('discord', h('img', { class: 'lobby-discord-icon', src: discordIcon(), alt: '' }), t().home.rail.discord, m.title)
-  followAccount(el, (s) => {
-    const linked = s.kind === 'signedIn' && s.discord
-    done.remove()
-    prize.remove()
-    if (linked) el.append(done)
-    else if (accountsEnabled) el.append(prize)
-    el.setAttribute('aria-label', `${m.title}: ${linked ? `✓ @${s.discord}` : accountsEnabled ? m.cardGift(HATCHLINGS[DISCORD_GIFT.family].name) : m.join}`)
-  })
-  return el
-}
-
 /** An official profile (`SOCIALS`) in the top bar, beside Discord (landscape phones). */
 const socialButton = (id: SocialId, onClick: () => void) => iconButton(socialIcon(id), t().socials.follow(SOCIALS[id].name), onClick)
-
-/** An official profile under Discord (wide screens) with its name and handle, or just its icon beside Discord (portrait phones). */
-const socialCard = (id: SocialId) => {
-  const s = SOCIALS[id]
-  return h(
-    'button',
-    { class: `lobby-invites lobby-social ${id} box`, type: 'button', 'aria-label': t().socials.follow(s.name), title: t().socials.follow(s.name) },
-    h('img', { class: 'lobby-social-icon', src: socialIcon(id), alt: '' }),
-    h('span', { class: 'lobby-invites-text' }, h('b', {}, s.name), h('span', { class: 'lobby-invites-row' }, s.handle)),
-  )
-}
 
 /** Opens an official profile in a new tab (or its app). */
 const openSocial = (id: SocialId) => window.open(SOCIALS[id].url, '_blank', 'noopener')
@@ -475,75 +418,6 @@ const wallFace = (e: WallEntry) => {
     { class: `hall-face ${e.tier}${face ? ' portrait' : ''}`, title: e.name, 'aria-hidden': 'true' },
     face ? hallPortrait(face) : ([...e.name.trim()][0]?.toUpperCase() ?? '♥'),
   )
-}
-
-/**
- * What the Hall da Fama calls the player to, opening straight onto it: a
- * waiting shiny ticket's pick, else a poll they may vote in and haven't (as
- * the device last heard from the API). Null for nothing, and without accounts.
- */
-const hallCall = (): HallOpen | null => {
-  if (!accountsEnabled) return null
-  if (pendingPicks(loadSave()).length > 0) return 'pick'
-  const poll = pollToVote(knownStatus())
-  return poll ? { poll } : null
-}
-
-/** The Hall's label, with what it calls the player to. */
-const hallLabel = (call: HallOpen | null) => {
-  const m = t().supporters
-  return call === null ? t().home.hall : `${t().home.hall} · ${call === 'pick' ? m.banner : m.voteWaiting}`
-}
-
-/**
- * The Hall da Fama card: gold, slowly turning rays, the first supporters'
- * faces and "+N", and a ticker with the newest one (the wall's last entry).
- * Before the wall comes back, offline or with nobody on it, it just asks for
- * support. It sparkles while it calls the player to something (`hallCall`);
- * for a poll, the ticker says so instead. Without accounts it's a link to the
- * support page.
- */
-const hallCard = (open: () => void) => {
-  const m = t().home
-  const call = hallCall()
-  const voting = call !== null && call !== 'pick'
-  const stack = h('span', { class: 'hall-stack' })
-  const ticker = h('span', { class: 'hall-ticker' }, ...(voting ? [h('img', { src: giftIcon(), alt: '' }), h('span', {}, t().supporters.voteWaiting)] : [h('img', { src: heartIcon(), alt: '' }), h('span', {}, m.support)]))
-  const label = hallLabel(call)
-  const kids = [
-    h('span', { class: 'hall-rays', 'aria-hidden': 'true' }),
-    h('span', { class: 'hall-top' }, h('img', { src: supporterIcon('gold'), alt: '' }), h('b', {}, m.hall), h('img', { class: 'hall-sparkle', src: sparkleIcon(), alt: '' })),
-    stack,
-    ticker,
-    h('span', { class: 'key-hint' }, 'H'),
-  ]
-  const attrs = { class: call ? 'lobby-hall waiting' : 'lobby-hall', 'aria-label': label, title: label }
-  const el = accountsEnabled
-    ? h('button', { ...attrs, type: 'button', onclick: open }, ...kids)
-    : h('a', { ...attrs, href: ROUTES.support[locale()], target: '_blank', rel: 'noopener', onclick: () => playSfx('select') }, ...kids)
-  void fetchWall().then((wall) => {
-    const newest = wall?.entries.at(-1)
-    if (!wall || !newest) return
-    const shown = [...wall.entries].sort(byStanding).slice(0, 4)
-    // Supporters off the wall count too, so the number never drops when one hides.
-    const more = supporterCount(wall) - shown.length
-    stack.replaceChildren(...shown.map(wallFace), ...(more > 0 ? [h('em', {}, `+${formatNumber(more)}`)] : []))
-    if (!voting) ticker.replaceChildren(h('img', { src: heartIcon(), alt: '' }), h('span', {}, m.hallJoined(newest.handle, dayKey(new Date(newest.since)) === dayKey(today()))))
-    el.classList.add('filled')
-  })
-  return el
-}
-
-/** The Hall da Fama as a rail tile: gold, its rays turning, sparkling while it calls the player to something (`hallCall`). Without accounts it opens the support page. */
-const hallTile = (open: () => void) => {
-  const m = t().home
-  const call = hallCall()
-  const el = railTile('hall', h('img', { src: supporterIcon('gold'), alt: '' }), m.rail.hall, hallLabel(call))
-  el.prepend(h('span', { class: 'hall-rays', 'aria-hidden': 'true' }))
-  if (call) el.append(h('img', { class: 'rail-sparkle', src: sparkleIcon(), alt: '' }))
-  el.classList.toggle('waiting', call !== null)
-  el.addEventListener('click', accountsEnabled ? open : () => (playSfx('select'), window.open(ROUTES.support[locale()], '_blank', 'noopener')))
-  return el
 }
 
 /**
