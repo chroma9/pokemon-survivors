@@ -74,7 +74,9 @@ const local: Store = {
 export const coopUrl = (): string | null => {
   // A private deployment may use a guest-enabled relay without the official accounts API.
   // Never fall back to upstream servers in a production build.
-  return import.meta.env.VITE_COOP_URL ?? (import.meta.env.DEV ? local.get(URL_KEY) ?? DEV_RELAY : null)
+  // This fork has its own guest-enabled Worker; a missing Pages build variable must not hide co-op.
+  const privateRelay = 'https://chroma9-survivors-coop.officialchroma9.workers.dev'
+  return import.meta.env.VITE_COOP_URL || (import.meta.env.DEV ? local.get(URL_KEY) : null) || privateRelay
 }
 
 export const setCoopUrl = (url: string | null) => (url ? local.set(URL_KEY, url) : local.remove(URL_KEY))
@@ -106,7 +108,7 @@ export const coopName = () => {
   const handle = accountHandle()
   if (handle) return `@${handle}`
   // No handle yet (the shell asks for one before co-op): never shown in practice.
-  if (!import.meta.env.DEV && !import.meta.env.VITE_COOP_URL) return '?'
+  if (!coopUrl()) return '?'
   const kept = local.get(NAME_KEY)
   if (kept) return kept
   const name = `Dev ${Math.floor(1000 + Math.random() * 9000)}`
