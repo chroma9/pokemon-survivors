@@ -119,7 +119,10 @@ export default {
     if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
     // Verify an admin browser session without exposing the secret to the frontend bundle.
     if (path === '/admin/verify' && request.method === 'POST') {
-      const authorized = await isAdmin(request, env)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      const authorized = Boolean(secret && supplied) && crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))
       return json({ admin: authorized }, authorized ? 200 : 401, headers)
     }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
