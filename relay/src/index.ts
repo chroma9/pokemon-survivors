@@ -10,6 +10,7 @@ import { EDGE_HEADER, edgeOf } from './telemetry'
 export { Matchmaker } from './matchmakerObject'
 export { ShardObject } from './shardObject'
 export { Vault } from './vault'
+export { TrainerAccounts } from './trainerAccounts'
 
 /**
  * The relay's Worker: creates rooms in shards (`shards.ts`: many rooms per
@@ -146,6 +147,40 @@ export default {
       if (!shard) return json({ ok: false }, 404, headers)
       const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number, target as string | undefined)
       return json({ ok }, ok ? 200 : 409, headers)
+    }
+    if (path.startsWith('/trainers/') ) {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'trainer:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const store = env.TRAINER_ACCOUNTS.getByName('global')
+      const token = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      if (path === '/trainers/register' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { handle?: string; password?: string; name?: string } | null
+        const result = await store.register(data?.handle, data?.password, data?.name)
+        return json(result, 'error' in result ? 400 : 200, headers)
+      }
+      if (path === '/trainers/login' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { handle?: string; password?: string } | null
+        const result = await store.login(data?.handle, data?.password)
+        return json(result, 'error' in result ? 401 : 200, headers)
+      }
+      if (path === '/trainers/me' && request.method === 'GET') {
+        const user = await store.identify(token)
+        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
+      }
+      if (path === '/trainers/name' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { name?: string } | null
+        const profile = await store.update(token, data?.name)
+        return json(profile ? { profile } : { error: 'unauthorized' }, profile ? 200 : 401, headers)
+      }
+      if (path === '/trainers/logout' && request.method === 'POST') {
+        await store.logout(token)
+        return json({ ok: true }, 200, headers)
+      }
+      const found = /^\/trainers\/profile\/([a-z0-9_]{3,20})$/.exec(path)
+      if (found && request.method === 'GET') {
+        const profile = await store.profile(found[1])
+        return json(profile ? { profile } : { error: 'missing' }, profile ? 200 : 404, headers)
+      }
+      return new Response('Not found', { status: 404, headers })
     }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
     const ws = path.match(/^\/rooms\/([^/]+)\/ws$/)
