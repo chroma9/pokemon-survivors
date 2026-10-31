@@ -127,6 +127,20 @@ export class TrainerAccounts extends DurableObject<Env> {
     })
     return { ok: true, handle: user.handle, family, shiny: shinyInput, giftId }
   }
+  /** Admin-issued exclusive title; repeat grants preserve the same gift ID. */
+  async grantTitle(handleInput: unknown, titleInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || (titleInput !== 'developer' && titleInput !== 'tester')) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const giftId = 'private-title-' + user.id + '-' + titleInput
+    await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+      id: giftId, content: { kind: 'title', title: titleInput },
+      reason: { kind: 'staff', from: null },
+    })
+    return { ok: true, handle: user.handle, title: titleInput }
+  }
   async grantShinyTickets(handleInput: unknown, countInput: unknown) {
     const handle = handleOf(handleInput)
     if (!handle || !Number.isInteger(countInput) || (countInput as number) < 1 || (countInput as number) > 10) return { error: 'invalid' }
