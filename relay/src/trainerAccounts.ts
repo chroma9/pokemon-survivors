@@ -21,7 +21,8 @@ const FRIEND_MILESTONES: ReadonlyArray<{ friends: number; gifts: readonly Referr
   { friends: 10, gifts: [{ kind: 'shinyHatch', family: 'dratini' }] },
 ]
 
-type User = { id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
+type SupportTier = 'supporter' | 'gold' | 'diamond'
+type User = { supporterTier?: SupportTier | null; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
 type Session = { id: string; expires: number }
 const encoder = new TextEncoder()
 const hex = (a: Uint8Array) => [...a].map((n) => n.toString(16).padStart(2, '0')).join('')
@@ -34,7 +35,7 @@ const derive = async (pass: string, salt: string) => {
 }
 const clean = (v: unknown) => typeof v === 'string' ? v.trim() : ''
 const handleOf = (v: unknown) => /^[a-z0-9_]{3,20}$/.test(clean(v).toLowerCase()) ? clean(v).toLowerCase() : null
-const publicProfile = (u: User) => ({ id: u.id, handle: u.handle, name: u.name, created: u.created })
+const publicProfile = (u: User) => ({ id: u.id, handle: u.handle, name: u.name, created: u.created, supporterTier: u.supporterTier ?? null })
 const expiresIn = 30 * 24 * 3600 * 1000
 
 /** Single global account directory. All credentials and session hashes remain within this Durable Object. */
@@ -77,6 +78,30 @@ export class TrainerAccounts extends DurableObject<Env> {
     if (!session) return null
     if (session.expires <= Date.now()) { await this.ctx.storage.delete(key); return null }
     return await this.ctx.storage.get<User>('user:' + session.id) ?? null
+  }
+  /** Only the authenticated Worker administrator may call this RPC from the route. */
+  async grantSupporter(handleInput: unknown, tierInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || (tierInput !== null && tierInput !== 'supporter' && tierInput !== 'gold' && tierInput !== 'diamond')) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const tier = tierInput as SupportTier | null
+    await this.ctx.storage.put('user:' + user.id, { ...user, supporterTier: tier })
+    const gifts: { id: string; content: unknown; reason: { kind: 'support'; tier: SupportTier } }[] = []
+    if (tier) {
+      gifts.push(
+        { id: 'private-support-' + user.id + '-title', content: { kind: 'title', title: 'supporter' }, reason: { kind: 'support', tier: 'supporter' } },
+        { id: 'private-support-' + user.id + '-frame', content: { kind: 'style', style: { slot: 'frame', id: 'supporter' } }, reason: { kind: 'support', tier: 'supporter' } },
+        { id: 'private-support-' + user.id + '-shiny', content: { kind: 'shinyPick' }, reason: { kind: 'support', tier: 'supporter' } },
+      )
+      if (tier === 'gold' || tier === 'diamond') gifts.push(
+        { id: 'private-support-' + user.id + '-background', content: { kind: 'style', style: { slot: 'background', id: 'supporter' } }, reason: { kind: 'support', tier: 'gold' } },
+        { id: 'private-support-' + user.id + '-wallpaper', content: { kind: 'style', style: { slot: 'wallpaper', id: 'supporter' } }, reason: { kind: 'support', tier: 'gold' } },
+      )
+    }
+    for (const gift of gifts) await this.ctx.storage.put('gift:' + user.id + ':' + gift.id, gift)
+    return { profile: publicProfile({ ...user, supporterTier: tier }), gifts: gifts.length }
   }
   async profile(handleInput: unknown) {
     const handle = handleOf(handleInput)
