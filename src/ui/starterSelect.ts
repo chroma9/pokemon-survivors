@@ -102,7 +102,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const shinyOf = (id: PlayableId) => playsShiny(forms, id)
 
   /** Co-op leaves the Legend mode home: no Lendários tab, and a legend partner opens on the starters. */
-  const tabs: readonly Tab[] = opts.coop ? TABS.filter((k) => k !== 'legends') : TABS
+  const tabs: readonly Tab[] = TABS
   let tab: Tab = tabs.includes(tabOf(initial)) ? tabOf(initial) : 'starters'
   /** Each tab remembers its own cursor, so switching back lands where it was. */
   const firstHatched = HATCHLING_IDS.find((id) => save.hatched[id]) ?? HATCHLING_IDS[0]!
@@ -322,7 +322,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     h('div', { class: 'partner-tabs', role: 'tablist' }, ...tabs.map((k) => tabButtons[k]), h('span', { class: 'key-hint' }, 'TAB'), randomButton),
     h('div', { class: 'partner-pane starters' }, starterGrid, teaser),
     eggsPane,
-    !opts.coop && legendsPane,
+    legendsPane,
   )
 
   /* ---------- Partner panel ---------- */
