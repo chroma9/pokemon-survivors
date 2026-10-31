@@ -1,4 +1,4 @@
-import { API_URL } from './account'
+import { coopUrl } from './coopShell'
 import { HALLOWEEN } from './data/halloween'
 import { candyGoalAt, parseCandyGoal, setCommunityOpen, type CandyGoal } from './game/communityGoal'
 import { brasiliaDay } from './game/day'
@@ -56,7 +56,7 @@ const changed = (opened: boolean) => {
 }
 
 /** Whether there's anything to ask: an API, the night begun, and the goal not reached yet. */
-const worthAsking = () => Boolean(API_URL) && brasiliaDay(today()) >= HALLOWEEN.from && goal?.reached !== true
+const worthAsking = () => Boolean(coopUrl()) && brasiliaDay(today()) >= HALLOWEEN.from && goal?.reached !== true
 
 /** Asks the API for the goal (`GET /candy-goal`), at most once per `REFRESH_MS` unless `force`. Never throws. */
 export const loadCandyGoal = (force = false): Promise<CandyGoal | null> => {
@@ -66,7 +66,7 @@ export const loadCandyGoal = (force = false): Promise<CandyGoal | null> => {
   lastAsk = performance.now()
   asking = (async () => {
     try {
-      const res = await fetch(`${API_URL}/candy-goal`, { signal: timeoutSignal(TIMEOUT_MS) })
+      const res = await fetch(`${coopUrl()}/candy-goal`, { signal: timeoutSignal(TIMEOUT_MS) })
       const next = res.ok ? parseCandyGoal(await res.json()) : null
       if (next) {
         const opened = next.reached && goal?.reached !== true
