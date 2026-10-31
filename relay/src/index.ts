@@ -125,6 +125,23 @@ export default {
       const authorized = Boolean(secret && supplied) && crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))
       return json({ admin: authorized }, authorized ? 200 : 401, headers)
     }
+    if (path === '/admin/spawn' && request.method === 'POST') {
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ ok: false }, 401, headers)
+      const raw: unknown = await request.json().catch(() => null)
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return json({ ok: false }, 400, headers)
+      const data = raw as Record<string, unknown>
+      const code = parseRoomCode(data.room)
+      const enemy = data.enemy
+      const count = data.count
+      if (!code || typeof enemy !== 'string' || !/^[a-zA-Z][a-zA-Z0-9]{0,39}$/.test(enemy) || !Number.isInteger(count) || (count as number) < 1 || (count as number) > 20) return json({ ok: false }, 400, headers)
+      const shard = shardOf(code)
+      if (!shard) return json({ ok: false }, 404, headers)
+      const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number)
+      return json({ ok }, ok ? 200 : 409, headers)
+    }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
     const ws = path.match(/^\/rooms\/([^/]+)\/ws$/)
     if (ws && request.method === 'GET') {
