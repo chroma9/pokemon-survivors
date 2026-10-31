@@ -318,9 +318,6 @@ export const createApp = ({ store, ranking, friends, gifts, verify, donate, supp
 
   app.get('/me', auth, async (c) => c.json({ profile: await ranking.profileName(c.var.userId) }))
 
-  // Private cosmetic permissions are decided by Clerk's verified admin allowlist, not a client flag or handle.
-  app.get('/me/private-forms', auth, async (c) => c.json({ mewtwoClone: await admin.isAdmin(c.var.userId) }))
-
   app.put('/me', auth, smallBody, async (c) => {
     const body = await json(c)
     const handle = isRecord(body) ? parseHandle(body.handle) : null
