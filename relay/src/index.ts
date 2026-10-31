@@ -173,6 +173,15 @@ export default {
         const profile = await store.update(token, data?.name)
         return json(profile ? { profile } : { error: 'unauthorized' }, profile ? 200 : 401, headers)
       }
+      if (path === '/trainers/save' && request.method === 'GET') {
+        const result = await store.readSave(token)
+        return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/save' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { revision?: number; data?: unknown } | null
+        const result = await store.putSave(token, data?.revision, data?.data)
+        return json(result, 'error' in result ? (result.error === 'conflict' ? 409 : result.error === 'unauthorized' ? 401 : 400) : 200, headers)
+      }
       if (path === '/trainers/referrals' && request.method === 'GET') {
         const result = await store.referrals(token)
         return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
