@@ -139,10 +139,12 @@ export default {
       const code = parseRoomCode(data.room)
       const enemy = data.enemy
       const count = data.count
+      const target = data.target
       if (!code || typeof enemy !== 'string' || !Object.hasOwn(ENEMIES, enemy) || !Number.isInteger(count) || (count as number) < 1 || (count as number) > 20) return json({ ok: false }, 400, headers)
+      if (target !== undefined && (typeof target !== 'string' || target.length > 32 || target.length < 1)) return json({ ok: false }, 400, headers)
       const shard = shardOf(code)
       if (!shard) return json({ ok: false }, 404, headers)
-      const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number)
+      const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number, target as string | undefined)
       return json({ ok }, ok ? 200 : 409, headers)
     }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
