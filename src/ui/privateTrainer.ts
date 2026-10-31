@@ -66,12 +66,14 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       elem('h3', 'Invite friends')
       elem('p', 'Friends qualify after 3 completed runs.')
       const referral = elem('p', 'Loading referrals…')
+      const share = elem('button', 'Copy invite link') as HTMLButtonElement
+      share.disabled = true
       void trainerReferrals(relay).then((result) => {
         if (!referral.isConnected) return
         referral.textContent = 'Your referrals: ' + result.counted + ' counted, ' + result.friends.length + ' joined'
         const link = new URL(location.origin + location.pathname)
         link.searchParams.set('ref', result.handle)
-        const share = elem('button', 'Copy invite link') as HTMLButtonElement
+        share.disabled = false
         share.onclick = () => void navigator.clipboard.writeText(link.toString())
         for (const friend of result.friends) elem('p', friend.name + ' (@' + friend.handle + '): ' + friend.runs + '/3 runs' + (friend.counted ? ' — counted' : ''))
         for (const step of result.milestones) elem('p', step.friends + ' referrals: ' + (step.reached ? 'Unlocked' : 'Locked'))
