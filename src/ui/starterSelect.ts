@@ -1,3 +1,4 @@
+import { canUseMewtwoClone, mewtwoAppearance, setMewtwoAppearance } from '../privateMewtwo'
 import { blitCentered, context2d } from '../engine/pixelart'
 import { playCry, playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -414,7 +415,13 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
           isLegend(id) && h('p', { class: 'partner-legend-mode' }, m.legend.mode, ' · ', `${m.legend.innate}: ${ABILITIES[LEGENDS[id].innate.ability].name}`),
           isLegend(id) && eventLine(id, false),
           h('p', { class: 'partner-blurb' }, m.blurbs[id]),
-          h('div', { class: 'partner-hero-actions' }, canPick(id) && shinyPicker(shinyOf(id), setShiny), more(true)),
+          h('div', { class: 'partner-hero-actions' }, canPick(id) && shinyPicker(shinyOf(id), setShiny),
+            !plain && id === 'mewtwo' && canUseMewtwoClone() && h('button', {
+              type: 'button', class: 'partner-more',
+              'aria-label': 'Toggle Mewtwo appearance',
+              onclick: () => { setMewtwoAppearance(mewtwoAppearance() === 'normal' ? 'clone' : 'normal'); renderHero() },
+            }, mewtwoAppearance() === 'clone' ? 'Form: Clone' : 'Form: Normal'),
+            more(true)),
         ),
       ),
       h('div', { class: 'partner-stats' }, statBars(id, 4)),
@@ -734,7 +741,10 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
     const s = (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
-    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, { tint: locked ? { color: '#283048', amount: 1 } : undefined })
+    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
+      tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
+      outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
+    })
     else blitCentered(ctx, PICKUPS.pokeball(), sprite.width / 2, sprite.height / 2 + Math.round(Math.sin(time * 6) * 2))
   }
 
