@@ -26,7 +26,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
   let mode: 'signin' | 'register' = 'signin'
   let message = ''
   let busy = false
-  const line = (tag: string, value: string, cls = '') => h(tag, { class: cls }, value)
+  const line = (tag: keyof HTMLElementTagNameMap, value: string, cls = '') => h(tag, { class: cls }, value)
   const append = (...nodes: Node[]) => panel.append(...nodes)
   const field = (label: string, placeholder: string, type = 'text', autocomplete = 'off') => {
     const wrapper = h('label', { class: 'trainer-account-field' })
