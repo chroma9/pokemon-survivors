@@ -30,6 +30,6 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
       headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
       body: JSON.stringify({ room: code, enemy, count, target }),
     }).catch(() => null)
-    return response?.ok ? 'ps: spawn queued for all players' : 'ps.spawn: relay rejected the command'
+    return response?.ok ? 'ps: spawn queued for all players' : response ? `ps.spawn: relay rejected the command (HTTP ${response.status}${response.status === 409 ? '; room is not playing or target name is not in the active run' : response.status === 400 ? '; invalid room/enemy/count/target' : response.status === 401 ? '; admin token rejected' : response.status === 429 ? '; rate limited' : ''})` : 'ps.spawn: relay unreachable'
   },
 })
