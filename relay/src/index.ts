@@ -117,6 +117,11 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
     // The Worker answering is the check: no Durable Object is touched, so a flood of these costs nothing past the edge.
     if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
+    // Verify an admin browser session without exposing the secret to the frontend bundle.
+    if (path === '/admin/verify' && request.method === 'POST') {
+      const authorized = await isAdmin(request, env)
+      return json({ admin: authorized }, authorized ? 200 : 401, headers)
+    }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
     const ws = path.match(/^\/rooms\/([^/]+)\/ws$/)
     if (ws && request.method === 'GET') {
