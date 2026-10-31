@@ -60,6 +60,9 @@ export const renameTrainer = async (relay: string, name: string) => {
   return profile
 }
 export const logoutTrainer = async (relay: string) => {
+  // Do not discard pending debounced changes when a trainer signs out.
+  if (syncTimer !== null) { clearTimeout(syncTimer); syncTimer = null }
+  await syncTrainerSave(relay)
   try { await request(relay, 'logout', 'POST') } finally {
     localStorage.removeItem(KEY)
     localStorage.removeItem(PROFILE)
