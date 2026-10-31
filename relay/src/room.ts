@@ -102,7 +102,7 @@ export const ABUSE = { drops: 600, window: 10_000 } as const
 export type Gen = { secret: () => string; seed: () => number }
 
 /** Who a verified `hello` belongs to: `u:<clerk user id>` or `g:<guest id>`. */
-export type Identity = { id: string; account: boolean }
+export type Identity = { id: string; account: boolean; name?: string }
 
 export type Seat = {
   seat: number
@@ -618,7 +618,7 @@ export const hello = (state: State, connId: ConnId, h: Hello, identity: Identity
     if (room.phase === 'playing' || room.seats.length >= seatCap(room) || room.banned.includes(identity.id) || stranger) return refuse(connId, 'unavailable')
     let n = 0
     while (room.seats.some((s) => s.seat === n)) n++
-    seat = { seat: n, identity: identity.id, secret: state.gen.secret(), name: h.name, account: identity.account, loadout: null, ready: false, build: h.build, ua: conn.ua, offlineSince: now, away: false }
+    seat = { seat: n, identity: identity.id, secret: state.gen.secret(), name: identity.name ?? h.name, account: identity.account, loadout: null, ready: false, build: h.build, ua: conn.ua, offlineSince: now, away: false }
     room.seats.push(seat)
     room.seats.sort((a, b) => a.seat - b.seat)
     room.host ??= seat.seat
