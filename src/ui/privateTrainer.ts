@@ -5,9 +5,13 @@ import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
 import { pendingPicks } from '../game/shinyPicks'
+import { applyGift, parseGift, type Gift } from '../game/gifts'
+import { giftScreen } from './gifts'
+import { writeSave, saveHatch } from './save'
+import { hatchScene } from './incubator'
 import { loadSave } from './save'
 import { companionPicker, shinyPicker } from './supporters'
-import { changeTrainerPassword, collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
+import { changeTrainerPassword, fetchTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -23,7 +27,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       if (key === 'Backspace') return
       document.activeElement.blur()
     }
-    close()
+    if (!shinyScreen) close()
   })
   const dispose = () => { if (disposed) return; disposed = true; shinyScreen?.dispose(); shinyScreen = null; offKeys(); el.remove() }
   let mode: 'signin' | 'register' = 'signin'
@@ -95,11 +99,39 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
         status.textContent = message
       }, false)
       button('Refresh Trainer Card', async () => { await refreshTrainer(relay) })
-      button('Collect Mystery Gifts', async () => {
-        const outcome = await collectTrainerGifts(relay)
-        message = outcome.applied.length + ' rewards collected' + (outcome.blocked.length ? '; ' + outcome.blocked.length + ' waiting for incubator space' : '')
-        status.textContent = message
-        await syncTrainerSave(relay)
+      button('Open Mystery Gifts', async () => {
+        let waiting: Gift[] = (await fetchTrainerGifts(relay)).flatMap((g) => parseGift(g) ?? [])
+          .filter((g) => !loadSave().gifts.includes(g.id))
+        if (!waiting.length) { message = 'No unopened Mystery Gifts.'; status.textContent = message; return }
+        el.classList.add('hidden')
+        const finish = () => { shinyScreen = null; el.classList.remove('hidden'); render(); void syncTrainerSave(relay).catch(console.warn) }
+        const show = () => {
+          shinyScreen = giftScreen(root, input, {
+            close: finish,
+            pick: () => {
+              shinyScreen = shinyPicker(root, input, { play: () => { shinyScreen?.dispose(); show() } }, () => show(), () => syncTrainerSave(relay))
+            },
+            hatch: (hatch) => {
+              saveHatch(loadSave(), hatch.shiny)
+              void syncTrainerSave(relay).catch(console.warn)
+              shinyScreen = hatchScene(root, input, hatch, { play: () => {}, done: () => { shinyScreen?.dispose(); show() } })
+            },
+          }, {
+            inbox: () => waiting,
+            open: (id) => {
+              const gift = waiting.find((g) => g.id === id)
+              if (!gift) return null
+              const out = applyGift(loadSave(), gift)
+              if (out.status !== 'wait') waiting = waiting.filter((g) => g.id !== id)
+              if (out.status === 'applied') {
+                writeSave(out.save)
+                void syncTrainerSave(relay).catch(console.warn)
+              }
+              return out
+            },
+          })
+        }
+        show()
       }, false)
       const tickets = pendingPicks(loadSave()).length
       if (tickets) button('Choose shiny Pokémon (' + tickets + ' ticket' + (tickets === 1 ? '' : 's') + ')', async () => {
