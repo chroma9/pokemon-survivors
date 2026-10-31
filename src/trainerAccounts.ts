@@ -3,7 +3,7 @@ import { loadSave, writeSave } from './ui/save'
 import { parseSaveData } from './game/meta'
 import { mergeSaves } from './game/sync'
 
-export type TrainerProfile = { id: string; handle: string; name: string; created: number; supporterTier?: 'supporter' | 'gold' | 'diamond' | null }
+export type TrainerProfile = { id: string; handle: string; name: string; created: number; supporterTier?: 'supporter' | 'gold' | 'diamond' | null; mustChangePassword?: boolean }
 const REF = 'ps:trainerReferral'
 const landed = new URLSearchParams(location.search).get('ref')
 if (landed && /^[a-z0-9_]{3,20}$/i.test(landed) && !localStorage.getItem(REF)) localStorage.setItem(REF, landed.toLowerCase())
@@ -53,6 +53,13 @@ export const refreshTrainer = async (relay: string) => {
   localStorage.setItem(PROFILE, JSON.stringify(profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
+}
+export const changeTrainerPassword = async (relay: string, current: string, next: string) => {
+  const result = await request(relay, 'password', 'POST', { current, next })
+  localStorage.setItem(KEY, result.token)
+  localStorage.setItem(PROFILE, JSON.stringify(result.profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
+  return result.profile as TrainerProfile
 }
 export const renameTrainer = async (relay: string, name: string) => {
   const profile = (await request(relay, 'name', 'POST', { name })).profile as TrainerProfile
