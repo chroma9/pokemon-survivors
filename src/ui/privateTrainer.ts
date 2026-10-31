@@ -4,7 +4,7 @@ import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
-import { collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
+import { changeTrainerPassword, collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -24,6 +24,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
   })
   const dispose = () => { if (disposed) return; disposed = true; offKeys(); el.remove() }
   let mode: 'signin' | 'register' = 'signin'
+  let passwordPanel = false
   let message = ''
   let busy = false
   const line = (tag: keyof HTMLElementTagNameMap, value: string, cls = '') => h(tag, { class: cls }, value)
@@ -65,7 +66,22 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     status.setAttribute('role', 'status')
     append(status)
     if (!relay) { status.textContent = 'The private relay is unavailable.'; return }
-    if (user) {
+    if (user && (passwordPanel || user.mustChangePassword)) {
+      append(line('h3', user.mustChangePassword ? 'Set your new password' : 'Change password'))
+      append(line('p', user.mustChangePassword ? 'Your temporary password must be replaced before using your Trainer Account.' : 'Enter your current password and choose a new one.'))
+      const oldPassword = field('Current or temporary password', 'Current password', 'password', 'current-password')
+      const nextPassword = field('New password', 'At least 12 characters', 'password', 'new-password')
+      const confirm = field('Confirm new password', 'Repeat new password', 'password', 'new-password')
+      button('Save new password', async () => {
+        if (nextPassword.value.length < 12 || nextPassword.value.length > 128) throw Error('New password must be 12–128 characters.')
+        if (nextPassword.value !== confirm.value) throw Error('New passwords do not match.')
+        if (oldPassword.value === nextPassword.value) throw Error('Choose a different password.')
+        await changeTrainerPassword(relay, oldPassword.value, nextPassword.value)
+        passwordPanel = false
+      })
+      if (!user.mustChangePassword) button('Cancel', async () => { passwordPanel = false })
+      append(line('small', 'Changing your password signs out all other devices.'))
+    } else if (user) {
       append(h('div', { class: 'trainer-account-identity' }, line('h3', user.name), line('p', '@' + user.handle), line('p', 'Supporter: ' + (user.supporterTier ?? 'None'))))
       const id = line('small', 'Trainer ID: ' + user.id)
       append(id)
@@ -83,6 +99,7 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       }, false)
       const name = field('Display name', 'New trainer name', 'text', 'nickname')
       button('Change display name', async () => { await renameTrainer(relay, name.value) })
+      button('Change password', async () => { passwordPanel = true })
       button('Sign out', async () => { await logoutTrainer(relay) })
     } else {
       const tabs = h('div', { class: 'trainer-account-tabs' })
