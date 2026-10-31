@@ -18,6 +18,21 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
   },
   admin: async () => ({ authorized: await verifyPrivateAdmin(relay()), stored: Boolean(localStorage.getItem(TOKEN_KEY)) }),
   logout: () => { localStorage.removeItem(TOKEN_KEY); return 'ps: session cleared' },
+  resetPassword: async (handle: string) => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (!/^[a-z0-9_]{3,20}$/i.test(handle)) return 'ps.resetPassword: invalid handle'
+    const password = window.prompt('Enter a new temporary password for @' + handle + ' (minimum 12 characters)')
+    if (password === null) return 'ps.resetPassword: canceled'
+    if (password.length < 12 || password.length > 128) return 'ps.resetPassword: password must be 12-128 characters'
+    const endpoint = relay()
+    if (!endpoint) return 'ps.resetPassword: relay unavailable'
+    const response = await fetch(endpoint + '/admin/reset-password', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle, password }),
+    }).catch(() => null)
+    return response?.ok ? 'ps: password reset; old sessions invalidated' : 'ps.resetPassword: failed (HTTP ' + (response?.status ?? 'offline') + ')'
+  },
   supporter: async (handle: string, tier: 'supporter' | 'gold' | 'diamond' | null) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     if (!/^[a-z0-9_]{3,20}$/i.test(handle) || (tier !== null && !['supporter', 'gold', 'diamond'].includes(tier))) return 'ps.supporter: invalid trainer or tier'
