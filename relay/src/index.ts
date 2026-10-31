@@ -178,6 +178,19 @@ export default {
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantSupporter(data?.handle, data?.tier)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
     }
+    if (path === '/admin/observatory' && request.method === 'GET') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-observe:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const code = parseRoomCode(url.searchParams.get('room'))
+      if (!code) return json({ error: 'invalid_room' }, 400, headers)
+      const shard = shardOf(code)
+      if (!shard) return json({ error: 'not_found' }, 404, headers)
+      const observation = await shardStub(env, shard).observeAdminRoom(code)
+      return json(observation ?? { error: 'not_found' }, observation ? 200 : 404, headers)
+    }
     if (path === '/admin/spawn' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-spawn:' + ipOf(request) })).success) return json({ ok: false }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
