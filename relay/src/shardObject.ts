@@ -5,6 +5,7 @@ import { gen, randomToken } from './codes'
 import { gzip } from './gzip'
 import {
   connect,
+  adminSpawn,
   createRoom,
   deadline,
   disconnect,
@@ -232,6 +233,15 @@ export class ShardObject extends DurableObject<Env> {
       return this.rooms.has(code) ? { code, claim: r.claim } : null
     }
     return null
+  }
+
+  /** Internal Durable Object action; only the Worker exposes it after verifying the admin secret. */
+  async spawnAdminEnemy(code: string, enemy: string, count: number): Promise<boolean> {
+    const shell = this.rooms.get(code)
+    if (!shell) return false
+    const done = adminSpawn(shell.state, enemy, count)
+    if (done) this.scheduleAlarm()
+    return done
   }
 
   async fetch(request: Request): Promise<Response> {
