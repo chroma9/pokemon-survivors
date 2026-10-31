@@ -176,7 +176,7 @@ export default {
       }
       if (path === '/trainers/me' && request.method === 'GET') {
         const user = await store.identify(token)
-        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
+        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created, supporterTier: user.supporterTier ?? null } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
       }
       if (path === '/trainers/name' && request.method === 'POST') {
         const data = await request.json().catch(() => null) as { name?: string } | null
