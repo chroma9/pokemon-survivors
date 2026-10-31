@@ -1,18 +1,27 @@
+import type { Input } from '../engine/input'
+import type { Screen } from './screens'
+import { h, later } from './dom'
+import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup } from '../trainerAccounts'
 
-/** Minimal private-fork account screen; does not depend on the official Clerk server. */
-export const mountTrainerProfiles = () => {
-  if (document.getElementById('private-trainer-profile')) return
-  const button = document.createElement('button')
-  button.id = 'private-trainer-profile'
-  button.textContent = 'Trainer Profile'
-  Object.assign(button.style, { position: 'fixed', right: '12px', top: '12px', zIndex: '10000', padding: '9px 12px', color: '#fff', background: '#283f54', border: '2px solid #fff', borderRadius: '6px', cursor: 'pointer', fontFamily: 'monospace' })
-  document.body.append(button)
-  const panel = document.createElement('section')
-  Object.assign(panel.style, { display: 'none', position: 'fixed', right: '12px', top: '55px', width: 'min(92vw, 340px)', maxHeight: '75vh', overflowY: 'auto', zIndex: '10001', background: '#192b39', color: '#fff', border: '2px solid #eee', padding: '16px', borderRadius: '8px', fontFamily: 'monospace', boxShadow: '0 6px 24px #0009' })
-  document.body.append(panel)
-  button.onclick = () => { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; if (panel.style.display === 'block') render() }
+/** Account management integrated into the game's Settings screen navigation. */
+export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
+  const el = h('div', { class: 'screen shell dim settings-screen trainer-profile-screen' })
+  const panel = h('section', { class: 'box settings-rows' })
+  const close = () => { dispose(); later(onClose) }
+  el.append(topBar({ left: backButton(close), title: 'Trainer Profile' }), shellBody(h('div', { class: 'settings-panel' }, panel)))
+  root.append(el)
+  const offKeys = input.onKey((key) => {
+    if (key === 'Escape' || key === 'Backspace') {
+      if (document.activeElement instanceof HTMLInputElement) {
+        if (key === 'Backspace') return
+        document.activeElement.blur()
+      }
+      close()
+    }
+  })
+  const dispose = () => { offKeys(); el.remove() }
   const elem = (tag: string, value?: string) => {
     const node = document.createElement(tag)
     if (value) node.textContent = value
@@ -38,7 +47,7 @@ export const mountTrainerProfiles = () => {
   let status: HTMLElement
   const render = () => {
     panel.replaceChildren()
-    elem('h3', 'Trainer Profiles')
+    elem('h3', 'Trainer Profile')
     status = elem('p', '')
     const relay = coopUrl()
     if (!relay) { status.textContent = 'Co-op relay unavailable'; return }
@@ -67,4 +76,6 @@ export const mountTrainerProfiles = () => {
     })
     elem('small', 'Trainer accounts and administrator permissions are separate. Rejoin a co-op room after signing in or out.')
   }
+  render()
+  return { el, dispose }
 }
