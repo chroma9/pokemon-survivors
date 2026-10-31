@@ -18,7 +18,7 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
   },
   admin: async () => ({ authorized: await verifyPrivateAdmin(relay()), stored: Boolean(localStorage.getItem(TOKEN_KEY)) }),
   logout: () => { localStorage.removeItem(TOKEN_KEY); return 'ps: session cleared' },
-  spawn: async (enemy: string, count = 1) => {
+  spawn: async (enemy: string, count = 1, target?: string) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     const code = room()
     if (!code) return 'ps.spawn: start a co-op run first'
@@ -28,7 +28,7 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
     const response = await fetch(url + '/admin/spawn', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ room: code, enemy, count }),
+      body: JSON.stringify({ room: code, enemy, count, target }),
     }).catch(() => null)
     return response?.ok ? 'ps: spawn queued for all players' : 'ps.spawn: relay rejected the command'
   },
