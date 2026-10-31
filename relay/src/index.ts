@@ -154,8 +154,8 @@ export default {
       const store = env.TRAINER_ACCOUNTS.getByName('global')
       const token = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       if (path === '/trainers/register' && request.method === 'POST') {
-        const data = await request.json().catch(() => null) as { handle?: string; password?: string; name?: string } | null
-        const result = await store.register(data?.handle, data?.password, data?.name)
+        const data = await request.json().catch(() => null) as { handle?: string; password?: string; name?: string; referrer?: string } | null
+        const result = await store.register(data?.handle, data?.password, data?.name, data?.referrer)
         return json(result, 'error' in result ? 400 : 200, headers)
       }
       if (path === '/trainers/login' && request.method === 'POST') {
@@ -171,6 +171,19 @@ export default {
         const data = await request.json().catch(() => null) as { name?: string } | null
         const profile = await store.update(token, data?.name)
         return json(profile ? { profile } : { error: 'unauthorized' }, profile ? 200 : 401, headers)
+      }
+      if (path === '/trainers/referrals' && request.method === 'GET') {
+        const result = await store.referrals(token)
+        return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/gifts' && request.method === 'GET') {
+        const result = await store.gifts(token)
+        return json(result ? { gifts: result } : { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/run' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { runId?: string } | null
+        const result = await store.referralRun(token, data?.runId)
+        return json(result, 'error' in result ? 400 : 200, headers)
       }
       if (path === '/trainers/logout' && request.method === 'POST') {
         await store.logout(token)
