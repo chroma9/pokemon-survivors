@@ -22,7 +22,7 @@ const FRIEND_MILESTONES: ReadonlyArray<{ friends: number; gifts: readonly Referr
 ]
 
 type SupportTier = 'supporter' | 'gold' | 'diamond'
-type User = { supporterTier?: SupportTier | null; sessionVersion?: number; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
+type User = { supporterTier?: SupportTier | null; sessionVersion?: number; mustChangePassword?: boolean; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
 type Session = { id: string; expires: number; version?: number }
 const encoder = new TextEncoder()
 const hex = (a: Uint8Array) => [...a].map((n) => n.toString(16).padStart(2, '0')).join('')
@@ -35,7 +35,7 @@ const derive = async (pass: string, salt: string) => {
 }
 const clean = (v: unknown) => typeof v === 'string' ? v.trim() : ''
 const handleOf = (v: unknown) => /^[a-z0-9_]{3,20}$/.test(clean(v).toLowerCase()) ? clean(v).toLowerCase() : null
-const publicProfile = (u: User) => ({ id: u.id, handle: u.handle, name: u.name, created: u.created, supporterTier: u.supporterTier ?? null })
+const publicProfile = (u: User) => ({ id: u.id, handle: u.handle, name: u.name, created: u.created, supporterTier: u.supporterTier ?? null, mustChangePassword: u.mustChangePassword === true })
 const expiresIn = 30 * 24 * 3600 * 1000
 
 /** Single global account directory. All credentials and session hashes remain within this Durable Object. */
@@ -76,8 +76,23 @@ export class TrainerAccounts extends DurableObject<Env> {
     if (!user) return { error: 'not_found' }
     const salt = hex(bytes(16))
     const verifier = await derive(password, salt)
-    await this.ctx.storage.put('user:' + user.id, { ...user, salt, verifier, sessionVersion: (user.sessionVersion ?? 0) + 1 })
+    await this.ctx.storage.put('user:' + user.id, { ...user, salt, verifier, mustChangePassword: true, sessionVersion: (user.sessionVersion ?? 0) + 1 })
     return { ok: true, handle: user.handle, sessionsInvalidated: true }
+  }
+  /** A signed-in trainer replaces their temporary password with a private permanent one. */
+  async changePassword(token: string, oldInput: unknown, nextInput: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' }
+    const oldPassword = typeof oldInput === 'string' ? oldInput : ''
+    const newPassword = typeof nextInput === 'string' ? nextInput : ''
+    if (newPassword.length < 12 || newPassword.length > 128 || oldPassword === newPassword) return { error: 'invalid' }
+    if (await derive(oldPassword, user.salt) !== user.verifier) return { error: 'incorrect_password' }
+    const salt = hex(bytes(16))
+    const verifier = await derive(newPassword, salt)
+    const nextUser = { ...user, salt, verifier, mustChangePassword: false, sessionVersion: (user.sessionVersion ?? 0) + 1 }
+    await this.ctx.storage.put('user:' + user.id, nextUser)
+    // Changing credentials revokes all old sessions, including this one.
+    return await this.issue(nextUser)
   }
   private async issue(user: User) {
     const token = hex(bytes(32))
