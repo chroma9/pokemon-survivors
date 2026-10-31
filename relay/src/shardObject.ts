@@ -236,7 +236,7 @@ export class ShardObject extends DurableObject<Env> {
   }
 
   /** Internal Durable Object action; only the Worker exposes it after verifying the admin secret. */
-  async spawnAdminEnemy(code: string, enemy: string, count: number): Promise<boolean> {
+  async spawnAdminEnemy(code: string, enemy: string, count: number, target?: string): Promise<boolean> {
     const shell = this.rooms.get(code)
     if (!shell) return false
     const done = adminSpawn(shell.state, enemy, count)
