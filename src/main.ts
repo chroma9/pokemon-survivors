@@ -1,4 +1,4 @@
-import { privateAdminConsole } from './privateAdmin'
+import { privateAdminConsole, verifyPrivateAdmin } from './privateAdmin'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
 import './ui/style.css'
@@ -4151,7 +4151,25 @@ const devArena = (cmd?: string, arg?: string, then?: string) => {
 }
 
 // `ps.biome('cave')` and `ps.weather('rain')` stage a run for screenshots (they hold until the next scheduled change).
-if (!import.meta.env.DEV) Object.assign(window, { ps: privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null) })
+if (!import.meta.env.DEV) {
+  const authorized = () => verifyPrivateAdmin(coopUrl())
+  const backup = () => {
+    if (!localStorage.getItem('ps:adminSaveBackup')) localStorage.setItem('ps:adminSaveBackup', JSON.stringify(loadSave()))
+  }
+  const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
+  Object.assign(window, { ps: {
+    ...commands,
+    money: async (amount = 20000) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) return 'ps.money: amount must be 1–1000000'
+      backup()
+      const save = loadSave()
+      writeSave({ ...save, wallet: save.wallet + amount })
+      return 'ps: money added; refresh menus to see your balance'
+    },
+  } })
+}
+
 
 if (import.meta.env.DEV) {
   const withRun = (fn: (g: Game) => void) => (run ? fn(run.game) : console.warn('ps: start a run first'))
