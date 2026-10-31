@@ -4159,8 +4159,8 @@ if (!import.meta.env.DEV) {
   const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
   Object.assign(window, { ps: {
     ...commands,
-    spawn: async (kind: EnemyId, count = 1) => {
-      if (run?.coop) return commands.spawn(kind, count)
+    spawn: async (kind: EnemyId, count = 1, target?: string) => {
+      if (run?.coop) return commands.spawn(kind, count, target)
       if (!await authorized()) return 'ps: unauthorized'
       if (!Object.hasOwn(ENEMIES, kind) || !Number.isInteger(count) || count < 1 || count > 20) return 'ps.spawn: invalid enemy/count'
       if (!run) return 'ps.spawn: start a run first'
