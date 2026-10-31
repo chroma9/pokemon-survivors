@@ -1,5 +1,4 @@
 import { privateAdminConsole, verifyPrivateAdmin } from './privateAdmin'
-import { mountTrainerProfiles } from './ui/privateTrainer'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
 import './ui/style.css'
@@ -4405,7 +4404,3 @@ if (import.meta.env.DEV) {
     },
   })
 }
-
-// Private fork's cloud trainer profile access.
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountTrainerProfiles, { once: true })
-else mountTrainerProfiles()
