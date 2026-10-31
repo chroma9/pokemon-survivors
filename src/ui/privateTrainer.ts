@@ -74,7 +74,6 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       const profile = await trainerLookup(relay, lookup.value)
       status.textContent = profile.name + ' (@' + profile.handle + ') — Trainer ID: ' + profile.id
     })
-    elem('small', 'Trainer accounts and administrator permissions are separate. Rejoin a co-op room after signing in or out.')
   }
   render()
   return { el, dispose }
