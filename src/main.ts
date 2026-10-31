@@ -4159,6 +4159,24 @@ if (!import.meta.env.DEV) {
   const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
   Object.assign(window, { ps: {
     ...commands,
+    unlockFamily: async (id?: HatchlingId, shiny = false) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(HATCHLINGS, id)) return 'ps: unknown Pokémon family'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : HATCHLING_IDS
+      writeSave({ ...save, hatched: { ...save.hatched, ...Object.fromEntries(ids.map((i) => [i, { shiny }])) } })
+      return 'ps: family unlocks saved'
+    },
+    unlockShiny: async (id?: PlayableId) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(PLAYABLE, id)) return 'ps: unknown Pokémon'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : (Object.keys(PLAYABLE) as PlayableId[])
+      writeSave({ ...save, shinyStarters: ids.reduce(unlockShinyStarter, save.shinyStarters) })
+      return 'ps: shiny unlocks saved'
+    },
     money: async (amount = 20000) => {
       if (!await authorized()) return 'ps: unauthorized'
       if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) return 'ps.money: amount must be 1–1000000'
