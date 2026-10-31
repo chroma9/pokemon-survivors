@@ -6,7 +6,7 @@ import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
 import { pendingPicks } from '../game/shinyPicks'
 import { loadSave } from './save'
-import { shinyPicker } from './supporters'
+import { companionPicker, shinyPicker } from './supporters'
 import { changeTrainerPassword, collectTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
@@ -105,6 +105,10 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       if (tickets) button('Choose shiny Pokémon (' + tickets + ' ticket' + (tickets === 1 ? '' : 's') + ')', async () => {
         el.classList.add('hidden')
         shinyScreen = shinyPicker(root, input, { play: () => { shinyScreen?.dispose(); shinyScreen = null; el.classList.remove('hidden'); render() } }, () => { shinyScreen = null; el.classList.remove('hidden'); render() }, () => syncTrainerSave(relay))
+      }, false)
+      if (user.supporterTier) button('Choose companion', async () => {
+        el.classList.add('hidden')
+        shinyScreen = companionPicker(root, input, user.supporterTier ?? null, () => { shinyScreen = null; el.classList.remove('hidden'); render() }, () => syncTrainerSave(relay))
       }, false)
       const name = field('Display name', 'New trainer name', 'text', 'nickname')
       button('Change display name', async () => { await renameTrainer(relay, name.value) })
