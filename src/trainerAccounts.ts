@@ -81,6 +81,11 @@ export type ReferralProgress = { handle: string; link: string; friends: { handle
 export const trainerReferrals = async (relay: string) => await request(relay, 'referrals') as ReferralProgress
 export const submitTrainerReferralRun = async (relay: string, runId: string) => await request(relay, 'run', 'POST', { runId })
 /** Gift IDs remain stable across devices; save.gifts makes applying an already claimed gift idempotent. */
+export const fetchTrainerGifts = async (relay: string): Promise<Gift[]> => {
+  const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  return result.gifts
+}
+
 export const collectTrainerGifts = async (relay: string) => {
   const result = await request(relay, 'gifts') as { gifts: Gift[] }
   const applied: string[] = []
