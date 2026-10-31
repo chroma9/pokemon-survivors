@@ -4151,7 +4151,7 @@ const devArena = (cmd?: string, arg?: string, then?: string) => {
 }
 
 // `ps.biome('cave')` and `ps.weather('rain')` stage a run for screenshots (they hold until the next scheduled change).
-if (!import.meta.env.DEV) Object.assign(window, { ps: privateAdminConsole(coopUrl) })
+if (!import.meta.env.DEV) Object.assign(window, { ps: privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null) })
 
 if (import.meta.env.DEV) {
   const withRun = (fn: (g: Game) => void) => (run ? fn(run.game) : console.warn('ps: start a run first'))
