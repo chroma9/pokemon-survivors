@@ -47,7 +47,7 @@ export const siteZh: SiteMessages = {
   types: {
     normal: '一般', fire: '火', water: '水', grass: '草', electric: '電', poison: '毒',
     flying: '飛行', bug: '蟲', rock: '岩石', ground: '地面', ghost: '幽靈', fighting: '格鬥',
-    psychic: '超能力', ice: '冰', steel: '鋼', dark: '惡', fairy: '妖精', dragon: '龍',
+    psychic: '超能力', ice: '冰', steel: '鋼', dark: '惡', fairy: '妖精', dragon: '龍', shadow: '暗影',
   },
 
   pokedex: {
