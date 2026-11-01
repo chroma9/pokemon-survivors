@@ -1449,7 +1449,7 @@ export const MOVES = {
       for (const angle of fan(aimAngle(g, 290), s.amount, 0.22)) {
         const v = fromAngle(angle, s.speed)
         spawnAttack(g, {
-          move: 'shadowBall', type: 'ghost', visual: 'hex', x: p.x, y: p.y - 8,
+          move: 'shadowBall', type: 'ghost', visual: 'shadowBall', x: p.x, y: p.y - 8,
           shape: { kind: 'circle', r: 6 * s.area },
           motion: { kind: 'linear', vx: v.x, vy: v.y },
           damage: s.damage, knockback: s.knockback, pierce: s.pierce, ttl: 2,
@@ -1478,7 +1478,7 @@ export const MOVES = {
       for (const angle of radial(g, s.amount, 0)) {
         const offset = fromAngle(angle, 25 * s.area)
         spawnAttack(g, {
-          move: 'darkPulse', type: 'dark', visual: 'snarl',
+          move: 'darkPulse', type: 'dark', visual: 'darkPulse',
           x: p.x + offset.x, y: p.y - 7 + offset.y,
           shape: { kind: 'circle', r: 17 * s.area },
           motion: { kind: 'static' }, damage: s.damage, knockback: s.knockback,
