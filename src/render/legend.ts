@@ -42,6 +42,10 @@ export const playerSprites = (g: Game, megaForm?: FormKey): SpeciesSprites => {
 export const CLONE_TINT = { color: '#281838', amount: 0.55 } as const
 export const CLONE_OUTLINE = '#a050f0'
 
+/** Shadow Pokémon share the original Clone appearance, but have independent settings. */
+export const SHADOW_TINT = { color: '#281838', amount: 0.55 } as const
+export const SHADOW_OUTLINE = '#a050f0'
+
 /**
  * A legend's aura on the ground: a dashed ring in its color turning under its
  * feet, and motes rising off it, more of them with each awakening. `calm`
