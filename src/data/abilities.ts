@@ -321,6 +321,8 @@ export const FAMILY_ABILITIES = {
   shroomish: ['effectSpore', 'ironFist', 'technician'],
   swinub: ['snowCloak', 'slushRush', 'thickFat'],
   snorunt: ['innerFocus', 'iceBody', 'moody'],
+  /* Ultra rare Spiritomb */
+  spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
   /* Rare eggs */
   gastly: ['levitate', 'unnerve', 'cursedBody'],
   abra: ['synchronize', 'innerFocus', 'magicGuard'],
