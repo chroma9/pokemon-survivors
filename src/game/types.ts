@@ -389,7 +389,7 @@ export type TypeEvolvedVisual =
 
 /** Lunges, chains, mines and turrets (`moveRules.ts`), drawn by `render/moveFx.ts`. */
 export type TacticVisual =
-  | 'quick' | 'extremeSpeed' | 'shock' | 'thunderbolt' | 'hex'
+  | 'quick' | 'extremeSpeed' | 'shock' | 'thunderbolt' | 'hex' | 'shadowBall' | 'darkPulse'
   | 'spikes' | 'barbs' | 'spikesBlast' | 'barbsBlast'
   | 'wisp' | 'wispShot' | 'inferno' | 'infernoShot'
 
