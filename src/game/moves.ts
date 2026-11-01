@@ -1430,6 +1430,64 @@ export const MOVES = {
     fire: (g, s) => chain(g, s, { move: 'shockWave', type: 'electric', visual: 'shock' }),
   },
 
+  /** Playable adaptation of Spiritomb's graveyard Shadow Ball barrage. */
+  shadowBall: {
+    name: 'Shadow Ball',
+    type: 'ghost',
+    base: stats({ damage: 17, cooldown: 1.7, amount: 2, speed: 165, pierce: 1, knockback: 25 }),
+    upgrades: [
+      { damage: 5 },
+      { amount: 1 },
+      { speed: 20 },
+      { damage: 6 },
+      { pierce: 1 },
+      { cooldown: -0.2 },
+      { amount: 2, area: 0.2 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      for (const angle of fan(aimAngle(g, 290), s.amount, 0.22)) {
+        const v = fromAngle(angle, s.speed)
+        spawnAttack(g, {
+          move: 'shadowBall', type: 'ghost', visual: 'hex', x: p.x, y: p.y - 8,
+          shape: { kind: 'circle', r: 6 * s.area },
+          motion: { kind: 'linear', vx: v.x, vy: v.y },
+          damage: s.damage, knockback: s.knockback, pierce: s.pierce, ttl: 2,
+        })
+      }
+    },
+  },
+
+  /** Playable adaptation of Spiritomb's close-range Dark Pulse. */
+  darkPulse: {
+    name: 'Dark Pulse',
+    type: 'dark',
+    base: stats({ damage: 19, cooldown: 3.2, amount: 8, area: 1, knockback: 65 }),
+    upgrades: [
+      { damage: 5 },
+      { area: 0.15 },
+      { cooldown: -0.25 },
+      { damage: 6 },
+      { area: 0.2 },
+      { cooldown: -0.3 },
+      { damage: 8, area: 0.2 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      // Eight overlapping ghostly pulses radiate from the player, as in the boss encounter.
+      for (const angle of radial(g, s.amount, 0)) {
+        const offset = fromAngle(angle, 25 * s.area)
+        spawnAttack(g, {
+          move: 'darkPulse', type: 'dark', visual: 'snarl',
+          x: p.x + offset.x, y: p.y - 7 + offset.y,
+          shape: { kind: 'circle', r: 17 * s.area },
+          motion: { kind: 'static' }, damage: s.damage, knockback: s.knockback,
+          pierce: 1, ttl: 0.25,
+        })
+      }
+    },
+  },
+
   hex: {
     name: 'Hex',
     type: 'ghost',
