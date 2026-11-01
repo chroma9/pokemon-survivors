@@ -81,6 +81,7 @@ const PALETTES: Record<PokeType, readonly [string, string, string, string]> = {
   dark: ['#281c20', TYPE_COLORS.dark, '#b098a0', '#e8d8e0'],
   fairy: ['#a84868', TYPE_COLORS.fairy, '#f8d0e0', '#ffffff'],
   dragon: ['#301888', TYPE_COLORS.dragon, '#b090f8', '#f0e8ff'],
+  shadow: ['#281838', TYPE_COLORS.shadow, '#a890d0', '#e8dcff'],
 }
 
 /** Chain dashes and Stance Change: their icons come from the slash and the stance art below. */
