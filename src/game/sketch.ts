@@ -48,6 +48,8 @@ export const SKETCH_COPY = {
   dark: 'crunch',
   steel: 'flashCannon',
   fairy: 'disarmingVoice',
+  // Temporary fallback until Shadow moves are implemented.
+  shadow: 'crunch',
 } as const satisfies Record<PokeType, MoveId>
 
 /** What a boss of a type lends instead: an evolved move, where its type has one Metronome calls too. */
