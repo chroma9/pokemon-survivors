@@ -121,6 +121,8 @@ export type Player = {
   hurt: number
   /** Index into the starter's evolution line. */
   stage: number
+  /** Separate milestone flag: single-stage Strengthening never advances evolution stage. */
+  strengthened?: boolean
   moves: OwnedMove[]
   items: OwnedItem[]
   stats: PlayerStats
@@ -811,7 +813,7 @@ export type GameEvent =
 export type Buff = { id: BuffId; left: number; total: number }
 
 /** An evolution's scene: dex `from` → `to`. A legend's awakening (`awakening`: 1 or 2) plays it too, landing in its `form` where it takes one. */
-export type Evolution = { from: number; to: number; t: number; awakening?: number; form?: LegendForm }
+export type Evolution = { from: number; to: number; t: number; awakening?: number; strengthening?: true; form?: LegendForm }
 
 export type Game = {
   /** Multipliers this run plays with (`difficulty.ts`). */
