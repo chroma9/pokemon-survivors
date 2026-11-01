@@ -5062,6 +5062,7 @@ export const zh: Messages = {
     zubat: '蝙蝠。速度快，會啃咬並使敵人中毒。',
     poliwag: '蝌蚪。水、拳擊與快速冷卻。',
     onix: '岩石巨蛇。防禦極高，但速度很慢。',
+    spiritomb: '被封印的靈魂。發射暗影球與黑暗波動。',
     geodude: '岩石。緩慢、耐打，丟出沉重巨石。',
     roggenrola: '水晶。裝甲厚重，Gigalith 能大範圍粉碎。',
     mareep: '電氣羊毛。電擊會造成麻痺。',
