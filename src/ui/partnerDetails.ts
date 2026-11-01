@@ -1,5 +1,5 @@
 import { playSfx } from '../engine/audio'
-import { PLAYABLE, type PlayableId } from '../data/hatchlings'
+import { strengtheningOf, PLAYABLE, type PlayableId } from '../data/hatchlings'
 import type { PlayableDef } from '../data/starters'
 import { TYPE_COLORS } from '../data/types'
 import { MEGA, MEGAS, megasOf, type MegaId } from '../data/megas'
@@ -11,6 +11,7 @@ import { unlockedAt } from '../game/learnsets'
 import { branchNeeds } from '../game/evoItems'
 import { EVO_ITEMS } from '../data/shop'
 import { starterStats } from '../game/leveling'
+import { applyDeltas } from '../game/stats'
 import { MOVES, type MoveDef, type MoveId } from '../game/moves'
 import { resolveSpecial } from '../game/special'
 import { megaIcon } from '../render/megaFx'
@@ -166,7 +167,9 @@ const abilityRows = (id: PlayableId) => {
 export const statBars = (id: PlayableId, count: number = STAT_BARS.length) => {
   const m = t()
   const base = starterStats(id, 0)
-  const final = starterStats(id, PLAYABLE[id].line.length - 1)
+  const finalBase = starterStats(id, PLAYABLE[id].line.length - 1)
+  const strengthening = strengtheningOf(id)
+  const final = strengthening ? applyDeltas(finalBase, [strengthening.bonus]) : finalBase
   return h(
     'div',
     { class: 'stat-bars' },
@@ -221,6 +224,7 @@ export const evoLine = (id: PlayableId, stage: number, onStage: (stage: number) 
             ),
       ]
     }),
+    ...(strengtheningOf(id) ? [h('span', { class: 'evo-arrow' }, `${t().level(strengtheningOf(id)!.level)} · Strengthened`)] : []),
   )
 }
 
