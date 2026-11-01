@@ -3324,6 +3324,14 @@ export const fr: Messages = {
         '+2 sauts',
       ],
     },
+    shadowBall: {
+      description: "Lance des orbes obscurs qui traversent les ennemis.",
+      upgrades: ["+5 dégâts", "+1 projectile", "+20 vitesse", "+6 dégâts", "+1 perforation", "Recharge -0.2s", "+2 projectiles, +20% zone"],
+    },
+    darkPulse: {
+      description: "Une onde de ténèbres frappe les ennemis proches.",
+      upgrades: ["+5 dégâts", "+15% zone", "Recharge -0.25s", "+6 dégâts", "+20% zone", "Recharge -0.3s", "+8 dégâts, +20% zone"],
+    },
     hex: {
       description: 'Une malédiction saute d’ennemi en ennemi. Inflige ×1.7 dégâts aux ennemis qui ont une altération d’état.',
       upgrades: [
