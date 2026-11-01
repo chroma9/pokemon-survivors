@@ -2645,7 +2645,7 @@ export const pt = {
   types: {
     normal: 'Normal', fire: 'Fogo', water: 'Água', grass: 'Planta', electric: 'Elétrico', poison: 'Veneno',
     flying: 'Voador', bug: 'Inseto', rock: 'Pedra', ground: 'Terra', ghost: 'Fantasma', fighting: 'Lutador',
-    psychic: 'Psíquico', ice: 'Gelo', steel: 'Aço', dark: 'Sombrio', fairy: 'Fada', dragon: 'Dragão',
+    psychic: 'Psíquico', ice: 'Gelo', steel: 'Aço', dark: 'Sombrio', fairy: 'Fada', dragon: 'Dragão', shadow: 'Sombra',
   } satisfies Record<PokeType, string>,
 
   /** Daily and weekly missions: the screen, the results section and the goal lines. `n` comes formatted. */
