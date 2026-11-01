@@ -1,5 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { Env } from './env'
+import { HATCHLING_IDS } from '../../src/data/hatchlings'
+import { LEGEND_IDS } from '../../src/data/legends'
 // Keep Worker gift validation independent of browser game modules.
 // Keep Worker-only referral definitions independent of browser game modules.
 // These mirror src/game/referral.ts; verify both when changing rewards.
@@ -115,14 +117,18 @@ export class TrainerAccounts extends DurableObject<Env> {
   async grantPokemon(handleInput: unknown, familyInput: unknown, shinyInput: unknown) {
     const handle = handleOf(handleInput)
     const family = typeof familyInput === 'string' ? familyInput.toLowerCase() : ''
-    if (!handle || !/^[a-z][a-z0-9_]{1,39}$/.test(family) || typeof shinyInput !== 'boolean') return { error: 'invalid' }
+    if (!handle || typeof shinyInput !== 'boolean') return { error: 'invalid' }
+    const hatchling = (HATCHLING_IDS as readonly string[]).includes(family)
+    const legend = (LEGEND_IDS as readonly string[]).includes(family)
+    if (!hatchling && !legend) return { error: 'unknown_pokemon' }
+    if (legend && shinyInput) return { error: 'shiny_legend_gifts_unsupported' }
     const id = await this.ctx.storage.get<string>('name:' + handle)
     const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
     if (!user) return { error: 'not_found' }
     const giftId = 'private-event-pokemon-' + crypto.randomUUID()
     await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
       id: giftId,
-      content: { kind: 'pokemonGift', family, shiny: shinyInput },
+      content: legend ? { kind: 'legend', legend: family } : { kind: 'pokemonGift', family, shiny: shinyInput },
       reason: { kind: 'staff', from: null },
     })
     return { ok: true, handle: user.handle, family, shiny: shinyInput, giftId }
