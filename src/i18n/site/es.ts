@@ -44,7 +44,7 @@ export const siteEs: SiteMessages = {
   types: {
     normal: 'Normal', fire: 'Fuego', water: 'Agua', grass: 'Planta', electric: 'Eléctrico', poison: 'Veneno',
     flying: 'Volador', bug: 'Bicho', rock: 'Roca', ground: 'Tierra', ghost: 'Fantasma', fighting: 'Lucha',
-    psychic: 'Psíquico', ice: 'Hielo', steel: 'Acero', dark: 'Siniestro', fairy: 'Hada', dragon: 'Dragón',
+    psychic: 'Psíquico', ice: 'Hielo', steel: 'Acero', dark: 'Siniestro', fairy: 'Hada', dragon: 'Dragón', shadow: 'Sombra',
   },
 
   pokedex: {
