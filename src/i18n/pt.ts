@@ -3647,6 +3647,14 @@ export const pt = {
         '+2 saltos',
       ],
     },
+    shadowBall: {
+      description: "Esferas sombrias atravessam inimigos à frente.",
+      upgrades: ["+5 de dano", "+1 projétil", "+20 de velocidade", "+6 de dano", "+1 perfuração", "Recarga -0.2s", "+2 projéteis, área +20%"],
+    },
+    darkPulse: {
+      description: "Uma onda de trevas atinge os inimigos próximos.",
+      upgrades: ["+5 de dano", "Área +15%", "Recarga -0.25s", "+6 de dano", "Área +20%", "Recarga -0.3s", "+8 de dano, área +20%"],
+    },
     hex: {
       description: 'Uma maldição salta de inimigo em inimigo. Causa ×1.7 de dano em quem está com status.',
       upgrades: [
