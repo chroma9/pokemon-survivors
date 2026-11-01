@@ -25,7 +25,7 @@ export const TYPE_COLORS: Record<PokeType, string> = {
   dark: '#705848',
   fairy: '#ee99ac',
   dragon: '#7038f8',
-  shadow: '#703050',
+  shadow: '#604E82',
 }
 
 /** Official chart, restricted to the types we use. Missing entries are 1x. */
