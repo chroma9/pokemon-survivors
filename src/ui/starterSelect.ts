@@ -1,4 +1,5 @@
 import { canUseMewtwoClone, mewtwoAppearance, setMewtwoAppearance } from '../privateMewtwo'
+import { onixTesterAllowed } from '../privateOnix'
 import { blitCentered, context2d } from '../engine/pixelart'
 import { playCry, playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -96,7 +97,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const plain = opts.coop === true || opts.dojo === true
   const pickLabel = opts.dojo ? m.training.pickGo : m.coop.lobby.pick
   const save = loadSave()
-  const unlocked = (id: PlayableId) => canPlay(save, id)
+  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id)
   /** The save with the Normal/Shiny picks made on this screen; any shiny owned (rolled once, a ticket, a shiny hatch) can be picked. */
   let forms = save
   const canPick = (id: PlayableId) => ownsShiny(save, id)
@@ -106,7 +107,8 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const tabs: readonly Tab[] = TABS
   let tab: Tab = tabs.includes(tabOf(initial)) ? tabOf(initial) : 'starters'
   /** Each tab remembers its own cursor, so switching back lands where it was. */
-  const firstHatched = HATCHLING_IDS.find((id) => save.hatched[id]) ?? HATCHLING_IDS[0]!
+  const visibleHatchlings = HATCHLING_IDS.filter(onixTesterAllowed)
+  const firstHatched = visibleHatchlings.find((id) => save.hatched[id]) ?? visibleHatchlings[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
   const legendIds = shownLegends(brasiliaDay(today()))
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
@@ -252,10 +254,10 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     return el
   }
 
-  const owned = HATCHLING_IDS.filter((id) => save.hatched[id])
+  const owned = visibleHatchlings.filter((id) => save.hatched[id])
   const tabButtons = {
     starters: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('starters') }, m.partner.starters, h('small', {}, `${STARTER_IDS.length}`)),
-    eggs: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('eggs') }, m.eggs.tab, h('small', {}, `${owned.length}/${HATCHLING_IDS.length}`)),
+    eggs: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('eggs') }, m.eggs.tab, h('small', {}, `${owned.length}/${visibleHatchlings.length}`)),
     legends: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('legends') }, m.legend.tab, h('small', {}, `${capturedCount(save.legends, legendIds)}/${legendIds.length}`)),
   } satisfies Record<Tab, HTMLElement>
 
@@ -288,7 +290,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     h('button', { class: 'partner-teaser-more', type: 'button', onclick: () => setTab('eggs') }, owned.length > TEASER ? `+${owned.length - TEASER} ▸` : '▸'),
   )
 
-  const eggGrid = h('div', { class: 'partner-egg-grid' }, ...HATCHLING_IDS.map(eggCell))
+  const eggGrid = h('div', { class: 'partner-egg-grid' }, ...visibleHatchlings.map(eggCell))
   const ready = save.eggs.filter(isReady).length
   const openIncubator = () => (playSfx('select'), later(actions.incubator))
   const eggsPane = h(
@@ -594,7 +596,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
 
   /** The unlocked Pokémon of the shown tab, but the selected one: what Random draws from. */
   const randomPool = (): readonly PlayableId[] => {
-    const shown: readonly PlayableId[] = tab === 'eggs' ? HATCHLING_IDS : tab === 'legends' ? legendIds : STARTER_IDS
+    const shown: readonly PlayableId[] = tab === 'eggs' ? visibleHatchlings : tab === 'legends' ? legendIds : STARTER_IDS
     return shown.filter((id) => id !== current() && unlocked(id))
   }
 
@@ -631,10 +633,10 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const step = (dir: Step) => {
     if (tab === 'eggs') {
       const cols = getComputedStyle(eggGrid).gridTemplateColumns.split(' ').length || 1
-      const next = stepGrid(HATCHLING_IDS.indexOf(cursor.eggs), dir, cols, HATCHLING_IDS.length)
+      const next = stepGrid(visibleHatchlings.indexOf(cursor.eggs), dir, cols, visibleHatchlings.length)
       if (next === 'above') return setTab('starters')
       if (next === 'below') return tabs.includes('legends') ? setTab('legends') : undefined
-      return select(HATCHLING_IDS[next]!)
+      return select(visibleHatchlings[next]!)
     }
     if (tab === 'legends') {
       const cols = getComputedStyle(legendGrid).gridTemplateColumns.split(' ').length || 1
