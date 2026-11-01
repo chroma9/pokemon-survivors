@@ -5068,6 +5068,7 @@ export const es: Messages = {
     zubat: 'Murciélago. Rápido, muerde y envenena.',
     poliwag: 'Renacuajo. Agua, puñetazos y recarga rápida.',
     onix: 'Serpiente de roca. Muy resistente, pero lenta.',
+    spiritomb: 'Espíritu sellado. Lanza esferas y ondas oscuras.',
     geodude: 'Roca. Lento, duro y con pedradas pesadas.',
     roggenrola: 'Cristal. Coraza gruesa, y Gigalith aplasta en área.',
     mareep: 'Lana eléctrica. Descargas que paralizan.',
