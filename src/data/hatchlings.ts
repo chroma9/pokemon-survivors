@@ -139,7 +139,7 @@ export const HATCHLINGS = {
   onix: {
     name: 'Onix',
     color: '#9098a0',
-    egg: 'common',
+    egg: 'rare',
     stats: { maxHp: 35, armor: 2, speed: -7, might: 0.05 },
     signature: 'rockTomb',
     learnset: [['rockTomb', 'earthquake', 'stealthRock', 'gyroBall', 'heavySlam', 'rockBlast'], ['flashCannon', 'bodySlam'], ['rollout', 'selfDestruct']],
