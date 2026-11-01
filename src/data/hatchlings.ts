@@ -136,16 +136,6 @@ export const HATCHLINGS = {
     ]),
   },
 
-  onix: {
-    name: 'Onix',
-    color: '#9098a0',
-    egg: 'rare',
-    stats: { maxHp: 35, armor: 2, speed: -7, might: 0.05 },
-    signature: 'rockTomb',
-    learnset: [['rockTomb', 'earthquake', 'stealthRock', 'gyroBall', 'heavySlam', 'rockBlast'], ['flashCannon', 'bodySlam'], ['rollout', 'selfDestruct']],
-    line: line2(['Onix', 95, ['rock', 'ground']], ['Steelix', 208, ['steel', 'ground']], { maxHp: 75, armor: 3, might: 0.22, area: 0.1 }),
-  },
-
   /* Gen 1-3 families */
   pidgey: {
     name: 'Pidgey',
@@ -279,6 +269,16 @@ export const HATCHLINGS = {
   },
 
   /* ---------- Rare eggs ---------- */
+  onix: {
+    name: 'Onix',
+    color: '#9098a0',
+    egg: 'rare',
+    stats: { maxHp: 35, armor: 2, speed: -7, might: 0.05 },
+    signature: 'rockTomb',
+    learnset: [['rockTomb', 'earthquake', 'stealthRock', 'gyroBall', 'heavySlam', 'rockBlast'], ['flashCannon', 'bodySlam'], ['rollout', 'selfDestruct']],
+    line: line2(['Onix', 95, ['rock', 'ground']], ['Steelix', 208, ['steel', 'ground']], { maxHp: 75, armor: 3, might: 0.22, area: 0.1 }),
+  },
+
   gastly: {
     name: 'Gastly',
     color: '#7058a0',
