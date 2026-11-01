@@ -421,7 +421,7 @@ const BY_TYPE = {
   electric: 'boltStrike', poison: 'malignantChain', flying: 'aeroblast', bug: 'attackOrder',
   rock: 'diamondStorm', ground: 'precipiceBlades', ghost: 'astralBarrage', fighting: 'auraSphere',
   psychic: 'expandingForce', ice: 'blizzard', steel: 'doomDesire', dark: 'nightDaze',
-  fairy: 'lightOfRuin', dragon: 'dracoMeteor',
+  fairy: 'lightOfRuin', dragon: 'dracoMeteor', shadow: 'nightDaze',
 } as const satisfies Record<PokeType, SpecialId>
 
 /**
