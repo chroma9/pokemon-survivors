@@ -224,7 +224,6 @@ export const evoLine = (id: PlayableId, stage: number, onStage: (stage: number) 
             ),
       ]
     }),
-    ...(strengtheningOf(id) ? [h('span', { class: 'evo-arrow' }, `${t().level(strengtheningOf(id)!.level)} · Strengthened`)] : []),
   )
 }
 
