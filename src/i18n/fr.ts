@@ -5053,6 +5053,7 @@ export const fr: Messages = {
     pidgey: 'Oiseau. Rafales de vent et vitesse.',
     zubat: 'Chauve-souris. Rapide, mord et empoisonne.',
     poliwag: 'Têtard. Eau, coups de poing et recharges rapides.',
+    onix: 'Serpent de roche. Très robuste, mais lent.',
     geodude: 'Roche. Lent, coriace, avec de gros rochers.',
     roggenrola: 'Cristal. Armure épaisse, et Gigalith écrase large.',
     mareep: 'Laine électrique. Des décharges qui paralysent.',
