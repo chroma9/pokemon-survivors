@@ -765,6 +765,8 @@ export type GameEvent =
   /** Legend mode (`legend.ts`): an awakening (`n`, 1 or 2) started, or landed, maybe in its `form` (Primal Kyogre). */
   | { kind: 'awaken'; legend: LegendId; n: number }
   | { kind: 'awakened'; legend: LegendId; n: number; form: LegendForm | null }
+  | { kind: 'strengthen'; pokemon: PlayableId }
+  | { kind: 'strengthened'; pokemon: PlayableId }
   /** A legendary boss fell (rift, trio, mythical, Mewtwo, Arceus), once per defeat: the save counts it toward capturing it. */
   | { kind: 'legendBeaten'; legend: EnemyId; shiny: boolean }
   /** A boss with phases moved on to phase `phase` (from 0), or began its ultimate (`move`, the official English name). */
