@@ -1434,7 +1434,7 @@ export const MOVES = {
   shadowBall: {
     name: 'Shadow Ball',
     type: 'ghost',
-    base: stats({ damage: 17, cooldown: 1.7, amount: 2, speed: 165, pierce: 1, knockback: 25 }),
+    base: stats({ damage: 17, cooldown: 1.7, amount: 1, speed: 165, pierce: 1, knockback: 25 }),
     upgrades: [
       { damage: 5 },
       { amount: 1 },
@@ -1450,7 +1450,7 @@ export const MOVES = {
         const v = fromAngle(angle, s.speed)
         spawnAttack(g, {
           move: 'shadowBall', type: 'ghost', visual: 'shadowBall', x: p.x, y: p.y - 8,
-          shape: { kind: 'circle', r: 6 * s.area },
+          shape: { kind: 'circle', r: 12 * s.area },
           motion: { kind: 'linear', vx: v.x, vy: v.y },
           damage: s.damage, knockback: s.knockback, pierce: s.pierce, ttl: 2,
         })
@@ -1462,7 +1462,7 @@ export const MOVES = {
   darkPulse: {
     name: 'Dark Pulse',
     type: 'dark',
-    base: stats({ damage: 19, cooldown: 3.2, amount: 8, area: 1, knockback: 65 }),
+    base: stats({ damage: 19, cooldown: 3.2, amount: 1, area: 1, knockback: 65 }),
     upgrades: [
       { damage: 5 },
       { area: 0.15 },
@@ -1474,17 +1474,17 @@ export const MOVES = {
     ],
     fire: (g, s) => {
       const p = g.player
-      // Eight overlapping ghostly pulses radiate from the player, as in the boss encounter.
-      for (const angle of radial(g, s.amount, 0)) {
-        const offset = fromAngle(angle, 25 * s.area)
-        spawnAttack(g, {
-          move: 'darkPulse', type: 'dark', visual: 'darkPulse',
-          x: p.x + offset.x, y: p.y - 7 + offset.y,
-          shape: { kind: 'circle', r: 17 * s.area },
-          motion: { kind: 'static' }, damage: s.damage, knockback: s.knockback,
-          pierce: 1, ttl: 0.25,
-        })
-      }
+      // One circular wave, attached to Spiritomb as it expands.
+      // Amount bonuses extend the pulse's reach rather than creating puddles.
+      const reach = (50 + Math.max(0, s.amount - 1) * 6) * s.area
+      spawnAttack(g, {
+        move: 'darkPulse', type: 'dark', visual: 'darkPulse',
+        x: p.x, y: p.y - 7,
+        shape: { kind: 'circle', r: 6 },
+        motion: { kind: 'follow', ox: 0, oy: -7 },
+        damage: s.damage, knockback: s.knockback, pierce: Infinity,
+        ttl: 0.5, grow: (reach - 6) / 0.5,
+      })
     },
   },
 
