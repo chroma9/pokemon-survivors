@@ -2326,7 +2326,7 @@ export const fr: Messages = {
   types: {
     normal: 'Normal', fire: 'Feu', water: 'Eau', grass: 'Plante', electric: 'Électrik', poison: 'Poison',
     flying: 'Vol', bug: 'Insecte', rock: 'Roche', ground: 'Sol', ghost: 'Spectre', fighting: 'Combat',
-    psychic: 'Psy', ice: 'Glace', steel: 'Acier', dark: 'Ténèbres', fairy: 'Fée', dragon: 'Dragon',
+    psychic: 'Psy', ice: 'Glace', steel: 'Acier', dark: 'Ténèbres', fairy: 'Fée', dragon: 'Dragon', shadow: 'Ombre',
   },
 
   missions: {
