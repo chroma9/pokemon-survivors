@@ -5057,6 +5057,7 @@ export const en: Messages = {
     pidgey: 'Bird. Gusts of wind and speed.',
     zubat: 'Bat. Fast, bites and poisons.',
     poliwag: 'Tadpole. Water, punches and quick cooldowns.',
+    onix: 'Rock serpent. Extremely sturdy, but slow.',
     geodude: 'Rock. Slow, tough, with heavy boulders.',
     roggenrola: 'Crystal. Thick armor, and Gigalith crushes wide.',
     mareep: 'Electric wool. Shocks that paralyze.',
