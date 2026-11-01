@@ -700,7 +700,7 @@ const MOVE_ICON_ART: Record<MoveId, () => PixelSprite> = {
   extremeSpeed: () => art(QUICK, { 1: '#c89000', 2: '#f8d030', 3: '#fff8b0', 4: '#ffffff' }, '#503800'),
   shockWave: () => art(CHAIN, { 2: '#f8e030', 3: '#ffffff' }, '#504010'),
   thunderbolt: () => art(CHAIN, { 2: '#fff8a0', 3: '#f8a030' }, '#a03800'),
-  shadowBall: () => art(ORB, { 1: '#211030', 2: '#7040a0', 3: '#d8b8ff' }),
+  shadowBall: () => HAZARD_FX.shadow(),
   darkPulse: () => art(SPIRAL, { 1: '#8050a8' }, '#281038'),
   hex: () => art(CHAIN, { 2: '#a070d8', 3: '#f0e0ff' }, '#281838'),
   toxicSpikes: () => FX.spikes(),
