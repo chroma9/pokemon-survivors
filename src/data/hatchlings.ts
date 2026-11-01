@@ -772,6 +772,12 @@ export const PLAYABLE = { ...STARTERS, ...HATCHLINGS, ...LEGENDS }
 
 export type PlayableId = StarterId | HatchlingId | LegendId
 
+/** Only explicitly configured single-stage non-legends can Strengthen. */
+export const strengtheningOf = (id: PlayableId): PlayableDef['strengthening'] => {
+  const def: PlayableDef = PLAYABLE[id]
+  return def.line.length === 1 && !(id in LEGENDS) ? def.strengthening : undefined
+}
+
 /**
  * The starters and hatched families, the regular runs' cast. The legends
  * stay out: they only play in the Legend mode, and the Desafio do dia draws
