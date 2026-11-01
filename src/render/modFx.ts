@@ -35,6 +35,7 @@ const PALETTES: Record<PokeType, readonly [string, string, string]> = {
   steel: ['#505068', '#b8b8d0', '#ffffff'],
   fairy: ['#a04868', '#ee99ac', '#fff0f8'],
   dragon: ['#301888', '#7038f8', '#c8b0ff'],
+  shadow: ['#281838', '#604E82', '#c8b0e8'],
 }
 
 const palette = (type: PokeType) => PALETTES[type]
