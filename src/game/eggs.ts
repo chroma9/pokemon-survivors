@@ -179,7 +179,10 @@ export const poolOf = (tier: EggTier): EggTier => {
 }
 
 /** Whether an egg of `tier` could still bring a family this save hasn't hatched. */
-const hasNew = (tier: EggTier, hatched: Hatched) => HATCHLING_IDS.some((id) => onixTesterAllowed(id) && HATCHLINGS[id].egg === poolOf(tier) && !hatched[id])
+/** Spiritomb is staged for admin testing and is not in public egg rolls yet. */
+const publicEggFamily = (id: HatchlingId) => id !== 'spiritomb'
+
+const hasNew = (tier: EggTier, hatched: Hatched) => HATCHLING_IDS.some((id) => publicEggFamily(id) && onixTesterAllowed(id) && HATCHLINGS[id].egg === poolOf(tier) && !hatched[id])
 
 /** Whether the next egg of `tier` is sure to bring a new family: the last `EGGS.pity` of its pool brought none, and one is left to bring. */
 export const guaranteedNew = (tier: EggTier, hatched: Hatched, pity: EggPity) => (pity[poolOf(tier)] ?? 0) >= EGGS.pity && hasNew(tier, hatched)
@@ -191,7 +194,7 @@ export const guaranteedNew = (tier: EggTier, hatched: Hatched, pity: EggPity) =>
  */
 export const hatchPool = (tier: EggTier, hatched: Hatched, pity: EggPity = {}) => {
   const rule: EggTierRule = EGG_TIERS[tier]
-  const pool = HATCHLING_IDS.filter((id) => onixTesterAllowed(id) && HATCHLINGS[id].egg === poolOf(tier)).map((id) => [id, hatched[id] || rule.even ? 1 : EGGS.newWeight] as const)
+  const pool = HATCHLING_IDS.filter((id) => publicEggFamily(id) && onixTesterAllowed(id) && HATCHLINGS[id].egg === poolOf(tier)).map((id) => [id, hatched[id] || rule.even ? 1 : EGGS.newWeight] as const)
   return guaranteedNew(tier, hatched, pity) ? pool.filter(([id]) => !hatched[id]) : pool
 }
 
