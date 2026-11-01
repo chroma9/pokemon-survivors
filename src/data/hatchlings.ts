@@ -789,7 +789,7 @@ const EXCLUSIVE_EGGS: readonly EggTier[] = ['haunted', 'kecleon']
  * Egg's four): the Desafio do dia never draws it and shiny tickets can't pick
  * it, so the egg stays its only way in.
  */
-export const isExclusiveFamily = (id: PlayableId) => isHatchling(id) && EXCLUSIVE_EGGS.includes(HATCHLINGS[id].egg)
+export const isExclusiveFamily = (id: PlayableId) => isHatchling(id) && (id === 'spiritomb' || EXCLUSIVE_EGGS.includes(HATCHLINGS[id].egg))
 
 /** A starter: neither a hatched family nor a legend. */
 export const isStarter = (id: PlayableId): id is StarterId => id in STARTERS
