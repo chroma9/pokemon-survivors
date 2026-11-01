@@ -121,6 +121,24 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
       ctx.globalAlpha = 1
       return
     }
+    case 'shadowBall': {
+      if (a.shape.kind !== 'circle') return
+      const r = Math.max(3, Math.round(a.shape.r))
+      ctx.globalAlpha = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
+      blitRing(ctx, r + 2, 2, '#281038', a.x, a.y)
+      blitEllipse(ctx, r, r, '#7040a0', a.x, a.y)
+      blitEllipse(ctx, Math.max(2, r - 3), Math.max(2, r - 3), '#c8a0f0', a.x - 1, a.y - 1)
+      ctx.globalAlpha = 1
+      return
+    }
+    case 'darkPulse': {
+      if (a.shape.kind !== 'circle') return
+      const k = Math.min(1, Math.max(0, a.age / a.ttl))
+      ctx.globalAlpha = Math.max(0, 1 - k)
+      dashedRing(ctx, a.x, a.y, a.shape.r * (0.6 + k * 0.4), t * 5, ['#301440', '#8050a8', '#d0a8f0'], 0.8, 0.7)
+      ctx.globalAlpha = 1
+      return
+    }
     case 'shock':
     case 'thunderbolt':
     case 'hex': {
