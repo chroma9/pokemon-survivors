@@ -136,7 +136,11 @@ export const parseGiftContent = (v: unknown): GiftContent | null => {
     case 'shinyHatch':
       return isOneOf(v.family, HATCHLING_IDS) ? { kind: 'shinyHatch', family: v.family } : null
     case 'pokemonGift':
-      return isOneOf(v.family, HATCHLING_IDS) && typeof v.shiny === 'boolean' ? { kind: 'pokemonGift', family: v.family, shiny: v.shiny } : null
+      if (typeof v.shiny !== 'boolean') return null
+      if (isOneOf(v.family, HATCHLING_IDS)) return { kind: 'pokemonGift', family: v.family, shiny: v.shiny }
+      // Legacy admin gifts used pokemonGift even for legends; preserve those gifts.
+      if (isOneOf(v.family, LEGEND_IDS)) return { kind: 'legend', legend: v.family }
+      return null
     case 'ribbon': {
       const ribbon = parseRibbon(v.ribbon)
       return ribbon ? { kind: 'ribbon', ribbon } : null
