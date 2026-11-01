@@ -59,4 +59,5 @@ export const TUTOR_AFFINITY = {
   dark: ['ghost', 'poison', 'fighting', 'normal', 'steel', 'ground', 'flying', 'fire'],
   fairy: ['psychic', 'normal', 'grass', 'flying', 'steel', 'ghost', 'electric'],
   dragon: ['fire', 'water', 'ground', 'rock', 'flying', 'steel', 'dark', 'normal', 'electric', 'fighting'],
+  shadow: [],
 } as const satisfies Record<PokeType, readonly PokeType[]>
