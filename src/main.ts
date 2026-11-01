@@ -4190,6 +4190,18 @@ if (!import.meta.env.DEV) {
       writeSave({ ...save, hatched: { ...save.hatched, ...Object.fromEntries(ids.map((i) => [i, { shiny }])) } })
       return 'ps: family unlocks saved'
     },
+    /** Admin-only testing: remove a hatched family unlock from this device. */
+    revokeFamily: async (id: HatchlingId) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!id || !Object.hasOwn(HATCHLINGS, id)) return 'ps.revokeFamily: unknown Pokémon family'
+      const save = loadSave()
+      if (!save.hatched[id]) return 'ps.revokeFamily: family is not unlocked'
+      backup()
+      const hatched = { ...save.hatched }
+      delete hatched[id]
+      writeSave({ ...save, hatched })
+      return 'ps: ' + id + ' unlock revoked locally; cloud sync may restore it from your account save. Refresh menus to check.'
+    },
     unlockShiny: async (id?: PlayableId) => {
       if (!await authorized()) return 'ps: unauthorized'
       if (id && !Object.hasOwn(PLAYABLE, id)) return 'ps: unknown Pokémon'
