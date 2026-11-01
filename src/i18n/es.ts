@@ -5059,6 +5059,7 @@ export const es: Messages = {
     pidgey: 'Pájaro. Ráfagas de viento y velocidad.',
     zubat: 'Murciélago. Rápido, muerde y envenena.',
     poliwag: 'Renacuajo. Agua, puñetazos y recarga rápida.',
+    onix: 'Serpiente de roca. Muy resistente, pero lenta.',
     geodude: 'Roca. Lento, duro y con pedradas pesadas.',
     roggenrola: 'Cristal. Coraza gruesa, y Gigalith aplasta en área.',
     mareep: 'Lana eléctrica. Descargas que paralizan.',
