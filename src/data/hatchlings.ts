@@ -269,19 +269,6 @@ export const HATCHLINGS = {
   },
 
   /* ---------- Rare eggs ---------- */
-  spiritomb: {
-    name: 'Spiritomb',
-    color: '#705078',
-    egg: 'rare',
-    // A sturdy, slow-moving Ghost/Dark Pokémon; its curses reward sustained fights.
-    stats: { maxHp: 30, armor: 1, speed: -6, might: 0.08, statusChance: 0.04 },
-    signature: 'hex',
-    learnset: [['hex', 'shadowBall', 'darkPulse', 'willOWisp', 'suckerPunch', 'dreamEater'], ['snarl', 'curse', 'nightmare']],
-    // Spiritomb has no evolution.
-    line: [{ name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], bonus: {} }],
-  },
-
-
   onix: {
     name: 'Onix',
     color: '#9098a0',
@@ -546,7 +533,20 @@ export const HATCHLINGS = {
     line: line2(['Shuppet', 353, ['ghost']], ['Banette', 354, ['ghost']], { maxHp: 40, might: 0.25, statusChance: 0.04, statusDamage: 0.15 }),
   },
 
-  /* ---------- Ultra rare eggs: the pseudo-legendaries ---------- */
+  /* ---------- Ultra rare eggs ---------- */
+  spiritomb: {
+    name: 'Spiritomb',
+    color: '#705078',
+    egg: 'ultra',
+    // A sturdy, slow-moving Ghost/Dark Pokémon; its curses reward sustained fights.
+    stats: { maxHp: 30, armor: 1, speed: -6, might: 0.08, statusChance: 0.04 },
+    signature: 'hex',
+    learnset: [['hex', 'spiritShackle', 'snarl', 'willOWisp', 'suckerPunch', 'dreamEater'], ['venoshock', 'curse', 'psyshock']],
+    // Spiritomb has no evolution.
+    line: [{ name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], bonus: {} }],
+  },
+
+  /* ---------- Other ultra rare families: pseudo-legendaries ---------- */
   dratini: {
     name: 'Dratini',
     color: '#6890e0',
