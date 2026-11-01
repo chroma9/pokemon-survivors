@@ -10,7 +10,7 @@ import type { EvoItemId } from '../data/shop'
 import type { EvolutionStage } from '../data/starters'
 import { runBoost } from './evoItems'
 import { evolutionFreed, missingEvoItems, runEvoItems, stepOpen } from './evoGate'
-import { isStarter, PLAYABLE, type PlayableId } from '../data/hatchlings'
+import { isStarter, PLAYABLE, strengtheningOf, type PlayableId } from '../data/hatchlings'
 import { abilityImmune, abilityLuck, abilitySet, createAbilityState, grantAbility, updateAbility } from './abilities'
 import { BAG_ITEMS, type BagItem } from './bag'
 import { branchContext, evolutionOffers, playerForm } from './branch'
@@ -164,6 +164,7 @@ export const createPlayer = (slot: number, setup: PlayerSetup, lucky: boolean, x
     iframes: 0,
     hurt: 0,
     stage: 0,
+    strengthened: false,
     moves: [{ id: def.signature, level: 1, cooldown: 0.4, path: 0 }],
     items: [],
     stats: BASE_STATS,
@@ -550,6 +551,8 @@ export const advancePhase = (g: Game): void => {
     return
   }
   if (pendingAwakening(g) > 0) return startAwakening(g)
+  const strengthening = strengtheningOf(p.starter)
+  if (strengthening && !p.strengthened && p.level >= strengthening.level) return startStrengthening(g)
   // Held in its first form by an Everstone (or a one-stage family), the Pokémon still picks its Ability when it would have evolved.
   if (abilityDueInForm(g)) return offerAbilities(g)
   if (!pendingEvolution(g)) {
@@ -589,7 +592,7 @@ const abilityDueInForm = (g: Game) => {
   const p = g.player
   if (p.ability.id !== null || p.legend) return false
   const line: readonly EvolutionStage[] = PLAYABLE[p.starter].line
-  if (line.length === 1) return p.level >= SOLO_ABILITY_LEVEL
+  if (line.length === 1) return p.level >= (strengtheningOf(p.starter)?.level ?? SOLO_ABILITY_LEVEL)
   const first = line[0]!
   return (p.everstone || p.evoHeld) && first.evolveAt !== undefined && p.level >= first.evolveAt
 }
@@ -618,6 +621,27 @@ const startEvolution = (g: Game) => {
   g.player.evolution = { ...evo, t: 0 }
   setPhase(g, 'evolving')
   g.events.push({ kind: 'evolve', ...evo })
+}
+
+/** A single-stage Pokémon Strengthens without changing species or evolution stage. */
+const startStrengthening = (g: Game): void => {
+  const dex = playerDex(g)
+  g.player.evolution = { from: dex, to: dex, t: 0, strengthening: true }
+  setPhase(g, 'evolving')
+  g.events.push({ kind: 'strengthen', pokemon: g.player.starter })
+}
+
+/** Complete the one-time Strengthening and offer the normal first Ability choice. */
+const strengthen = (g: Game): void => {
+  const p = g.player
+  p.strengthened = true
+  recomputeStats(g)
+  healPlayer(g, p.stats.maxHp * 0.5)
+  p.banishes++
+  p.evolution = null
+  g.events.push({ kind: 'strengthened', pokemon: p.starter })
+  if (p.ability.id === null) offerAbilities(g)
+  else advancePhase(g)
 }
 
 /** The acting player's legend awakens: the evolution's scene, on the same species (in its new form, where it takes one). */
@@ -805,6 +829,7 @@ export const updateEvolution = (g: Game, dt: number) => {
   evo.t += dt
   if (evo.t < EVOLUTION_TIME) return
   if (evo.awakening) return awaken(g, evo.awakening)
+  if (evo.strengthening) return strengthen(g)
   p.stage++
   p.radius = playerRadius(evo.to, false)
   recomputeStats(g)
