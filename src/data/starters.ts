@@ -24,6 +24,8 @@ export type PlayableDef = {
   name: string
   color: string
   stats: StatDelta
+  /** Optional single-stage level-20 boost, separate from evolution and Legendary Awakening. */
+  strengthening?: { level: number; bonus: StatDelta }
   /** Move the run starts with (in the first stage's list). */
   signature: MoveId
   /**
