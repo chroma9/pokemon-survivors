@@ -5062,6 +5062,7 @@ export const fr: Messages = {
     zubat: 'Chauve-souris. Rapide, mord et empoisonne.',
     poliwag: 'Têtard. Eau, coups de poing et recharges rapides.',
     onix: 'Serpent de roche. Très robuste, mais lent.',
+    spiritomb: 'Esprit scellé. Lance des orbes et des ondes obscures.',
     geodude: 'Roche. Lent, coriace, avec de gros rochers.',
     roggenrola: 'Cristal. Armure épaisse, et Gigalith écrase large.',
     mareep: 'Laine électrique. Des décharges qui paralysent.',
