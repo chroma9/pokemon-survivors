@@ -36,7 +36,7 @@ const ROLE: Record<string, Role> = {
   furyCutter: 'strike', sacredSword: 'arc', dragonDarts: 'homing', snarl: 'chain', gigaImpact: 'dash', flail: 'aura', boneRush: 'strike',
   metronome: 'random', echoedVoice: 'wave', curse: 'support', gust: 'aura', machPunch: 'strike', flashCannon: 'shot', spiritShackle: 'shot',
   waterShuriken: 'homing', crunch: 'strike', pyroBall: 'shot', psyshock: 'boomerang', earthquake: 'aura', drumBeating: 'wave',
-  disarmingVoice: 'wave', torchSong: 'wave', leafBlade: 'aura', razorShell: 'arc', quickAttack: 'dash', shockWave: 'chain', hex: 'chain',
+  disarmingVoice: 'wave', torchSong: 'wave', leafBlade: 'aura', razorShell: 'arc', quickAttack: 'dash', shockWave: 'chain', hex: 'chain', shadowBall: 'shot', darkPulse: 'aura',
   toxicSpikes: 'field', willOWisp: 'field', iceShard: 'shot', rockTomb: 'sky', pinMissile: 'homing', dragonBreath: 'cone',
   flameWheel: 'field', solarBeam: 'beam', brine: 'shot', electroBall: 'shot', venoshock: 'homing', selfDestruct: 'dash', roost: 'support',
   focusPunch: 'charge', gyroBall: 'aura', suckerPunch: 'counter', futureSight: 'sky', bonemerang: 'boomerang', stealthRock: 'field',
