@@ -5377,6 +5377,7 @@ export const pt = {
     pidgey: 'Pássaro. Rajadas de vento e velocidade.',
     zubat: 'Morcego. Rápido, morde e envenena.',
     poliwag: 'Girino. Água, socos e recarga rápida.',
+    onix: 'Serpente de pedra. Muito resistente, mas lenta.',
     geodude: 'Rocha. Lento, duro e com pedradas pesadas.',
     roggenrola: 'Cristal. Couraça grossa, e o Gigalith esmaga em área.',
     mareep: 'Lã elétrica. Choques que paralisam.',
