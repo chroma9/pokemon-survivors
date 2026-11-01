@@ -540,14 +540,10 @@ export const HATCHLINGS = {
     egg: 'ultra',
     // A sturdy, slow-moving Ghost/Dark Pokémon; its curses reward sustained fights.
     stats: { maxHp: 30, armor: 1, speed: -6, might: 0.08, statusChance: 0.04 },
+    strengthening: { level: 20, bonus: { maxHp: 65, might: 0.25, armor: 1, area: 0.1 } },
     signature: 'shadowBall',
-    learnset: [['shadowBall', 'darkPulse', 'hex', 'willOWisp', 'suckerPunch', 'dreamEater'], ['snarl', 'venoshock', 'curse', 'psyshock']],
-    // Same species and sprite at both stages. This is a level-20 Strengthening,
-    // using the same full-stat-bonus and Ability timing as Cubone's evolution.
-    line: [
-      { name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], evolveAt: 20, bonus: {} },
-      { name: 'Spiritomb (Strengthened)', dex: 442, types: ['ghost', 'dark'], bonus: { maxHp: 65, might: 0.25, armor: 1, area: 0.1 } },
-    ],
+    learnset: [['shadowBall', 'darkPulse', 'hex', 'willOWisp', 'suckerPunch', 'dreamEater', 'snarl', 'venoshock', 'curse', 'psyshock']],
+    line: [{ name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], bonus: {} }],
   },
 
   /* ---------- Other ultra rare families: pseudo-legendaries ---------- */
