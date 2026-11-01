@@ -60,6 +60,13 @@ describe('parseGift', () => {
     expect(parseGift({ id: 'x', content: { kind: 'coins', amount: -5 } })).toBeNull()
   })
 
+  it('recovers previously delivered legendary Pokémon gifts', () => {
+    const oldGift = parseGift({ id: 'old-lugia', content: { kind: 'pokemonGift', family: 'lugia', shiny: false }, reason: { kind: 'staff', from: null } })
+    expect(oldGift?.content).toEqual({ kind: 'legend', legend: 'lugia' })
+    expect(oldGift && applyGift(EMPTY_SAVE, oldGift).status).toBe('applied')
+    expect(parseGift({ id: 'invalid', content: { kind: 'pokemonGift', family: 'fake', shiny: false } })).toBeNull()
+  })
+
   it('reads the Discord thank-you as the API stores it', () => {
     const stored = JSON.parse(JSON.stringify({ id: 'x', content: DISCORD_GIFT, reason: { kind: 'discord' } }))
     expect(parseGift(stored)).toEqual({ id: 'x', content: DISCORD_GIFT, reason: { kind: 'discord' } })
