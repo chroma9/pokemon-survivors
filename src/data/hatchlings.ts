@@ -540,8 +540,8 @@ export const HATCHLINGS = {
     egg: 'ultra',
     // A sturdy, slow-moving Ghost/Dark Pokémon; its curses reward sustained fights.
     stats: { maxHp: 30, armor: 1, speed: -6, might: 0.08, statusChance: 0.04 },
-    signature: 'hex',
-    learnset: [['hex', 'spiritShackle', 'snarl', 'willOWisp', 'suckerPunch', 'dreamEater'], ['venoshock', 'curse', 'psyshock']],
+    signature: 'shadowBall',
+    learnset: [['shadowBall', 'darkPulse', 'hex', 'willOWisp', 'suckerPunch', 'dreamEater'], ['snarl', 'venoshock', 'curse', 'psyshock']],
     // Spiritomb has no evolution.
     line: [{ name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], bonus: {} }],
   },
