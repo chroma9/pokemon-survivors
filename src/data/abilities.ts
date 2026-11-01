@@ -312,6 +312,7 @@ export const FAMILY_ABILITIES = {
   pidgey: ['keenEye', 'steadfast', 'longReach'],
   zubat: ['innerFocus', 'unnerve', 'infiltrator'],
   poliwag: ['waterAbsorb', 'damp', 'swiftSwim'],
+  onix: ['rockHead', 'sturdy', 'sheerForce'],
   geodude: ['rockHead', 'sturdy', 'sandVeil'],
   roggenrola: ['sturdy', 'sandStream', 'rockHead'],
   mareep: ['static', 'voltAbsorb', 'lightningRod'],
