@@ -3327,6 +3327,14 @@ export const en: Messages = {
         '+2 jumps',
       ],
     },
+    shadowBall: {
+      description: "Launches shadowy projectiles through enemies ahead.",
+      upgrades: ["+5 damage", "+1 projectile", "+20 projectile speed", "+6 damage", "+1 pierce", "-0.2s cooldown", "+2 projectiles, +20% area"],
+    },
+    darkPulse: {
+      description: "A radial burst of dark energy hits nearby enemies.",
+      upgrades: ["+5 damage", "+15% area", "-0.25s cooldown", "+6 damage", "+20% area", "-0.3s cooldown", "+8 damage, +20% area"],
+    },
     hex: {
       description: 'A curse jumps from foe to foe. Deals ×1.7 damage to foes with a status condition.',
       upgrades: [
