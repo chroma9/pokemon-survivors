@@ -3329,6 +3329,14 @@ export const es: Messages = {
         '+2 saltos',
       ],
     },
+    shadowBall: {
+      description: "Lanza esferas sombrías que atraviesan enemigos.",
+      upgrades: ["+5 de daño", "+1 proyectil", "+20 de velocidad", "+6 de daño", "+1 perforación", "Recarga -0.2s", "+2 proyectiles, +20% de área"],
+    },
+    darkPulse: {
+      description: "Una onda radial de oscuridad golpea enemigos cercanos.",
+      upgrades: ["+5 de daño", "Área +15%", "Recarga -0.25s", "+6 de daño", "Área +20%", "Recarga -0.3s", "+8 de daño, área +20%"],
+    },
     hex: {
       description: 'Una maldición salta de enemigo en enemigo. Hace ×1.7 de daño a quien tenga un estado.',
       upgrades: [
