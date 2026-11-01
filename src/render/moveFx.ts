@@ -2,7 +2,7 @@ import { blitCentered, blitEllipse, blitRing } from '../engine/pixelart'
 import { hash2 } from '../engine/rng'
 import { LUNGE_TIME, MINE_ARM } from '../game/moveRules'
 import type { Attack } from '../game/types'
-import { FX } from './art'
+import { FX, HAZARD_FX } from './art'
 import { dashedRing } from './strokes'
 
 /**
@@ -123,11 +123,9 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
     }
     case 'shadowBall': {
       if (a.shape.kind !== 'circle') return
-      const r = Math.max(3, Math.round(a.shape.r))
       ctx.globalAlpha = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
-      blitRing(ctx, r + 2, 2, '#281038', a.x, a.y)
-      blitEllipse(ctx, r, r, '#7040a0', a.x, a.y)
-      blitEllipse(ctx, Math.max(2, r - 3), Math.max(2, r - 3), '#c8a0f0', a.x - 1, a.y - 1)
+      // Reuse Spiritomb's existing boss Shadow Ball pixels, not the Hex chain effect.
+      blitCentered(ctx, HAZARD_FX.shadow(), a.x, a.y)
       ctx.globalAlpha = 1
       return
     }
