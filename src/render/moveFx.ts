@@ -125,15 +125,21 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
       if (a.shape.kind !== 'circle') return
       ctx.globalAlpha = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
       // Reuse Spiritomb's existing boss Shadow Ball pixels, not the Hex chain effect.
-      blitCentered(ctx, HAZARD_FX.shadow(), a.x, a.y)
+      const orb = HAZARD_FX.shadow()
+      const scale = a.shape.r / 6
+      ctx.drawImage(orb, Math.round(a.x - orb.width * scale / 2), Math.round(a.y - orb.height * scale / 2), Math.round(orb.width * scale), Math.round(orb.height * scale))
       ctx.globalAlpha = 1
       return
     }
     case 'darkPulse': {
       if (a.shape.kind !== 'circle') return
-      const k = Math.min(1, Math.max(0, a.age / a.ttl))
-      ctx.globalAlpha = Math.max(0, 1 - k)
-      dashedRing(ctx, a.x, a.y, a.shape.r * (0.6 + k * 0.4), t * 5, ['#301440', '#8050a8', '#d0a8f0'], 0.8, 0.7)
+      const progress = Math.min(1, Math.max(0, a.age / a.ttl))
+      const r = Math.max(1, a.shape.r)
+      ctx.globalAlpha = Math.max(0, (1 - progress) * 0.65)
+      blitEllipse(ctx, r, r, '#381a58', a.x, a.y)
+      ctx.globalAlpha = Math.max(0, (1 - progress) * 0.95)
+      blitRing(ctx, Math.round(r), 3, '#b078e0', a.x, a.y)
+      blitRing(ctx, Math.max(1, Math.round(r - 4)), 1, '#e0b8ff', a.x, a.y)
       ctx.globalAlpha = 1
       return
     }
