@@ -460,13 +460,13 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
       // Dark Void-like wisps rising from the pool; no bright overhead halo.
       const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
       ctx.save()
-      for (let i = 0; i < 8; i++) {
-        const phase = (t * 0.65 + i * 0.137 + a.id * 0.071) % 1
+      for (let i = 0; i < 22; i++) {
+        const phase = (t * (0.45 + (i % 4) * 0.09) + i * 0.137 + a.id * 0.071) % 1
         const angle = i * 2.39996 + a.id * 0.31
-        const d = r * (0.2 + (i % 4) * 0.16)
-        ctx.globalAlpha = fade * (1 - phase) * 0.65
+        const d = r * (0.15 + (i % 7) * 0.11)
+        ctx.globalAlpha = fade * (1 - phase) * (i % 3 === 0 ? 0.65 : 0.42)
         ctx.fillStyle = i % 3 === 0 ? '#5838a0' : i % 3 === 1 ? '#3a2468' : '#1c1030'
-        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d * 0.5 - phase * 14), 2, 2)
+        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d * 0.5 - phase * (12 + i % 9)), i % 4 === 0 ? 4 : 2, i % 4 === 0 ? 3 : 2)
       }
       ctx.restore()
       return
