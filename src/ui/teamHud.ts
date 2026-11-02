@@ -1,3 +1,4 @@
+import { playablePortrait } from '../playableForms'
 import { COOP } from '../data/coop'
 import { VERSUS } from '../data/versus'
 import { CURSES } from '../data/curses'
@@ -10,7 +11,7 @@ import { MOVES, maxMoveLevel, type MoveId } from '../game/moves'
 import type { Game, Player } from '../game/types'
 import { t } from '../i18n'
 import { curseIcon, itemIcon, moveIcon, teamAwayIcon, teamBallIcon, sparkleIcon } from '../render/art'
-import { formPortraitUrl, portraitUrl } from '../render/sprites'
+import { portraitUrl } from '../render/sprites'
 import { busyWith, slotColor } from '../render/team'
 import { TEAM_COLORS } from '../render/vale'
 import { h, setStyle, setText } from './dom'
@@ -76,7 +77,7 @@ export const teamBuilds = (g: Game, me: Player) => {
         h(
           'div',
           { class: 'team-build-head' },
-          h('img', { class: 'team-portrait', src: p.starter === 'shadowMewtwo' ? formPortraitUrl(150, 'shadow') : portraitUrl(formAt(p.starter, p.branch, p.stage).dex, p.shiny), alt: '' }),
+          h('img', { class: 'team-portrait', src: playablePortrait(p.starter, formAt(p.starter, p.branch, p.stage).dex, p.shiny), alt: '' }),
           h('b', { class: 'team-name' }, seatName(g, p.slot)),
           h('span', { class: 'team-level' }, t().levelShort(p.level)),
         ),
@@ -167,7 +168,7 @@ export const createTeamHud = (root: HTMLElement) => {
       const key = `${dex}${p.shiny}`
       if (key !== card.key) {
         card.key = key
-        card.portrait.src = p.starter === 'shadowMewtwo' ? formPortraitUrl(150, 'shadow') : portraitUrl(dex, p.shiny)
+        card.portrait.src = playablePortrait(p.starter, dex, p.shiny)
       }
       const state = stateOf(p)
       const mode = state ?? ''
