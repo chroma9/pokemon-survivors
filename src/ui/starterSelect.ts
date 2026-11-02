@@ -110,7 +110,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const visibleHatchlings = HATCHLING_IDS.filter(onixTesterAllowed)
   const firstHatched = visibleHatchlings.find((id) => save.hatched[id]) ?? visibleHatchlings[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
-  const legendIds = shownLegends(brasiliaDay(today()))
+  const legendIds = shownLegends(brasiliaDay(today())).filter((id) => id !== 'shadowMewtwo' || canUseMewtwoClone())
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
   const cursor: { starters: StarterId; eggs: HatchlingId; legends: LegendId } = {
     starters: isStarter(initial) ? initial : 'charmander',
@@ -128,7 +128,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /* ---------- Roster ---------- */
 
 
-  const cellPortrait = (id: PlayableId) => h('img', { class: 'partner-cell-portrait', src: portraitUrl(PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
+  const cellPortrait = (id: PlayableId) => h('img', { class: 'partner-cell-portrait', src: id === 'shadowMewtwo' ? `${import.meta.env.BASE_URL}assets/pokemon/150/shadow/portrait.png` : portraitUrl(PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
   /** A family still in its egg (a legend not captured yet): its first stage's silhouette at 2× (a big legend's at 1×), centered on the body (`bodyOf`) and cropped by the cell like a portrait. */
   const cellSilhouette = (id: HatchlingId | LegendId) => {
     const dex = PLAYABLE[id].line[0].dex
@@ -337,7 +337,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const id = current()
     const open = unlocked(id)
     const form = PLAYABLE[id].line[stage]!
-    void loadSpecies(form.dex, shinyOf(id)).catch(() => {})
+    void loadSpecies(form.dex, id === 'shadowMewtwo' ? false : shinyOf(id), id === 'shadowMewtwo' ? 'shadow' : undefined).catch(() => {})
     hero.style.setProperty('--accent', open ? PLAYABLE[id].color : '#8890b0')
     const level = save.clears[id]
     const pedestal = h('div', { class: 'partner-pedestal' }, sprite)
@@ -742,7 +742,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const locked = !unlocked(id)
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
-    const s = (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
+    const s = id === 'shadowMewtwo' ? loadedSprites(dex, false, 'shadow') : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
     if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
       tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
       outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,

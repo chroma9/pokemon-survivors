@@ -40,7 +40,8 @@ export const EVENT_LEGENDS = ['darkrai'] as const satisfies readonly EnemyId[]
 export const FESTIVAL_LEGENDS = ['cresselia'] as const
 
 /** Every playable legend: the regular ones, then the event ones, then the festival ones. */
-export const LEGEND_IDS = [...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS] as const
+export const PRIVATE_LEGENDS = ['shadowMewtwo'] as const
+export const LEGEND_IDS = [...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS, ...PRIVATE_LEGENDS] as const
 
 export type LegendId = (typeof LEGEND_IDS)[number]
 
@@ -48,7 +49,7 @@ export type LegendId = (typeof LEGEND_IDS)[number]
 export const AWAKEN_AT = [12, 28] as const
 
 /** Asset folder of a legend's alternate form (`<dex>/<form>/`), like the Megas'. Deoxys's formes come with its stance. */
-export type LegendForm = 'primal' | 'mega' | 'attack' | 'defense' | 'speed'
+export type LegendForm = 'primal' | 'mega' | 'attack' | 'defense' | 'speed' | 'shadow'
 
 /**
  * The innate: an ability in play from Lv 1, on top of the one picked at the
@@ -369,6 +370,19 @@ export const LEGENDS = {
     awakenings: [{ maxHp: 30, might: 0.15, armor: 1 }, { maxHp: 45, might: 0.25, area: 0.1, cooldown: -0.05 }],
     innate: { ability: 'multitype' },
     unlock: { wins: 1, endless: true, last: true },
+  },
+
+  /* ---------- Private, excluded from regular Legendary completion ---------- */
+  shadowMewtwo: {
+    name: 'Shadow Mewtwo',
+    color: '#604e82',
+    stats: { maxHp: 50, might: 0.25, armor: 1, speed: 4 },
+    signature: 'darkPulse',
+    learnset: [['darkPulse', 'shadowBall', 'fireSpin', 'thunder', 'iceBeam', 'earthquake']],
+    line: stage(150, 'Shadow Mewtwo', ['psychic']),
+    awakenings: [{ maxHp: 30, might: 0.15, armor: 1 }, { maxHp: 45, might: 0.25, area: 0.1, cooldown: -0.05 }],
+    innate: { ability: 'magicGuard' },
+    unlock: { wins: 1 },
   },
 
   /* ---------- The Noite das Bruxas' nightmare ---------- */

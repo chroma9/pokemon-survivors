@@ -12721,6 +12721,52 @@
             "footY": 2
           }
         }
+      },
+      "shadow": {
+        "anims": {
+          "Walk": {
+            "frameWidth": 36,
+            "frameHeight": 56,
+            "durations": [
+              12,
+              6,
+              6,
+              12,
+              6,
+              6,
+              12,
+              6
+            ]
+          },
+          "Idle": {
+            "frameWidth": 32,
+            "frameHeight": 64,
+            "durations": [
+              40,
+              2,
+              4,
+              6,
+              8,
+              6,
+              4,
+              2
+            ]
+          },
+          "Hurt": {
+            "frameWidth": 48,
+            "frameHeight": 72,
+            "durations": [
+              2,
+              8
+            ]
+          }
+        },
+        "portrait": true,
+        "body": {
+          "bodyW": 23,
+          "bodyH": 24,
+          "footY": 1
+        }
       }
     },
     "formCries": [

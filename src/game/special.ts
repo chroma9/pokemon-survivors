@@ -442,6 +442,7 @@ const BY_SPECIES: Partial<Record<PlayableId, SpecialId | readonly SpecialId[]>> 
   swablu: ['boomburst', 'dracoMeteor'],
   pidgey: 'aeroblast',
   deoxys: 'formeChange',
+  shadowMewtwo: 'astralBarrage',
 }
 
 export const specialOfType = (type: PokeType): SpecialId => BY_TYPE[type]

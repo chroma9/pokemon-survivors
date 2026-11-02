@@ -386,6 +386,7 @@ export const FAMILY_ABILITIES = {
   celebi: ['leafGuard', 'grassySurge', 'magicBounce'],
   jirachi: ['frisk', 'technician', 'magicGuard'],
   mewtwo: ['magicGuard', 'moldBreaker', 'adaptability'],
+  shadowMewtwo: ['magicGuard', 'shedSkin', 'protean'],
   lugia: ['magicBounce', 'keenEye', 'damp'],
   hoOh: ['flashFire', 'solarPower', 'magicGuard'],
   kyogre: ['swiftSwim', 'rainDish', 'liquidVoice'],

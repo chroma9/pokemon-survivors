@@ -845,7 +845,7 @@ export const walkSheet = (dex: Dex) => {
 }
 
 /** Sprites if already loaded, without throwing (menus draw progressively). Unlike `sprites`, asking doesn't keep them: drawing does. */
-export const loadedSprites = (dex: Dex, shiny = false): SpeciesSprites | undefined => cache.get(cacheKey(dex, shiny))
+export const loadedSprites = (dex: Dex, shiny = false, form?: FormKey): SpeciesSprites | undefined => cache.get(cacheKey(dex, shiny, form))
 
 /** A species' cry, or its form's own (Megas) when PokeAPI has one. */
 export const cryUrl = (dex: Dex, form?: FormKey) =>
