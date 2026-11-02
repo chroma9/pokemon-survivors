@@ -63,7 +63,7 @@ export const HATCHLINGS = {
     egg: 'common',
     stats: { growth: 0.1, regen: 0.15 },
     signature: 'swift',
-    learnset: [['lastResort', 'swift', 'quickAttack', 'crunch', 'selfDestruct'], ['hex']],
+    learnset: [['lastResort', 'swift', 'quickAttack', 'crunch', 'selfDestruct'], ['hex', 'darkPulse']],
     line: line2(['Eevee', 133, ['normal']], ['Umbreon', 197, ['dark']], { maxHp: 60, armor: 2, might: 0.2, regen: 0.4 }),
   },
   togepi: {
@@ -285,7 +285,7 @@ export const HATCHLINGS = {
     egg: 'rare',
     stats: { might: 0.1, speed: 4, maxHp: -15 },
     signature: 'dreamEater',
-    learnset: [['dreamEater', 'hex', 'suckerPunch', 'venoshock', 'sludgeBomb', 'thunder'], ['spiritShackle', 'curse'], ['psyshock', 'willOWisp']],
+    learnset: [['dreamEater', 'hex', 'suckerPunch', 'venoshock', 'sludgeBomb', 'thunder'], ['spiritShackle', 'curse', 'shadowBall'], ['psyshock', 'willOWisp']],
     line: line3(['Gastly', 92, ['ghost', 'poison']], ['Haunter', 93, ['ghost', 'poison']], ['Gengar', 94, ['ghost', 'poison']], [
       { maxHp: 20, might: 0.1, speed: 3 },
       { maxHp: 35, might: 0.24, area: 0.1 },
@@ -330,7 +330,7 @@ export const HATCHLINGS = {
     egg: 'rare',
     stats: { speed: 7, might: 0.1, maxHp: -15 },
     signature: 'foulPlay',
-    learnset: [['foulPlay', 'suckerPunch', 'spiritShackle', 'hex', 'snarl', 'uTurn'], ['psyshock', 'torchSong', 'focusPunch']],
+    learnset: [['foulPlay', 'suckerPunch', 'spiritShackle', 'hex', 'snarl', 'uTurn'], ['psyshock', 'torchSong', 'focusPunch', 'darkPulse']],
     line: line2(['Zorua', 570, ['dark']], ['Zoroark', 571, ['dark']], { maxHp: 45, might: 0.28, speed: 6, area: 0.05 }),
   },
   larvesta: {
@@ -529,7 +529,7 @@ export const HATCHLINGS = {
     egg: 'rare',
     stats: { statusChance: 0.05, might: 0.06, maxHp: -10 },
     signature: 'hex',
-    learnset: [['hex', 'curse', 'willOWisp', 'suckerPunch', 'spiritShackle', 'thunder'], ['psyshock', 'sludgeBomb', 'futureSight']],
+    learnset: [['hex', 'curse', 'willOWisp', 'suckerPunch', 'spiritShackle', 'thunder'], ['psyshock', 'sludgeBomb', 'futureSight', 'shadowBall']],
     line: line2(['Shuppet', 353, ['ghost']], ['Banette', 354, ['ghost']], { maxHp: 40, might: 0.25, statusChance: 0.04, statusDamage: 0.15 }),
   },
 
@@ -651,7 +651,7 @@ export const HATCHLINGS = {
     // Blind, so it bites whatever is near; Hydreigon's three heads fire one more shot.
     stats: { might: 0.12, maxHp: 10, speed: -3 },
     signature: 'snarl',
-    learnset: [['snarl', 'crunch', 'dragonBreath', 'dragonTail', 'ember', 'uTurn'], ['flashCannon', 'suckerPunch'], ['torchSong', 'brine']],
+    learnset: [['snarl', 'crunch', 'dragonBreath', 'dragonTail', 'ember', 'uTurn'], ['flashCannon', 'suckerPunch'], ['torchSong', 'brine', 'darkPulse']],
     line: line3(['Deino', 633, ['dark', 'dragon']], ['Zweilous', 634, ['dark', 'dragon']], ['Hydreigon', 635, ['dark', 'dragon']], [
       { maxHp: 35, might: 0.1, armor: 1 },
       { maxHp: 50, might: 0.22, speed: 5, amount: 1 },
@@ -675,7 +675,7 @@ export const HATCHLINGS = {
     // A candle that feeds on life force: frail, but its flames burn longer and Chandelure's reach wider.
     stats: { might: 0.08, duration: 0.1, statusDamage: 0.1, maxHp: -15 },
     signature: 'fireSpin',
-    learnset: [['fireSpin', 'ember', 'hex', 'willOWisp', 'psyshock'], ['torchSong', 'spiritShackle', 'toxicSpikes'], ['futureSight', 'sludgeBomb']],
+    learnset: [['fireSpin', 'ember', 'hex', 'willOWisp', 'psyshock'], ['torchSong', 'spiritShackle', 'toxicSpikes', 'shadowBall'], ['futureSight', 'sludgeBomb']],
     line: line3(['Litwick', 607, ['ghost', 'fire']], ['Lampent', 608, ['ghost', 'fire']], ['Chandelure', 609, ['ghost', 'fire']], [
       { maxHp: 20, might: 0.1, duration: 0.05 },
       { maxHp: 35, might: 0.25, area: 0.15 },
@@ -795,7 +795,7 @@ const EXCLUSIVE_EGGS: readonly EggTier[] = ['haunted', 'kecleon']
  * Egg's four): the Desafio do dia never draws it and shiny tickets can't pick
  * it, so the egg stays its only way in.
  */
-export const isExclusiveFamily = (id: PlayableId) => isHatchling(id) && (id === 'spiritomb' || EXCLUSIVE_EGGS.includes(HATCHLINGS[id].egg))
+export const isExclusiveFamily = (id: PlayableId) => isHatchling(id) && EXCLUSIVE_EGGS.includes(HATCHLINGS[id].egg)
 
 /** A starter: neither a hatched family nor a legend. */
 export const isStarter = (id: PlayableId): id is StarterId => id in STARTERS
