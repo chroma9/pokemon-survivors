@@ -123,31 +123,21 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
     }
     case 'shadowBall': {
       if (a.shape.kind !== 'circle') return
-      const r = Math.max(4, Math.round(a.shape.r))
+      // Compact void projectile: its gameplay radius is unchanged, but its
+      // visible core is smaller, with a restrained translucent violet aura.
+      const r = Math.max(3, Math.round(a.shape.r * 0.68))
       const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
-      ctx.save()
-      ctx.globalAlpha = fade
-      // Flickering tongues of ghost fire extend beyond a completely black core.
-      // No shaded spheres, white specular glints or concentric glossy layers.
       const cx = Math.round(a.x), cy = Math.round(a.y)
-      const flames = Math.max(14, Math.round(r * 1.6))
-      for (let i = 0; i < flames; i++) {
-        const angle = i * Math.PI * 2 / flames + a.id * 0.31
-        const flicker = Math.sin(t * 17 + i * 3.71 + a.id) * 0.5 + 0.5
-        const outer = r + 3 + flicker * Math.max(4, r * 0.38)
-        const inner = r * 0.66
-        const side = 0.16 + 0.05 * (i % 3)
-        ctx.fillStyle = i % 4 === 0 ? '#a064da' : i % 3 === 0 ? '#7131a8' : '#4c207a'
-        ctx.beginPath()
-        ctx.moveTo(Math.round(cx + Math.cos(angle - side) * inner), Math.round(cy + Math.sin(angle - side) * inner))
-        ctx.lineTo(Math.round(cx + Math.cos(angle + 0.06 * Math.sin(t * 8 + i)) * outer),
-          Math.round(cy + Math.sin(angle + 0.06 * Math.sin(t * 8 + i)) * outer))
-        ctx.lineTo(Math.round(cx + Math.cos(angle + side) * inner), Math.round(cy + Math.sin(angle + side) * inner))
-        ctx.closePath()
-        ctx.fill()
-      }
-      blitEllipse(ctx, r, r, '#08040e', cx, cy)
-      blitEllipse(ctx, Math.max(2, r - 2), Math.max(2, r - 2), '#030207', cx, cy)
+      const pulse = 0.94 + 0.06 * Math.sin(t * 8 + a.id)
+      ctx.save()
+      ctx.globalAlpha = fade * 0.12
+      blitEllipse(ctx, Math.round((r + 7) * pulse), Math.round((r + 7) * pulse), '#a16bdd', cx, cy)
+      ctx.globalAlpha = fade * 0.24
+      blitEllipse(ctx, Math.round((r + 4) * pulse), Math.round((r + 4) * pulse), '#7143b2', cx, cy)
+      ctx.globalAlpha = fade * 0.56
+      blitEllipse(ctx, r + 2, r + 2, '#45236c', cx, cy)
+      ctx.globalAlpha = fade
+      blitEllipse(ctx, r, r, '#050309', cx, cy)
       ctx.restore()
       return
     }
