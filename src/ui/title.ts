@@ -33,7 +33,7 @@ import { fillHalloweenCard, halloweenCard, halloweenCardShows, halloweenTile } f
 import type { HallOpen } from './supporters'
 import { countedFriends, loadInvites } from './invites'
 import { contentLine } from './gifts'
-import { isUnread, latestUpdate } from './news'
+import { importantUpdatePending, importantUpdateScreen, isUnread, latestUpdate } from './news'
 import { surveyWaiting, takeSurveyOffer } from './survey'
 import type { Screen } from './screens'
 import { gearButton, helpButton, iconButton, railTile, shellBody, topBar, walletChip } from './shell'
@@ -1318,6 +1318,11 @@ export const titleScreen = (
     // `?loja` (and the dev's `ps.plaza()`) head for the shop once the lobby is laid out.
     const trip = opts.shop
     if (trip) requestAnimationFrame(() => visitShop(trip, opts.instant, opts.shelf))
+    else if (opts.intro && importantUpdatePending()) openOver(() => importantUpdateScreen(root, input, () => {
+      overScreen = null
+      el.classList.remove('hidden')
+      buildLobby()
+    }))
     // Otherwise the survey asks by itself once; closed unanswered, its clipboard in the top bar keeps asking.
     else if (takeSurveyOffer()) openOver(actions.survey)
   }
