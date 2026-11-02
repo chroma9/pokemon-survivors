@@ -68,7 +68,7 @@ export const BRANCHES = {
   umbreon: {
     line: 'eevee', stage: 1, name: 'Umbreon', dex: 197, types: ['dark'],
     bonus: { maxHp: 60, armor: 2, might: 0.2, regen: 0.4 },
-    moves: ['foulPlay', 'suckerPunch', 'toxicSpikes'],
+    moves: ['foulPlay', 'suckerPunch', 'toxicSpikes', 'darkPulse'],
     favors: { weather: ['fog'], biome: ['cave', 'tower'] },
   },
   leafeon: {
