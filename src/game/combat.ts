@@ -187,6 +187,12 @@ export const killEnemy = (g: Game, e: Enemy, source?: DamageSource | null) => {
   const share = e.boss ? 1 : g.tension.share
   if (e.xp > 0) dropXp(g, e.x, e.y, e.xp * share)
   dropCoins(g, e.x, e.y, coinDrops(g.rng, e, g.endless !== null))
+  // Pay Day pays out for every enemy it actually defeats, without a per-run cap.
+  // One bonus pickup per KO keeps long horde runs from flooding the pickup list.
+  if (source === 'payDay') {
+    const bonus = e.boss ? 150 + Math.floor(g.rng() * 101) : 15 + Math.floor(g.rng() * 16)
+    dropCoins(g, e.x, e.y, [bonus])
+  }
   faintCandies(g, e, share)
   if (e.shiny) dropPickup(g, e.x + 6, e.y, 'pokeball')
   if (e.alpha) {
