@@ -364,69 +364,40 @@ export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
   const r = Math.round(radius(a))
   switch (a.visual) {
     case 'darkNovaField': {
-      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.7))
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
       if (fade <= 0) return
       ctx.save()
-      // Stable fracture geometry: only the inner energy flickers, never the cracks.
-      // Keep terrain visible between the seams instead of painting a purple disc.
-      const seed = a.id * 0.61803398875
-      const squash = 0.44
-      const crack = (points: [number, number][], width: number, glow: boolean) => {
-        ctx.lineJoin = 'miter'
-        ctx.lineCap = 'square'
+      // Dark Void-inspired pool of night: translucent edges, near-black center.
+      // Sparse stable fractures interrupt the surface without forming a crater.
+      ctx.globalAlpha = fade * 0.42
+      blitEllipse(ctx, r, Math.max(1, Math.round(r * 0.5)), '#2a1850', a.x, a.y)
+      ctx.globalAlpha = fade * 0.54
+      blitEllipse(ctx, Math.round(r * 0.76), Math.max(1, Math.round(r * 0.38)), '#08040e', a.x, a.y)
+      const seed = a.id * 0.419
+      ctx.lineCap = 'square'
+      ctx.lineJoin = 'bevel'
+      for (let i = 0; i < 6; i++) {
+        const angle = seed + i * Math.PI * 2 / 6
+        const end = r * (0.65 + 0.23 * Math.sin(i * 4.37 + seed) ** 2)
+        const bend = angle + (i % 2 ? 0.17 : -0.22)
+        const x0 = Math.round(a.x + Math.cos(angle) * r * 0.17)
+        const y0 = Math.round(a.y + Math.sin(angle) * r * 0.17 * 0.5)
+        const xm = Math.round(a.x + Math.cos(bend) * end * 0.55)
+        const ym = Math.round(a.y + Math.sin(bend) * end * 0.55 * 0.5)
+        const xe = Math.round(a.x + Math.cos(angle) * end)
+        const ye = Math.round(a.y + Math.sin(angle) * end * 0.5)
         ctx.beginPath()
-        ctx.moveTo(Math.round(points[0]![0]), Math.round(points[0]![1]))
-        for (let j = 1; j < points.length; j++) ctx.lineTo(Math.round(points[j]![0]), Math.round(points[j]![1]))
-        ctx.globalAlpha = fade * 0.75
-        ctx.strokeStyle = '#180d21'
-        ctx.lineWidth = width + 3
+        ctx.moveTo(x0, y0)
+        ctx.lineTo(xm, ym)
+        ctx.lineTo(xe, ye)
+        ctx.globalAlpha = fade * 0.76
+        ctx.lineWidth = 3
+        ctx.strokeStyle = '#090510'
         ctx.stroke()
-        ctx.globalAlpha = fade * 0.85
-        ctx.strokeStyle = '#35203b'
-        ctx.lineWidth = width + 1
+        ctx.globalAlpha = fade * (0.3 + 0.12 * Math.sin(a.age * 4 + i))
+        ctx.lineWidth = 1
+        ctx.strokeStyle = i % 3 === 0 ? '#913f55' : '#70429d'
         ctx.stroke()
-        if (glow) {
-          ctx.globalAlpha = fade * (0.45 + 0.18 * Math.sin(a.age * 6 + points.length + seed))
-          ctx.strokeStyle = '#84335f'
-          ctx.lineWidth = Math.max(1, width - 1)
-          ctx.stroke()
-        }
-      }
-      // A subdued central impact scar, with no solid circular hazard fill.
-      ctx.globalAlpha = fade * 0.4
-      blitEllipse(ctx, Math.max(5, Math.round(r * 0.19)), Math.max(2, Math.round(r * 0.085)), '#211326', a.x, a.y)
-      const rays = 13
-      for (let i = 0; i < rays; i++) {
-        const ang = (i / rays) * TAU + seed
-        const length = r * (0.73 + 0.18 * Math.sin(i * 8.73 + seed))
-        const points: [number, number][] = [[a.x, a.y]]
-        for (let j = 1; j <= 5; j++) {
-          const d = length * j / 5
-          const wobble = Math.sin(i * 13.37 + j * 3.71 + seed) * r * 0.055 * Math.sin(Math.PI * j / 5)
-          points.push([a.x + Math.cos(ang) * d - Math.sin(ang) * wobble,
-            a.y + (Math.sin(ang) * d + Math.cos(ang) * wobble) * squash])
-        }
-        crack(points, i % 4 === 0 ? 3 : 2, i % 3 !== 0)
-        // Smaller fork fractures interrupt the symmetry of the radial pattern.
-        if (i % 2 === 0) {
-          const p = points[3]!
-          const branchAngle = ang + (i % 4 < 2 ? 0.75 : -0.8)
-          const branchLength = r * (0.2 + 0.09 * Math.sin(i * 4.1) ** 2)
-          crack([p, [p[0] + Math.cos(branchAngle) * branchLength * 0.52,
-            p[1] + Math.sin(branchAngle) * branchLength * squash * 0.52],
-          [p[0] + Math.cos(branchAngle + 0.17) * branchLength,
-            p[1] + Math.sin(branchAngle + 0.17) * branchLength * squash]], 1, i % 4 === 0)
-        }
-      }
-      // Broken, intermittent rim marks make the extent readable without a halo.
-      for (let i = 0; i < 18; i++) {
-        const angle = i * TAU / 18 + seed
-        const distance = r * (0.89 + 0.06 * Math.sin(i * 6.8))
-        const x = Math.round(a.x + Math.cos(angle) * distance)
-        const y = Math.round(a.y + Math.sin(angle) * distance * squash)
-        ctx.globalAlpha = fade * 0.48
-        ctx.fillStyle = i % 3 === 0 ? '#3c2936' : '#49323b'
-        ctx.fillRect(x, y, i % 2 ? 4 : 6, 2)
       }
       ctx.restore()
       return
@@ -495,19 +466,16 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
       return
     }
     case 'darkNovaField': {
-      // Faint, irregular vents rise from fracture junctions. No overhead ring.
-      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.7))
+      // Dark Void-like wisps rising from the pool; no bright overhead halo.
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
       ctx.save()
-      for (let i = 0; i < 11; i++) {
-        const angle = i * 2.399963 + a.id * 0.618
-        const d = r * (0.18 + (i % 5) * 0.13)
-        const x = Math.round(a.x + Math.cos(angle) * d)
-        const y = Math.round(a.y + Math.sin(angle) * d * 0.44)
-        const flicker = Math.sin(t * (3.5 + i % 3) + i * 2.7)
-        if (flicker < 0.2) continue
-        ctx.globalAlpha = fade * (0.2 + flicker * 0.35)
-        ctx.fillStyle = i % 4 === 0 ? '#d09a52' : i % 3 === 0 ? '#a44355' : '#7841a1'
-        ctx.fillRect(x, y - Math.round((flicker + 1) * 2), i % 3 === 0 ? 2 : 1, 2)
+      for (let i = 0; i < 8; i++) {
+        const phase = (t * 0.65 + i * 0.137 + a.id * 0.071) % 1
+        const angle = i * 2.39996 + a.id * 0.31
+        const d = r * (0.2 + (i % 4) * 0.16)
+        ctx.globalAlpha = fade * (1 - phase) * 0.65
+        ctx.fillStyle = i % 3 === 0 ? '#5838a0' : i % 3 === 1 ? '#3a2468' : '#1c1030'
+        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d * 0.5 - phase * 14), 2, 2)
       }
       ctx.restore()
       return
