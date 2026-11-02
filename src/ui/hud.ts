@@ -18,7 +18,7 @@ import { isDuo, readyDuos } from '../game/duoRules'
 import { consumableIcon } from '../render/props'
 import { weatherIcon } from '../render/weather'
 import { treatIcon } from '../render/halloweenArt'
-import { portraitUrl } from '../render/sprites'
+import { formPortraitUrl, portraitUrl } from '../render/sprites'
 import { abilityIcon } from '../render/abilityArt'
 import { megaIcon } from '../render/megaFx'
 import { h, setStyle, setText } from './dom'
@@ -249,7 +249,7 @@ export const createHud = (root: HTMLElement, onSpecial: () => void, onMega: () =
     const formName = playerForm(g).name
     if (`${dex}${p.shiny}${megaName}${formName}` !== portraitKey) {
       portraitKey = `${dex}${p.shiny}${megaName}${formName}`
-      portrait.setAttribute('src', portraitUrl(dex, p.shiny))
+      portrait.setAttribute('src', p.starter === 'shadowMewtwo' ? formPortraitUrl(150, 'shadow') : portraitUrl(dex, p.shiny))
       shinyBadge.classList.toggle('hidden', !p.shiny)
       name.classList.toggle('shiny-name', p.shiny)
       name.classList.toggle('mega-name', megaName !== undefined)

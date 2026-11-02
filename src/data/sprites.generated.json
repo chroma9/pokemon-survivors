@@ -12725,7 +12725,7 @@
       "shadow": {
         "anims": {
           "Walk": {
-            "frameWidth": 36,
+            "frameWidth": 48,
             "frameHeight": 56,
             "durations": [
               12,
@@ -12733,8 +12733,6 @@
               6,
               12,
               6,
-              6,
-              12,
               6
             ]
           },
