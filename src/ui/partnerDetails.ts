@@ -17,7 +17,7 @@ import { resolveSpecial } from '../game/special'
 import { megaIcon } from '../render/megaFx'
 import { moveIcon, sparkleIcon } from '../render/art'
 import { specialIcon } from '../render/specialFx'
-import { portraitUrl } from '../render/sprites'
+import { formPortraitUrl, portraitUrl } from '../render/sprites'
 import { t } from '../i18n'
 import { boundLabel, glyphText } from './inputLabels'
 import { h } from './dom'
@@ -218,7 +218,7 @@ export const evoLine = (id: PlayableId, stage: number, onStage: (stage: number) 
           : h(
               'button',
               { class: i === stage ? 'evo-stage selected' : 'evo-stage', type: 'button', onclick: () => onStage(i), title: st.name },
-              h('img', { src: portraitUrl(st.dex), alt: st.name }),
+              h('img', { src: id === 'shadowMewtwo' ? formPortraitUrl(st.dex, 'shadow') : portraitUrl(st.dex), alt: st.name }),
               h('span', { class: 'evo-name' }, st.name),
               h('span', { class: 'evo-types' }, ...st.types.map((type) => h('i', { style: `--type:${TYPE_COLORS[type]}`, title: type }))),
             ),
@@ -287,7 +287,7 @@ export const detailsSheet = (opts: SheetOpts) => {
   const render = () => {
     const form = PLAYABLE[id].line[stage]!
     head.replaceChildren(
-      h('img', { class: 'partner-sheet-portrait', src: portraitUrl(form.dex, shiny), alt: '' }),
+      h('img', { class: 'partner-sheet-portrait', src: id === 'shadowMewtwo' ? formPortraitUrl(form.dex, 'shadow') : portraitUrl(form.dex, shiny), alt: '' }),
       h('div', {}, h('div', { class: 'partner-sheet-name' }, form.name), h('div', { class: 'types' }, ...form.types.map(typeBadge))),
     )
     const k = tabs[tab]!
