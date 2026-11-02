@@ -33,7 +33,8 @@ import { fillHalloweenCard, halloweenCard, halloweenCardShows, halloweenTile } f
 import type { HallOpen } from './supporters'
 import { countedFriends, loadInvites } from './invites'
 import { contentLine } from './gifts'
-import { importantUpdatePending, importantUpdateScreen, isUnread, latestUpdate } from './news'
+import { announcementPending, announcementScreen, fetchAnnouncement, isUnread, latestUpdate } from './news'
+import { coopUrl } from '../coopShell'
 import { surveyWaiting, takeSurveyOffer } from './survey'
 import type { Screen } from './screens'
 import { gearButton, helpButton, iconButton, railTile, shellBody, topBar, walletChip } from './shell'
@@ -1312,17 +1313,33 @@ export const titleScreen = (
     if (spot) talkButton.style.cssText = `left:${Math.round(spot.x / uiZoom())}px;top:${Math.round(spot.y / uiZoom())}px`
   }
 
+  let checkingAnnouncement = false
+  const checkAnnouncement = async () => {
+    if (checkingAnnouncement || overScreen || !lobby || el.classList.contains('hidden')) return
+    checkingAnnouncement = true
+    try {
+      const announcement = await fetchAnnouncement(coopUrl())
+      if (!announcement || !announcementPending(announcement) || overScreen || !lobby || el.classList.contains('hidden')) return
+      openOver(() => announcementScreen(root, input, announcement, () => {
+        overScreen = null
+        el.classList.remove('hidden')
+        buildLobby()
+      }))
+    } catch {
+      // An unavailable relay must never prevent the title screen from loading.
+    } finally {
+      checkingAnnouncement = false
+    }
+  }
+  const announcementPoll = window.setInterval(() => { void checkAnnouncement() }, 30000)
+
   const enterLobby = () => {
     buildLobby()
+    void checkAnnouncement()
     actions.ready()
     // `?loja` (and the dev's `ps.plaza()`) head for the shop once the lobby is laid out.
     const trip = opts.shop
     if (trip) requestAnimationFrame(() => visitShop(trip, opts.instant, opts.shelf))
-    else if (opts.intro && importantUpdatePending()) openOver(() => importantUpdateScreen(root, input, () => {
-      overScreen = null
-      el.classList.remove('hidden')
-      buildLobby()
-    }))
     // Otherwise the survey asks by itself once; closed unanswered, its clipboard in the top bar keeps asking.
     else if (takeSurveyOffer()) openOver(actions.survey)
   }
@@ -1377,6 +1394,6 @@ export const titleScreen = (
       for (const tick of tickers) tick(time)
       if (logo.width > 1) fitLogo(logo, lobby === null)
     },
-    dispose: () => (overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
+    dispose: () => (clearInterval(announcementPoll), overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
   }
 }
