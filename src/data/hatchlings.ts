@@ -49,11 +49,11 @@ export const HATCHLINGS = {
     name: 'Meowth',
     color: '#e8d0a0',
     egg: 'common',
-    // A quick, fragile Normal-type attacker. Pay Day can be added as a custom signature later.
+    // A quick, fragile Normal-type attacker with a coin-flinging signature.
     stats: { maxHp: -20, speed: 10, might: 0.06, greed: 0.12 },
-    signature: 'quickAttack',
+    signature: 'payDay',
     learnset: [
-      ['quickAttack', 'swift', 'flail', 'crunch', 'dig', 'uTurn'],
+      ['payDay', 'quickAttack', 'swift', 'flail', 'crunch', 'dig', 'uTurn'],
       ['bodySlam', 'gigaImpact', 'roost', 'suckerPunch'],
     ],
     line: line2(['Meowth', 52, ['normal']], ['Persian', 53, ['normal']], { maxHp: 40, speed: 8, might: 0.24, cooldown: -0.06 }),
