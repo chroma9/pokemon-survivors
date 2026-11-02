@@ -5038,6 +5038,7 @@ export const en: Messages = {
     fuecoco: 'Laid-back. Lots of HP and fiery songs.',
     quaxly: 'Dancer. Spins in the water and strikes.',
     pichu: 'Electric. Quick bolts, but frail.',
+    meowth: 'Fast and cunning. Quick attacks and extra money.',
     machop: 'Fighter. Strong punches and plenty of HP.',
     eevee: 'Adaptable. Grows fast and evolves 8 ways.',
     togepi: 'Lucky. Regenerates HP and earns more EXP.',
