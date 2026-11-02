@@ -5147,6 +5147,7 @@ export const es: Messages = {
     diamondStorm: 'Lluvia de piedras a tu alrededor que empujan fuerte.',
     blizzard: 'Lluvia de carámbanos a tu alrededor que ralentiza.',
     astralBarrage: 'Anillo de bolas sombrías disparadas en todas direcciones, que pueden paralizar.',
+    darkNova: 'Una esfera oscura colosal explota y deja un enorme campo Sombra que causa daño.',
     auraSphere: 'Anillo de esferas de energía disparadas en todas direcciones.',
     attackOrder: 'Anillo de aguijones disparados en todas direcciones, que pueden envenenar.',
     precipiceBlades: 'Muralla de cuchillas de piedra que avanza en la dirección en que te mueves y ralentiza.',

@@ -5465,6 +5465,7 @@ export const pt = {
     diamondStorm: 'Chuva de pedras ao seu redor que empurra forte.',
     blizzard: 'Chuva de pingentes de gelo ao seu redor que desacelera.',
     astralBarrage: 'Anel de bolas sombrias disparadas para todos os lados, que podem paralisar.',
+    darkNova: 'Uma esfera colossal de trevas explode e deixa um enorme campo Sombrio que causa dano.',
     auraSphere: 'Anel de esferas de energia disparadas para todos os lados.',
     attackOrder: 'Anel de ferrões disparados para todos os lados, que podem envenenar.',
     precipiceBlades: 'Muralha de lâminas de pedra que avança na direção em que você anda e desacelera.',

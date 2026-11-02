@@ -103,6 +103,7 @@ const GLYPHS: Record<FormSpecial, { rows: readonly string[]; turn?: boolean }> =
   dracoMeteor: { rows: ['...3...', '..3.3..', '..232..', '.12321.', '.23432.', '1234321', '1234321', '.12321.', '..111..'] },
   diamondStorm: { rows: ['..1111..', '.122341.', '12223431', '12222341', '11222221', '.112221.', '..1111..'] },
   blizzard: { rows: ['12341', '12341', '.234.', '.234.', '.23..', '..3..', '..3..'] },
+  darkNova: { rows: ['...11111...', '..1222221..', '.123333321.', '12334443321', '12334443321', '12334443321', '.123333321.', '..1222221..', '...11111...'] },
   astralBarrage: { rows: ['..1111..', '.122221.', '12233221', '12334321', '12334321', '12233221', '.122221.', '..1111..'] },
   auraSphere: { rows: ['..2222..', '.233332.', '23344332', '23444432', '23444432', '23344332', '.233332.', '..2222..'] },
   attackOrder: { rows: ['1........', '11.......', '122233334', '11.......', '1........'], turn: true },
@@ -362,6 +363,14 @@ const flareOf = (a: Attack) => (a.type === 'dragon' ? FLARES.dragon : FLARES.fir
 export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
   const r = Math.round(radius(a))
   switch (a.visual) {
+    case 'darkNovaField': {
+      ctx.globalAlpha = 0.72 * Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.6)
+      blitEllipse(ctx, r, Math.round(r * 0.46), '#250c39', a.x, a.y)
+      blitEllipse(ctx, Math.round(r * 0.88), Math.round(r * 0.39), '#563078', a.x, a.y)
+      blitEllipse(ctx, Math.round(r * 0.65), Math.round(r * 0.26), '#691e3e', a.x, a.y)
+      ctx.globalAlpha = 1
+      return
+    }
     case 'fireTrail': {
       ctx.globalAlpha = Math.min(1, (a.ttl - a.age) / 0.4)
       blitEllipse(ctx, r, Math.max(1, Math.round(r * 0.5)), flareOf(a).scorch, a.x, a.y + 2)
@@ -396,6 +405,29 @@ export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
 export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
   const r = radius(a)
   switch (a.visual) {
+    case 'darkNovaOrb': {
+      const n = Math.round(r)
+      blitEllipse(ctx, n, n, '#54277d', a.x, a.y)
+      blitEllipse(ctx, Math.round(n * 0.82), Math.round(n * 0.82), '#7f41b2', a.x, a.y)
+      blitEllipse(ctx, Math.round(n * 0.63), Math.round(n * 0.63), '#741b31', a.x, a.y)
+      blitEllipse(ctx, Math.round(n * 0.43), Math.round(n * 0.43), '#b63b27', a.x, a.y)
+      blitEllipse(ctx, Math.round(n * 0.22), Math.round(n * 0.22), '#f8d854', a.x - 2, a.y - 2)
+      pixelRing(ctx, a.x, a.y, n, 2, Math.floor(t * 12) % 2 ? '#d69cff' : '#4c246c')
+      return
+    }
+    case 'darkNovaBurst': {
+      const n = Math.round(r)
+      ctx.globalAlpha = Math.max(0, 1 - a.age / a.ttl)
+      blitEllipse(ctx, n, Math.round(n * 0.68), '#5a2682', a.x, a.y)
+      pixelRing(ctx, a.x, a.y, n, 3, '#d29aff')
+      ctx.globalAlpha = 1
+      return
+    }
+    case 'darkNovaField': {
+      const n = Math.round(r)
+      pixelRing(ctx, a.x, a.y, n, 2, Math.floor(t * 8) % 2 ? '#ba629a' : '#7d49bc')
+      return
+    }
     case 'fireTrail': {
       const left = a.ttl - a.age
       if (left < 0.3 && Math.floor(left * 30) % 2 === 0) return

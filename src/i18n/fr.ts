@@ -5141,6 +5141,7 @@ export const fr: Messages = {
     diamondStorm: 'Un éboulement autour de toi qui frappe fort et repousse.',
     blizzard: 'Des stalactites de glace pleuvent autour de toi et ralentissent les ennemis.',
     astralBarrage: 'Un anneau de boules d’ombre tirées dans tous les sens qui peut paralyser.',
+    darkNova: 'Une sphère d\'ombre colossale explose et laisse un vaste champ d\'Ombre qui inflige des dégâts.',
     auraSphere: 'Un anneau de sphères d’énergie tirées dans tous les sens.',
     attackOrder: 'Un anneau de dards tirés dans tous les sens qui peut empoisonner.',
     precipiceBlades: 'Un mur de lames de pierre qui balaie ta direction et ralentit les ennemis.',

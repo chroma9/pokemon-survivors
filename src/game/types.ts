@@ -346,7 +346,7 @@ export type Visual =
   | 'fist' | 'steel' | 'arrow' | 'shuriken' | 'jaws' | 'pyro' | 'psy' | 'quake' | 'drumRoots' | 'heart' | 'note' | 'blade' | 'shell'
   | 'iceShard' | 'rockTomb' | 'pin' | 'dragonBreath'
   /** Special attacks (`special.ts`), drawn by `render/specialFx.ts`. */
-  | 'blitz' | 'fireTrail' | 'blast' | 'beam' | 'roots' | 'nova' | 'bolt' | 'meteor' | 'orb' | 'wave' | 'puddle'
+  | 'darkNovaOrb' | 'darkNovaField' | 'darkNovaBurst' | 'blitz' | 'fireTrail' | 'blast' | 'beam' | 'roots' | 'nova' | 'bolt' | 'meteor' | 'orb' | 'wave' | 'puddle'
   /** Chain dash: the capsule along the path, the slash at the landing and the player's afterimages (drawn by `render/draw.ts`). */
   | 'streak' | 'slash' | 'afterimage'
   /** The rainbow burst that ends a Mega Evolution (`mega.ts`), drawn by `render/megaFx.ts`. */

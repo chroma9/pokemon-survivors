@@ -5141,6 +5141,7 @@ export const zh: Messages = {
     diamondStorm: '在你周圍降下落石，威力強大並擊退敵人。',
     blizzard: '冰柱在你周圍落下，減緩敵人。',
     astralBarrage: '向四面八方發射一圈暗影球，可能造成麻痺。',
+    darkNova: '巨大的暗影能量球爆炸後，留下持續造成傷害的廣闊暗影領域。',
     auraSphere: '向四面八方發射一圈能量球。',
     attackOrder: '向四面八方發射一圈毒針，可能造成中毒。',
     precipiceBlades: '一道石刃之牆朝你移動的方向橫掃，減緩敵人。',

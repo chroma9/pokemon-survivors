@@ -5145,6 +5145,7 @@ export const en: Messages = {
     diamondStorm: 'A rockfall around you that hits hard and pushes back.',
     blizzard: 'Icicles rain down around you and slow foes.',
     astralBarrage: 'A ring of shadow balls fired every way that may paralyze.',
+    darkNova: 'A colossal dark sphere explodes and leaves a vast damaging Shadow field.',
     auraSphere: 'A ring of energy spheres fired every way.',
     attackOrder: 'A ring of stingers fired every way that may poison.',
     precipiceBlades: 'A wall of stone blades that sweeps the way you move and slows foes.',
