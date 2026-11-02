@@ -5130,6 +5130,7 @@ export const es: Messages = {
     arceus: 'El dios. Su tipo cambia con cada bioma.',
     darkrai: 'Pesadilla. Duerme a las multitudes y las hiere en sueños.',
     cresselia: 'Luna creciente. Cuchillas que vuelven y una luna llena que cura.',
+    shadowMewtwo: 'Mewtwo Oscuro. Un legendario oculto con ataques devastadores de varios tipos.',
   },
 
   specials: {

@@ -5448,6 +5448,7 @@ export const pt = {
     arceus: 'O deus. Seu tipo muda com cada bioma.',
     darkrai: 'Pesadelo. Adormece multidões e as fere em sonho.',
     cresselia: 'Lua crescente. Lâminas que voltam e uma lua cheia que cura.',
+    shadowMewtwo: 'Mewtwo Sombrio. Uma força lendária oculta com ataques de vários tipos.',
   },
 
   specials: {

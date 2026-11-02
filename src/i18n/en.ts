@@ -5128,6 +5128,7 @@ export const en: Messages = {
     arceus: 'The god. Its type changes with every biome.',
     darkrai: 'Nightmare. Puts crowds to sleep and hurts them in their dreams.',
     cresselia: 'Crescent moon. Returning blades and a healing full moon.',
+    shadowMewtwo: 'Shadow Mewtwo. A hidden legendary with devastating attacks of many types.',
   },
 
   specials: {

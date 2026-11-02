@@ -5124,6 +5124,7 @@ export const zh: Messages = {
     arceus: '神。屬性隨每個區域而改變。',
     darkrai: '惡夢。讓敵群沉睡，並在夢中傷害它們。',
     cresselia: '新月。會飛回的月刃與治癒的滿月。',
+    shadowMewtwo: '暗影超夢。隱藏的傳說寶可夢，擅長多種屬性的強力攻擊。',
   },
 
   specials: {
