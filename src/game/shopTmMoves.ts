@@ -86,7 +86,8 @@ const payDay = (g: Game, s: CastStats) => {
 
 /** A coin hit may knock ₽ loose, while the run's Pay Day purse (`TmState.coins`) has room. */
 const payDayHit = (g: Game, a: Attack, e: Enemy) => {
-  if (g.player.tm.coins >= PAY_DAY.cap || !chance(g.rng, a.memo)) return
+  // Meowth's signature pays on knockouts instead; keep the original TM hit bonus for other users.
+  if (g.player.starter === 'meowth' || g.player.tm.coins >= PAY_DAY.cap || !chance(g.rng, a.memo)) return
   g.player.tm.coins++
   dropCoins(g, e.x, e.y - 4, [PAY_DAY.coin])
   burst(g, e.x, e.y - e.radius, { colors: ['#fff8c0', '#f8d030', '#c89010'], count: 6, speed: 60, ttl: 0.35, gravity: 120 })
