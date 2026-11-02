@@ -1166,6 +1166,16 @@ const swapStance = (g: Game) => {
 
 /** Runs the special each tick: trigger → charge → release → active phase. */
 export const updateSpecial = (g: Game, pressed: boolean, dt: number) => {
+  // Dark Nova's delayed impact uses the same full-screen flash and screen shake
+  // as existing major attacks. Trigger once when its burst actually arrives.
+  for (const a of g.attacks) {
+    if (a.visual !== 'darkNovaBurst' || a.owner !== g.player.slot || a.age < 0 || a.memo !== 0) continue
+    a.memo = 1
+    g.flash = Math.max(g.flash, 0.4)
+    shakeScreen(g, 8, { x: a.x, y: a.y })
+    g.hitstop = Math.max(g.hitstop, BLAST_HITSTOP)
+    burst(g, a.x, a.y, { colors: ['#f7e5ff', '#d28fea', '#b2384d', '#f6d45a'], count: 45, speed: 260, ttl: 0.55 })
+  }
   const s = g.player.special
   const r = gameSpecial(g)
   syncStance(g, r)
