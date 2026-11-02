@@ -1,3 +1,4 @@
+import { canUseMewtwoClone } from '../privateMewtwo'
 import { blitCentered, context2d } from '../engine/pixelart'
 import { playCry, playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -45,6 +46,10 @@ export const pokedexScreen = (root: HTMLElement, input: Input, onClose: () => vo
   const levels = t().difficulty.names
   const { dex: save, clears } = loadSave()
   const entries = gameDex()
+  // An owned regional/alternate form shares the species' National Dex number.
+  // Do not create duplicate entries or change completion totals for that form.
+  const shadowAvailable = canUseMewtwoClone()
+  let shadowShown = false
   const status = entries.map((e) => dexStatus(save, e.dex))
   const wild = entries.filter(defeatable)
   const counts = dexCounts(save, entries.map((e) => e.dex))
@@ -95,6 +100,7 @@ export const pokedexScreen = (root: HTMLElement, input: Input, onClose: () => vo
   const name = h('div', { class: 'inspect-name' })
   const types = h('div', { class: 'types' })
   const facts = h('div', { class: 'dex-facts' })
+  const formToggle = h('button', { class: 'btn', type: 'button', onclick: () => { shadowShown = !shadowShown; renderDetail() } }, 'Shadow Mewtwo')
   const detail = h('div', { class: 'dex-detail' }, sprite, h('div', { class: 'inspect-id' }, name, types, facts))
 
   /** The Caixa do PC, open over the Pokédex until it closes. */
@@ -126,9 +132,10 @@ export const pokedexScreen = (root: HTMLElement, input: Input, onClose: () => vo
     const e: DexEntry | undefined = entries[current]
     const s = status[current]
     if (!e || !s) return
-    void loadSpecies(e.dex, shinyForm(current)).catch(() => {})
+    const shadow = shadowAvailable && e.dex === 150 && shadowShown
+    void loadSpecies(e.dex, shadow ? false : shinyForm(current), shadow ? 'shadow' : undefined).catch(() => {})
     detail.classList.toggle('unseen', !s.seen)
-    name.replaceChildren(h('small', {}, dexNumber(e.dex)), s.seen ? e.name : '???')
+    name.replaceChildren(h('small', {}, dexNumber(e.dex)), shadow ? 'Shadow Mewtwo' : s.seen ? e.name : '???')
     types.replaceChildren(...(s.seen ? e.types.map(typeBadge) : []))
     const row = (label: string, ...value: (string | Node)[]) => h('div', { class: 'dex-fact' }, h('span', {}, label), h('b', {}, ...value))
     const clear = clearOf(e)
@@ -140,7 +147,8 @@ export const pokedexScreen = (root: HTMLElement, input: Input, onClose: () => vo
       s.seen && e.source.kind === 'starter' && (clear ? row(m.clear, h('img', { class: 'dex-clear-icon', src: trophyIcon(clear), alt: '' }), levels[clear]) : row(m.clear, m.no)),
       s.shiny && h('span', { class: 'tag tag-shiny' }, h('img', { src: sparkleIcon(), alt: '' }), m.shiny),
     ]
-    facts.replaceChildren(...lines.filter((line) => line !== false))
+    formToggle.textContent = shadow ? 'Mewtwo' : 'Shadow Mewtwo'
+    facts.replaceChildren(...lines.filter((line) => line !== false), ...(shadowAvailable && e.dex === 150 ? [formToggle] : []))
   }
 
   const syncFocus = () => {
@@ -260,7 +268,8 @@ export const pokedexScreen = (root: HTMLElement, input: Input, onClose: () => vo
     if (!e || !s) return
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
-    const loaded = loadedSprites(e.dex, shinyForm(current))
+    const shadow = shadowAvailable && e.dex === 150 && shadowShown
+    const loaded = loadedSprites(e.dex, shadow ? false : shinyForm(current), shadow ? 'shadow' : undefined)
     // Small Pokémon get doubled (whole pixels) so the panel isn't mostly empty; big legendaries stay 1:1.
     if (loaded) drawPokemon(ctx, loaded, 'Idle', 0, time, sprite.width / 2, sprite.height - 10, { scale: loaded.bodyH * 2 <= sprite.height - 20 ? 2 : 1 })
     else blitCentered(ctx, PICKUPS.pokeball(), sprite.width / 2, sprite.height / 2 + Math.round(Math.sin(time * 6) * 2))
