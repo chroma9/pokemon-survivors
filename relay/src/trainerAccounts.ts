@@ -43,6 +43,16 @@ const expiresIn = 30 * 24 * 3600 * 1000
 
 /** Single global account directory. All credentials and session hashes remain within this Durable Object. */
 export class TrainerAccounts extends DurableObject<Env> {
+  /** Last manually published announcement, persisted across Worker deployments. */
+  async announcement() {
+    return (await this.ctx.storage.get<{ id: string; message: string }>('global:announcement')) ?? null
+  }
+  async publishAnnouncement(message: unknown) {
+    if (typeof message !== 'string' || message.trim().length < 1 || message.trim().length > 240) return { error: 'invalid' }
+    const announcement = { id: crypto.randomUUID(), message: message.trim() }
+    await this.ctx.storage.put('global:announcement', announcement)
+    return announcement
+  }
   async register(handleInput: unknown, passInput: unknown, nameInput: unknown, inviterInput?: unknown) {
     const handle = handleOf(handleInput)
     const pass = clean(passInput)
