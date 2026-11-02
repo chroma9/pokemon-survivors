@@ -190,7 +190,7 @@ export const killEnemy = (g: Game, e: Enemy, source?: DamageSource | null) => {
   // Pay Day pays out for every enemy it actually defeats, without a per-run cap.
   // One bonus pickup per KO keeps long horde runs from flooding the pickup list.
   if (source === 'payDay') {
-    const bonus = e.boss ? 150 + Math.floor(g.rng() * 101) : 15 + Math.floor(g.rng() * 16)
+    const bonus = e.boss ? 50 + Math.floor(g.rng() * 51) : 2 + Math.floor(g.rng() * 4)
     dropCoins(g, e.x, e.y, [bonus])
   }
   faintCandies(g, e, share)
