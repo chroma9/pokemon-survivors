@@ -37,6 +37,7 @@ export const LEGENDARY_MOVE_OF = {
   regice: 'glaciate',
   registeel: 'metalBurst',
   mewtwo: 'telekinesis',
+  shadowMewtwo: 'telekinesis',
   arceus: 'judgment',
   darkrai: 'darkVoid',
   cresselia: 'lunarBlessing',
