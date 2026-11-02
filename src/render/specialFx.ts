@@ -422,28 +422,30 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
       const visible = tick % 5 !== 3 && tick % 5 !== 4
       if (visible) {
         const angle = tick * 2.399963 + a.id * 0.21
-        const start = -1.12
-        const end = 1.12
-        ctx.lineCap = 'round'
-        for (let layer = 0; layer < 2; layer++) {
+        // Two pointed, curved ribbons. The arc's midpoint passes through the
+        // orb center; its ends curl to the same side to form a real crescent.
+        const length = n * 1.17
+        const bend = n * 0.52
+        const drawRibbon = (width: number, color: string) => {
           ctx.beginPath()
-          const count = 24
-          for (let i = 0; i <= count; i++) {
-            const u = i / count
-            const theta = start + (end - start) * u
-            // A curved slash crossing the orb, with pointed ends and a wide midpoint.
-            const along = Math.sin(theta) * n * 1.13
-            const across = Math.sin(theta * Math.PI / 1.12) * n * 0.22
-            const x = cx + Math.cos(angle) * along - Math.sin(angle) * across
-            const y = cy + Math.sin(angle) * along + Math.cos(angle) * across
-            if (i === 0) ctx.moveTo(Math.round(x), Math.round(y))
-            else ctx.lineTo(Math.round(x), Math.round(y))
+          for (let side = 1; side >= -1; side -= 2) {
+            for (let j = 0; j <= 24; j++) {
+              const u = side === 1 ? j / 24 : 1 - j / 24
+              const along = (u * 2 - 1) * length
+              const q = u * 2 - 1
+              const across = -bend * q * q + side * width * Math.sin(Math.PI * u)
+              const x = cx + Math.cos(angle) * along - Math.sin(angle) * across
+              const y = cy + Math.sin(angle) * along + Math.cos(angle) * across
+              if (side === 1 && j === 0) ctx.moveTo(Math.round(x), Math.round(y))
+              else ctx.lineTo(Math.round(x), Math.round(y))
+            }
           }
-          ctx.strokeStyle = layer === 0 ? '#b63178' : '#ff91cf'
-          ctx.globalAlpha = layer === 0 ? 0.9 : 1
-          ctx.lineWidth = layer === 0 ? Math.max(3, Math.round(n * 0.10)) : Math.max(1, Math.round(n * 0.035))
-          ctx.stroke()
+          ctx.closePath()
+          ctx.fillStyle = color
+          ctx.fill()
         }
+        drawRibbon(Math.max(2, n * 0.11), '#b63178')
+        drawRibbon(Math.max(1, n * 0.035), '#ff9edb')
       }
       ctx.restore()
       return
