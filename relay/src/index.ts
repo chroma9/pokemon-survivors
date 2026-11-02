@@ -124,6 +124,20 @@ export default {
       return json(total, 200, { ...headers, 'Cache-Control': 'public, max-age=60' })
     }
     if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
+    if (path === '/announcement' && request.method === 'GET') {
+      const announcement = await env.TRAINER_ACCOUNTS.getByName('global').announcement()
+      return json({ announcement }, 200, { ...headers, 'Cache-Control': 'no-store' })
+    }
+    if (path === '/admin/announcement' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-announcement:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
+      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const body = await request.json().catch(() => null) as { message?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').publishAnnouncement(body?.message)
+      return json(result, 'error' in result ? 400 : 200, headers)
+    }
     // Verify an admin browser session without exposing the secret to the frontend bundle.
     if (path === '/admin/verify' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-verify:' + ipOf(request) })).success) return json({ admin: false }, 429, headers)
