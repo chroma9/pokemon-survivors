@@ -18,6 +18,18 @@ export const privateAdminConsole = (relay: () => string | null, room: () => stri
   },
   admin: async () => ({ authorized: await verifyPrivateAdmin(relay()), stored: Boolean(localStorage.getItem(TOKEN_KEY)) }),
   logout: () => { localStorage.removeItem(TOKEN_KEY); return 'ps: session cleared' },
+  announce: async (message = 'A new update is available! Restart the game to get the latest version.') => {
+    if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
+    if (typeof message !== 'string' || message.trim().length < 1 || message.trim().length > 240) return 'ps.announce: message must be 1-240 characters'
+    const url = relay()
+    if (!url) return 'ps.announce: relay unavailable'
+    const response = await fetch(url + '/admin/announcement', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem(TOKEN_KEY), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: message.trim() }),
+    }).catch(() => null)
+    return response?.ok ? 'ps: announcement published to players' : 'ps.announce: failed (HTTP ' + (response?.status ?? 'offline') + ')'
+  },
   resetPassword: async (handle: string) => {
     if (!await verifyPrivateAdmin(relay())) return 'ps: unauthorized'
     if (!/^[a-z0-9_]{3,20}$/i.test(handle)) return 'ps.resetPassword: invalid handle'
