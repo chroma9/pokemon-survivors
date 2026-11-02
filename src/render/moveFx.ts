@@ -123,15 +123,32 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
     }
     case 'shadowBall': {
       if (a.shape.kind !== 'circle') return
-      ctx.globalAlpha = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
-      // Draw the orb at its actual radius. Enlarging the tiny 5x5 boss sprite
-      // makes its square silhouette increasingly obvious after area upgrades.
-      const r = Math.max(3, Math.round(a.shape.r))
-      blitEllipse(ctx, r, r, '#201030', a.x, a.y)
-      blitEllipse(ctx, Math.max(2, r - 3), Math.max(2, r - 3), '#5c3c88', a.x, a.y)
-      blitEllipse(ctx, Math.max(1, r - 6), Math.max(1, r - 6), '#201030', a.x + 1, a.y + 1)
-      blitEllipse(ctx, Math.max(1, Math.round(r * 0.2)), Math.max(1, Math.round(r * 0.2)), '#c8b0f8', a.x - Math.round(r * 0.3), a.y - Math.round(r * 0.3))
-      ctx.globalAlpha = 1
+      const r = Math.max(4, Math.round(a.shape.r))
+      const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
+      ctx.save()
+      ctx.globalAlpha = fade
+      // Flickering tongues of ghost fire extend beyond a completely black core.
+      // No shaded spheres, white specular glints or concentric glossy layers.
+      const cx = Math.round(a.x), cy = Math.round(a.y)
+      const flames = Math.max(14, Math.round(r * 1.6))
+      for (let i = 0; i < flames; i++) {
+        const angle = i * Math.PI * 2 / flames + a.id * 0.31
+        const flicker = Math.sin(t * 17 + i * 3.71 + a.id) * 0.5 + 0.5
+        const outer = r + 3 + flicker * Math.max(4, r * 0.38)
+        const inner = r * 0.66
+        const side = 0.16 + 0.05 * (i % 3)
+        ctx.fillStyle = i % 4 === 0 ? '#a064da' : i % 3 === 0 ? '#7131a8' : '#4c207a'
+        ctx.beginPath()
+        ctx.moveTo(Math.round(cx + Math.cos(angle - side) * inner), Math.round(cy + Math.sin(angle - side) * inner))
+        ctx.lineTo(Math.round(cx + Math.cos(angle + 0.06 * Math.sin(t * 8 + i)) * outer),
+          Math.round(cy + Math.sin(angle + 0.06 * Math.sin(t * 8 + i)) * outer))
+        ctx.lineTo(Math.round(cx + Math.cos(angle + side) * inner), Math.round(cy + Math.sin(angle + side) * inner))
+        ctx.closePath()
+        ctx.fill()
+      }
+      blitEllipse(ctx, r, r, '#08040e', cx, cy)
+      blitEllipse(ctx, Math.max(2, r - 2), Math.max(2, r - 2), '#030207', cx, cy)
+      ctx.restore()
       return
     }
     case 'darkPulse': {
