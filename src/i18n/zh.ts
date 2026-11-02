@@ -5034,6 +5034,7 @@ export const zh: Messages = {
     fuecoco: '悠哉。HP很多，還會唱火熱的歌。',
     quaxly: '舞者。在水中旋轉並攻擊。',
     pichu: '電氣。電擊很快，但很脆弱。',
+    meowth: '敏捷又機靈。快速攻擊，賺取更多金錢。',
     machop: '格鬥家。拳頭強勁，HP充足。',
     eevee: '適應力強。成長快速，有8種進化方式。',
     togepi: '幸運。會回復HP，獲得更多經驗值。',
