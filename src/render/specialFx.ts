@@ -367,36 +367,39 @@ export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
       const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
       if (fade <= 0) return
       ctx.save()
-      // Dark Void-inspired pool of night: translucent edges, near-black center.
-      // Sparse stable fractures interrupt the surface without forming a crater.
-      ctx.globalAlpha = fade * 0.42
+      // Dark Void-style ground shadow, without the evenly spaced radial spaghetti.
+      ctx.globalAlpha = fade * 0.39
       blitEllipse(ctx, r, Math.max(1, Math.round(r * 0.5)), '#2a1850', a.x, a.y)
-      ctx.globalAlpha = fade * 0.54
-      blitEllipse(ctx, Math.round(r * 0.76), Math.max(1, Math.round(r * 0.38)), '#08040e', a.x, a.y)
-      const seed = a.id * 0.419
-      ctx.lineCap = 'square'
-      ctx.lineJoin = 'bevel'
-      for (let i = 0; i < 6; i++) {
-        const angle = seed + i * Math.PI * 2 / 6
-        const end = r * (0.65 + 0.23 * Math.sin(i * 4.37 + seed) ** 2)
-        const bend = angle + (i % 2 ? 0.17 : -0.22)
-        const x0 = Math.round(a.x + Math.cos(angle) * r * 0.17)
-        const y0 = Math.round(a.y + Math.sin(angle) * r * 0.17 * 0.5)
-        const xm = Math.round(a.x + Math.cos(bend) * end * 0.55)
-        const ym = Math.round(a.y + Math.sin(bend) * end * 0.55 * 0.5)
-        const xe = Math.round(a.x + Math.cos(angle) * end)
-        const ye = Math.round(a.y + Math.sin(angle) * end * 0.5)
+      ctx.globalAlpha = fade * 0.48
+      blitEllipse(ctx, Math.round(r * 0.74), Math.max(1, Math.round(r * 0.37)), '#08040e', a.x, a.y)
+      // Broken, irregular fissures share an off-center impact junction.
+      const hash = (i: number) => {
+        const x = Math.sin((i + 1) * 89.43 + a.id * 12.17) * 43758.5453
+        return x - Math.floor(x)
+      }
+      const cx = a.x + (hash(42) - 0.5) * r * 0.18
+      const cy = a.y + (hash(43) - 0.5) * r * 0.08
+      for (let i = 0; i < 5; i++) {
+        const angle = i * 2.399963 + hash(31) * 4
+        const len = r * (0.38 + hash(i) * 0.48)
+        const points: [number, number][] = [[cx, cy]]
+        for (let j = 1; j <= 4; j++) {
+          const dist = len * j / 4
+          const kink = (hash(i * 9 + j) - 0.5) * r * 0.21
+          points.push([cx + Math.cos(angle) * dist - Math.sin(angle) * kink,
+            cy + Math.sin(angle) * dist * 0.5 + Math.cos(angle) * kink * 0.5])
+        }
         ctx.beginPath()
-        ctx.moveTo(x0, y0)
-        ctx.lineTo(xm, ym)
-        ctx.lineTo(xe, ye)
-        ctx.globalAlpha = fade * 0.76
+        ctx.moveTo(Math.round(points[0]![0]), Math.round(points[0]![1]))
+        for (const [x, y] of points.slice(1)) ctx.lineTo(Math.round(x), Math.round(y))
+        ctx.lineJoin = 'miter'
+        ctx.globalAlpha = fade * 0.5
         ctx.lineWidth = 3
-        ctx.strokeStyle = '#090510'
+        ctx.strokeStyle = '#08040e'
         ctx.stroke()
-        ctx.globalAlpha = fade * (0.3 + 0.12 * Math.sin(a.age * 4 + i))
+        ctx.globalAlpha = fade * (0.18 + 0.09 * Math.sin(a.age * 5 + i))
         ctx.lineWidth = 1
-        ctx.strokeStyle = i % 3 === 0 ? '#913f55' : '#70429d'
+        ctx.strokeStyle = i % 2 ? '#903d69' : '#6740a0'
         ctx.stroke()
       }
       ctx.restore()
@@ -438,23 +441,43 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
   switch (a.visual) {
     case 'darkNovaOrb': {
       const n = Math.max(8, Math.round(r))
-      const pulse = Math.sin(t * 11 + a.id) * 0.05
-      const shell = Math.round(n * (0.81 + pulse))
-      // Offset, uneven layers read as turbulent energy instead of a bullseye.
-      blitEllipse(ctx, n, n, '#2b123c', a.x, a.y)
-      blitEllipse(ctx, Math.round(n * 0.93), Math.round(n * 0.91), '#66318d', a.x - 1, a.y + 1)
-      blitEllipse(ctx, shell, Math.round(n * 0.78), '#3c164e', a.x + 3, a.y - 2)
-      blitEllipse(ctx, Math.round(n * 0.65), Math.round(n * 0.61), '#701e36', a.x + 1, a.y + 2)
-      blitEllipse(ctx, Math.round(n * 0.48), Math.round(n * 0.44), '#aa322b', a.x - 3, a.y - 1)
-      blitEllipse(ctx, Math.round(n * 0.27), Math.round(n * 0.25), '#f0a83c', a.x - 2, a.y - 3)
-      blitEllipse(ctx, Math.round(n * 0.12), Math.round(n * 0.13), '#ffe580', a.x - 4, a.y - 5)
-      // A handful of deterministic shards fracture the shell without randomness.
-      for (let i = 0; i < 7; i++) {
-        const angle = i * 2.399 + a.id * 0.14 + t * (i % 2 ? -0.7 : 0.8)
-        const d = n * (0.72 + 0.06 * Math.sin(t * 7 + i))
-        ctx.fillStyle = i % 3 === 0 ? '#b377d3' : '#8d4db0'
-        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d), i % 2 ? 3 : 2, 2)
+      const cx = Math.round(a.x), cy = Math.round(a.y)
+      ctx.save()
+      // Eclipse-inspired black sun: violet penumbra, nearly lightless center.
+      blitEllipse(ctx, n, n, '#33134e', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.94), Math.round(n * 0.94), '#6d2c9a', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.82), Math.round(n * 0.82), '#321047', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.68), Math.round(n * 0.68), '#10071c', cx, cy)
+      // A brief unstable crescent, not a permanent circular/Saturn ring.
+      // Each burst holds its own angle briefly, then vanishes and reappears.
+      const tick = Math.floor(t * 9 + a.id * 0.37)
+      const visible = tick % 5 !== 3 && tick % 5 !== 4
+      if (visible) {
+        const angle = tick * 2.399963 + a.id * 0.21
+        const start = -1.12
+        const end = 1.12
+        ctx.lineCap = 'round'
+        for (let layer = 0; layer < 2; layer++) {
+          ctx.beginPath()
+          const count = 24
+          for (let i = 0; i <= count; i++) {
+            const u = i / count
+            const theta = start + (end - start) * u
+            // A curved slash crossing the orb, with pointed ends and a wide midpoint.
+            const along = Math.sin(theta) * n * 1.13
+            const across = (0.72 - 0.32 * Math.cos(theta)) * n
+            const x = cx + Math.cos(angle) * along - Math.sin(angle) * across
+            const y = cy + Math.sin(angle) * along + Math.cos(angle) * across
+            if (i === 0) ctx.moveTo(Math.round(x), Math.round(y))
+            else ctx.lineTo(Math.round(x), Math.round(y))
+          }
+          ctx.strokeStyle = layer === 0 ? '#b63178' : '#ff91cf'
+          ctx.globalAlpha = layer === 0 ? 0.9 : 1
+          ctx.lineWidth = layer === 0 ? Math.max(3, Math.round(n * 0.10)) : Math.max(1, Math.round(n * 0.035))
+          ctx.stroke()
+        }
       }
+      ctx.restore()
       return
     }
     case 'darkNovaBurst': {
