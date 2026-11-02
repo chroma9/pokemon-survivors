@@ -230,7 +230,16 @@ const shoot = (g: Game, a: Attack, t: Turret, dt: number) => {
 
 const overlaps = (a: Attack, e: Enemy) => {
   const ey = e.y - e.radius // enemy body center sits above its feet
-  if (a.shape.kind === 'circle') return dm.sq(a.x - e.x) + dm.sq(a.y - ey) < dm.sq(a.shape.r + e.radius)
+  if (a.shape.kind === 'circle') {
+    if (a.visual === 'darkNovaField') {
+      // The lingering shadow is drawn as a ground-plane oval, not a full circle.
+      // Match its damaging footprint to that visible oval (including enemy size).
+      const rx = a.shape.r + e.radius
+      const ry = a.shape.r * 0.5 + e.radius
+      return dm.sq((e.x - a.x) / rx) + dm.sq((ey - a.y) / ry) < 1
+    }
+    return dm.sq(a.x - e.x) + dm.sq(a.y - ey) < dm.sq(a.shape.r + e.radius)
+  }
   const cx = Math.max(a.x - a.shape.w / 2, Math.min(e.x, a.x + a.shape.w / 2))
   const cy = Math.max(a.y - a.shape.h / 2, Math.min(ey, a.y + a.shape.h / 2))
   return dm.sq(cx - e.x) + dm.sq(cy - ey) < dm.sq(e.radius)
