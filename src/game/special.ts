@@ -1173,6 +1173,9 @@ export const updateSpecial = (g: Game, pressed: boolean, dt: number) => {
     a.memo = 1
     g.flash = Math.max(g.flash, 0.4)
     shakeScreen(g, 8, { x: a.x, y: a.y })
+    // The existing special release sound is a layered low-frequency blast.
+    // Fire it at landing, not just when the projectile is launched.
+    g.events.push({ kind: 'special', phase: 'release', name: 'Dark Nova Impact' })
     g.hitstop = Math.max(g.hitstop, BLAST_HITSTOP)
     burst(g, a.x, a.y, { colors: ['#f7e5ff', '#d28fea', '#b2384d', '#f6d45a'], count: 45, speed: 260, ttl: 0.55 })
   }
