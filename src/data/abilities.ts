@@ -301,6 +301,7 @@ export const FAMILY_ABILITIES = {
   quaxly: ['torrent', 'steadfast', 'moxie'],
   /* Common eggs */
   pichu: ['static', 'vitalSpirit', 'lightningRod'],
+  meowth: ['pickup', 'technician', 'unnerve'],
   machop: ['guts', 'noGuard', 'steadfast'],
   eevee: ['adaptability', 'synchronize', 'pickup'],
   togepi: ['sereneGrace', 'hustle', 'naturalCure'],
