@@ -5034,6 +5034,7 @@ export const fr: Messages = {
     fuecoco: 'Nonchalant. Beaucoup de PV et des chants enflammés.',
     quaxly: 'Danseur. Tournoie dans l’eau et frappe.',
     pichu: 'Électrique. Éclairs rapides, mais fragile.',
+    meowth: 'Agile et rusé. Attaques rapides et plus d’argent.',
     machop: 'Combattant. Coups de poing puissants et beaucoup de PV.',
     eevee: 'Adaptable. Grandit vite et a 8 évolutions.',
     togepi: 'Chanceux. Régénère ses PV et gagne plus d’EXP.',
