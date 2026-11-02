@@ -364,10 +364,15 @@ export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
   const r = Math.round(radius(a))
   switch (a.visual) {
     case 'darkNovaField': {
-      ctx.globalAlpha = 0.72 * Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.6)
-      blitEllipse(ctx, r, Math.round(r * 0.46), '#250c39', a.x, a.y)
-      blitEllipse(ctx, Math.round(r * 0.88), Math.round(r * 0.39), '#563078', a.x, a.y)
-      blitEllipse(ctx, Math.round(r * 0.65), Math.round(r * 0.26), '#691e3e', a.x, a.y)
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.6))
+      ctx.globalAlpha = fade * 0.76
+      // One ground-plane ellipse: the visible rim follows the actual field,
+      // not a separate overhead circle.
+      blitEllipse(ctx, r, Math.round(r * 0.46), '#301442', a.x, a.y)
+      blitEllipse(ctx, Math.round(r * 0.95), Math.round(r * 0.42), '#774395', a.x, a.y)
+      blitEllipse(ctx, Math.round(r * 0.88), Math.round(r * 0.38), '#31163f', a.x, a.y)
+      blitEllipse(ctx, Math.round(r * 0.69), Math.round(r * 0.28), '#581c3d', a.x + 3, a.y)
+      blitEllipse(ctx, Math.round(r * 0.36), Math.round(r * 0.14), '#8a2b36', a.x - 8, a.y + 3)
       ctx.globalAlpha = 1
       return
     }
@@ -406,13 +411,24 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
   const r = radius(a)
   switch (a.visual) {
     case 'darkNovaOrb': {
-      const n = Math.round(r)
-      blitEllipse(ctx, n, n, '#54277d', a.x, a.y)
-      blitEllipse(ctx, Math.round(n * 0.82), Math.round(n * 0.82), '#7f41b2', a.x, a.y)
-      blitEllipse(ctx, Math.round(n * 0.63), Math.round(n * 0.63), '#741b31', a.x, a.y)
-      blitEllipse(ctx, Math.round(n * 0.43), Math.round(n * 0.43), '#b63b27', a.x, a.y)
-      blitEllipse(ctx, Math.round(n * 0.22), Math.round(n * 0.22), '#f8d854', a.x - 2, a.y - 2)
-      pixelRing(ctx, a.x, a.y, n, 2, Math.floor(t * 12) % 2 ? '#d69cff' : '#4c246c')
+      const n = Math.max(8, Math.round(r))
+      const pulse = Math.sin(t * 11 + a.id) * 0.05
+      const shell = Math.round(n * (0.81 + pulse))
+      // Offset, uneven layers read as turbulent energy instead of a bullseye.
+      blitEllipse(ctx, n, n, '#2b123c', a.x, a.y)
+      blitEllipse(ctx, Math.round(n * 0.93), Math.round(n * 0.91), '#66318d', a.x - 1, a.y + 1)
+      blitEllipse(ctx, shell, Math.round(n * 0.78), '#3c164e', a.x + 3, a.y - 2)
+      blitEllipse(ctx, Math.round(n * 0.65), Math.round(n * 0.61), '#701e36', a.x + 1, a.y + 2)
+      blitEllipse(ctx, Math.round(n * 0.48), Math.round(n * 0.44), '#aa322b', a.x - 3, a.y - 1)
+      blitEllipse(ctx, Math.round(n * 0.27), Math.round(n * 0.25), '#f0a83c', a.x - 2, a.y - 3)
+      blitEllipse(ctx, Math.round(n * 0.12), Math.round(n * 0.13), '#ffe580', a.x - 4, a.y - 5)
+      // A handful of deterministic shards fracture the shell without randomness.
+      for (let i = 0; i < 7; i++) {
+        const angle = i * 2.399 + a.id * 0.14 + t * (i % 2 ? -0.7 : 0.8)
+        const d = n * (0.72 + 0.06 * Math.sin(t * 7 + i))
+        ctx.fillStyle = i % 3 === 0 ? '#b377d3' : '#8d4db0'
+        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d), i % 2 ? 3 : 2, 2)
+      }
       return
     }
     case 'darkNovaBurst': {
@@ -424,8 +440,18 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
       return
     }
     case 'darkNovaField': {
-      const n = Math.round(r)
-      pixelRing(ctx, a.x, a.y, n, 2, Math.floor(t * 8) % 2 ? '#ba629a' : '#7d49bc')
+      // Flickering vents within the flattened ground hazard; no circular halo.
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.6))
+      ctx.globalAlpha = fade * 0.8
+      for (let i = 0; i < 9; i++) {
+        const angle = i * 2.399 + a.id * 0.17
+        const d = r * (0.25 + (i % 4) * 0.13)
+        const x = a.x + Math.cos(angle) * d
+        const y = a.y + Math.sin(angle) * d * 0.4
+        const hot = Math.sin(t * 5 + i * 1.7) > 0.1
+        blitEllipse(ctx, hot ? 2 : 1, 1, hot ? '#e2a44d' : '#a34560', x, y)
+      }
+      ctx.globalAlpha = 1
       return
     }
     case 'fireTrail': {
