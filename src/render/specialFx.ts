@@ -465,7 +465,7 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
             const theta = start + (end - start) * u
             // A curved slash crossing the orb, with pointed ends and a wide midpoint.
             const along = Math.sin(theta) * n * 1.13
-            const across = (0.72 - 0.32 * Math.cos(theta)) * n
+            const across = Math.sin(theta * Math.PI / 1.12) * n * 0.22
             const x = cx + Math.cos(angle) * along - Math.sin(angle) * across
             const y = cy + Math.sin(angle) * along + Math.cos(angle) * across
             if (i === 0) ctx.moveTo(Math.round(x), Math.round(y))
