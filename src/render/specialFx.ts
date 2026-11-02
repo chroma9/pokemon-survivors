@@ -410,42 +410,42 @@ export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
     case 'darkNovaOrb': {
       const n = Math.max(8, Math.round(r))
       const cx = Math.round(a.x), cy = Math.round(a.y)
+      const tick = Math.floor(t * 9 + a.id * 0.37)
+      const visible = tick % 5 < 3
+      // The center of every ellipse stays on the sphere. Its inclination
+      // jumps between poses instead of spinning like a permanent Saturn ring.
+      const angle = tick * 2.399963 + a.id * 0.21
+      const major = n * 1.24
+      const minor = n * 0.57
+      const orbit = (theta: number): [number, number] => {
+        const x = Math.cos(theta) * major
+        const y = Math.sin(theta) * minor
+        return [cx + x * Math.cos(angle) - y * Math.sin(angle),
+          cy + x * Math.sin(angle) + y * Math.cos(angle)]
+      }
+      const arc = (start: number, end: number, color: string, width: number, alpha: number) => {
+        ctx.beginPath()
+        for (let i = 0; i <= 36; i++) {
+          const [x, y] = orbit(start + (end - start) * i / 36)
+          if (i === 0) ctx.moveTo(Math.round(x), Math.round(y))
+          else ctx.lineTo(Math.round(x), Math.round(y))
+        }
+        ctx.strokeStyle = color
+        ctx.lineWidth = width
+        ctx.globalAlpha = alpha
+        ctx.stroke()
+      }
       ctx.save()
-      // Eclipse-inspired black sun: violet penumbra, nearly lightless center.
+      ctx.lineCap = 'round'
+      // The far half is behind the opaque black sun.
+      if (visible) arc(Math.PI, TAU, '#a83c88', Math.max(2, n * 0.085), 0.48)
       blitEllipse(ctx, n, n, '#33134e', cx, cy)
       blitEllipse(ctx, Math.round(n * 0.94), Math.round(n * 0.94), '#6d2c9a', cx, cy)
       blitEllipse(ctx, Math.round(n * 0.82), Math.round(n * 0.82), '#321047', cx, cy)
       blitEllipse(ctx, Math.round(n * 0.68), Math.round(n * 0.68), '#10071c', cx, cy)
-      // A brief unstable crescent, not a permanent circular/Saturn ring.
-      // Each burst holds its own angle briefly, then vanishes and reappears.
-      const tick = Math.floor(t * 9 + a.id * 0.37)
-      const visible = tick % 5 !== 3 && tick % 5 !== 4
       if (visible) {
-        const angle = tick * 2.399963 + a.id * 0.21
-        // Two pointed, curved ribbons. The arc's midpoint passes through the
-        // orb center; its ends curl to the same side to form a real crescent.
-        const length = n * 1.17
-        const bend = n * 0.52
-        const drawRibbon = (width: number, color: string) => {
-          ctx.beginPath()
-          for (let side = 1; side >= -1; side -= 2) {
-            for (let j = 0; j <= 24; j++) {
-              const u = side === 1 ? j / 24 : 1 - j / 24
-              const along = (u * 2 - 1) * length
-              const q = u * 2 - 1
-              const across = -bend * q * q + side * width * Math.sin(Math.PI * u)
-              const x = cx + Math.cos(angle) * along - Math.sin(angle) * across
-              const y = cy + Math.sin(angle) * along + Math.cos(angle) * across
-              if (side === 1 && j === 0) ctx.moveTo(Math.round(x), Math.round(y))
-              else ctx.lineTo(Math.round(x), Math.round(y))
-            }
-          }
-          ctx.closePath()
-          ctx.fillStyle = color
-          ctx.fill()
-        }
-        drawRibbon(Math.max(2, n * 0.11), '#b63178')
-        drawRibbon(Math.max(1, n * 0.035), '#ff9edb')
+        arc(0, Math.PI, '#b63178', Math.max(3, n * 0.11), 0.95)
+        arc(0.12, Math.PI - 0.12, '#ff9edb', Math.max(1, n * 0.045), 1)
       }
       ctx.restore()
       return
