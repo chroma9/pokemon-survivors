@@ -1395,6 +1395,33 @@ export const MOVES = {
     },
   },
 
+  payDay: {
+    name: 'Pay Day',
+    type: 'normal',
+    base: stats({ damage: 13, cooldown: 2.1, amount: 3, speed: 240, pierce: 1, knockback: 24 }),
+    upgrades: [
+      { damage: 4 },
+      { amount: 1 },
+      { cooldown: -0.15 },
+      { damage: 5 },
+      { pierce: 1 },
+      { amount: 2 },
+      { damage: 6, area: 0.2 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      for (const angle of fan(aimAngle(g, 280), s.amount, 0.16)) {
+        const v = fromAngle(angle, s.speed)
+        spawnAttack(g, {
+          move: 'payDay', type: 'normal', visual: 'payDay', x: p.x, y: p.y - 7,
+          shape: { kind: 'circle', r: 5 * s.area },
+          motion: { kind: 'linear', vx: v.x, vy: v.y },
+          damage: s.damage, knockback: s.knockback, pierce: s.pierce, ttl: 1.6,
+        })
+      }
+    },
+  },
+
   quickAttack: {
     name: 'Quick Attack',
     type: 'normal',
