@@ -817,7 +817,7 @@ const release = (g: Game, r: ResolvedSpecial) => {
       const dir = fromAngle(s.angle)
       const x = p.x + dir.x * 130
       const y = p.y - 8 + dir.y * 130
-      const radius = 70 * area
+      const radius = 82 * area
       // One colossal orb, followed by an expanding impact and persistent field.
       spawnAttack(g, {
         move: 'special', type: 'shadow', visual: 'darkNovaOrb',
