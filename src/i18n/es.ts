@@ -5040,6 +5040,7 @@ export const es: Messages = {
     fuecoco: 'Tranquilo. Mucha vida y canciones de fuego.',
     quaxly: 'Bailarín. Gira en el agua y golpea.',
     pichu: 'Eléctrico. Rayos rápidos, pero frágil.',
+    meowth: 'Ágil y astuto. Ataques rápidos y más dinero.',
     machop: 'Luchador. Puñetazos fuertes y mucha vida.',
     eevee: 'Adaptable. Crece rápido y evoluciona de 8 formas.',
     togepi: 'Afortunado. Regenera vida y gana más EXP.',
