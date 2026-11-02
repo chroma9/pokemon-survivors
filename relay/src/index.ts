@@ -82,13 +82,23 @@ const createRoom = async (request: Request<unknown, IncomingRequestCfProperties>
   return reply({ error: 'busy' }, 503)
 }
 
+/** Compare fixed-length SHA-256 digests without early-exit byte comparisons. */
+const equalDigest = (left: ArrayBuffer, right: ArrayBuffer): boolean => {
+  const a = new Uint8Array(left)
+  const b = new Uint8Array(right)
+  if (a.length !== 32 || b.length !== 32) return false
+  let mismatch = 0
+  for (let i = 0; i < 32; i++) mismatch |= a[i]! ^ b[i]!
+  return mismatch === 0
+}
+
 /** Constant-time check of the admin bearer token. */
 const isAdmin = async (request: Request, env: Env) => {
   const token = env.ADMIN_TOKEN
   const given = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
   if (!token || !given) return false
   const digest = async (s: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))
-  return crypto.subtle.timingSafeEqual(await digest(token), await digest(given))
+  return equalDigest(await digest(token), await digest(given))
 }
 
 const admin = async (request: Request, env: Env, path: string): Promise<Response> => {
@@ -132,8 +142,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-announcement:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const body = await request.json().catch(() => null) as { message?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').publishAnnouncement(body?.message)
       return json(result, 'error' in result ? 400 : 200, headers)
@@ -143,16 +153,16 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-verify:' + ipOf(request) })).success) return json({ admin: false }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      const authorized = Boolean(secret && supplied) && crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      const authorized = Boolean(secret && supplied) && equalDigest(await hash(secret), await hash(supplied))
       return json({ admin: authorized }, authorized ? 200 : 401, headers)
     }
     if (path === '/admin/reset-password' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-password-reset:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const data = await request.json().catch(() => null) as { handle?: unknown; password?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').resetPassword(data?.handle, data?.password)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
@@ -161,8 +171,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-give-pokemon:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const data = await request.json().catch(() => null) as { handle?: unknown; family?: unknown; shiny?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantPokemon(data?.handle, data?.family, data?.shiny)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
@@ -171,8 +181,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-grant-title:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const data = await request.json().catch(() => null) as { handle?: unknown; title?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantTitle(data?.handle, data?.title)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
@@ -181,8 +191,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-shiny-ticket:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const data = await request.json().catch(() => null) as { handle?: unknown; count?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantShinyTickets(data?.handle, data?.count)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
@@ -191,8 +201,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-supporter:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       const data = await request.json().catch(() => null) as { handle?: string; tier?: unknown } | null
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantSupporter(data?.handle, data?.tier)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
@@ -201,8 +211,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-observe:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
       let code = parseRoomCode(url.searchParams.get('room'))
       if (!code) {
         const name = url.searchParams.get('player')?.trim()
@@ -229,8 +239,8 @@ export default {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-spawn:' + ipOf(request) })).success) return json({ ok: false }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
-      const hash = async (v: string) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)))
-      if (!secret || !supplied || !crypto.subtle.timingSafeEqual(await hash(secret), await hash(supplied))) return json({ ok: false }, 401, headers)
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ ok: false }, 401, headers)
       const raw: unknown = await request.json().catch(() => null)
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return json({ ok: false }, 400, headers)
       const data = raw as Record<string, unknown>
