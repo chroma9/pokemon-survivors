@@ -5,7 +5,7 @@ import { mergeSaves } from './game/sync'
 
 export type TrainerProfile = { id: string; handle: string; name: string; created: number; supporterTier?: 'supporter' | 'gold' | 'diamond' | null; mustChangePassword?: boolean }
 const REF = 'ps:trainerReferral'
-const landed = new URLSearchParams(location.search).get('ref')
+const landed = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('ref') : null
 if (landed && /^[a-z0-9_]{3,20}$/i.test(landed) && !localStorage.getItem(REF)) localStorage.setItem(REF, landed.toLowerCase())
 const KEY = 'ps:trainerSession'
 const PROFILE = 'ps:trainerProfile'
