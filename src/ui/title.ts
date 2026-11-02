@@ -497,8 +497,9 @@ const strollHint = () => {
 const partnerStage = (onPlay: () => void) => {
   const save = loadSave()
   const form = PLAYABLE[save.partner].line[0]
-  const shiny = playsShiny(save, save.partner)
-  void loadSpecies(form.dex, shiny).catch(() => {})
+  const shadow = save.partner === 'shadowMewtwo' ? 'shadow' : undefined
+  const shiny = shadow ? false : playsShiny(save, save.partner)
+  void loadSpecies(form.dex, shiny, shadow).catch(() => {})
   const canvas = h('canvas', { class: 'lobby-partner-sprite', width: STAGE.w, height: STAGE.h, 'aria-hidden': 'true' })
   const plate = h('span', { class: 'lobby-plate' }, h('b', {}, form.name), h('small', {}, `${t().home.change} ▸`))
   const hit = h('span', { class: 'lobby-partner-hit' })
@@ -508,7 +509,7 @@ const partnerStage = (onPlay: () => void) => {
   const el = h('div', { class: 'lobby-stage' }, partner)
   const tick = (time: number) => {
     const dpr = uiDpr()
-    const s = loadedSprites(form.dex, shiny)
+    const s = loadedSprites(form.dex, shiny, shadow)
     // A big legend (Lugia's wings) gets a wider stage, so it shows whole at a smaller scale instead of cropped and huge.
     const sw = Math.max(STAGE.w, (s?.bodyW ?? 0) + 16)
     const sh = Math.max(STAGE.h, (s?.bodyH ?? 0) + 14)
