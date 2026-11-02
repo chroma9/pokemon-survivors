@@ -5358,6 +5358,7 @@ export const pt = {
     fuecoco: 'Tranquilo. Muita vida e canções de fogo.',
     quaxly: 'Dançarino. Gira na água e golpeia.',
     pichu: 'Elétrico. Raios rápidos, mas frágil.',
+    meowth: 'Ágil e astuto. Ataques rápidos e mais dinheiro.',
     machop: 'Lutador. Socos fortes e muita vida.',
     eevee: 'Adaptável. Cresce rápido e evolui de 8 jeitos.',
     togepi: 'Sortudo. Regenera vida e ganha mais EXP.',
