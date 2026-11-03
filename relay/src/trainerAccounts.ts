@@ -340,9 +340,11 @@ export class TrainerAccounts extends DurableObject<Env> {
     const key = 'save:' + user.id
     const day = brasiliaDay(new Date())
     const festival = festivalOn(day)
-    const records = await this.festivalRecords()
-    const today = records.filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
     return this.ctx.storage.transaction(async (tx) => {
+      // Check the day's cap INSIDE the transaction so simultaneous donations
+      // from multiple devices cannot spend the same remaining allowance.
+      const records = await tx.list<{ userId: string; day: string; amount: number }>({ prefix: 'festival:donation:' })
+      const today = [...records.values()].filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
       const stored = await tx.get<{ revision: number; data: Save; updated: number }>(key)
       if (!stored?.data) return { error: 'nosave' as const }
       if (!Number.isSafeInteger(revision) || revision !== stored.revision) return { error: 'stale' as const }
