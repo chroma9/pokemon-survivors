@@ -10,6 +10,7 @@ export const HAZARD_COLORS: Record<HazardVisual, readonly [string, string]> = {
   psychic: ['#f870c0', 'rgba(248,96,208,0.4)'],
   water: ['#58a8f8', 'rgba(88,168,248,0.28)'],
   dragon: ['#a070f8', 'rgba(112,56,248,0.3)'],
+  spatial: ['#f0a0d8', 'rgba(160,50,146,0.26)'],
   steel: ['#c8e0f8', 'rgba(104,136,200,0.3)'],
   aero: ['#f0f8ff', 'rgba(200,220,248,0.28)'],
   grass: ['#78d850', 'rgba(112,208,72,0.28)'],
