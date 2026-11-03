@@ -144,7 +144,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     class: 'partner-cell-portrait',
     src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)),
     alt: '',
-    ...(id === 'palkia' ? { style: 'transform:translateY(-9px)' } : {}),
+    ...(id === 'palkia' ? { style: 'transform:translateY(-12px)' } : {}),
   })
   /** A family still in its egg (a legend not captured yet): its first stage's silhouette at 2× (a big legend's at 1×), centered on the body (`bodyOf`) and cropped by the cell like a portrait. */
   const cellSilhouette = (id: HatchlingId | LegendId) => {
