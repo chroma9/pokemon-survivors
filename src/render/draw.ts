@@ -630,7 +630,10 @@ const drawPlayer = (ctx: Ctx, g: Game, calm: boolean) => {
   const faded = calm ? p.iframes > 0 && localPlayer(g).special.active <= 0 : blink
   // Versus: in tall grass, the viewer's team draws see-through (`grassAlpha`).
   const alpha = (egg ? egg.alpha : p.hidden ? 0.3 : faded && mega.flash === 0 ? (calm ? 0.65 : 0.45) : 1) * grassAlpha(g, viewer, p)
-  if (alpha > 0) drawPokemon(ctx, s, anim, p.dir, p.animTime, p.x, p.y - (egg?.lift ?? 0), { alpha, flash, tint, outline: cloneLook ? CLONE_OUTLINE : mega.outline })
+  // Palkia's PMD sheet sits low relative to its foot anchor. This is a
+  // visual-only adjustment; the world shadow, collision and HP stay put.
+  const spriteLift = p.legend?.id === 'palkia' ? 6 : 0
+  if (alpha > 0) drawPokemon(ctx, s, anim, p.dir, p.animTime, p.x, p.y - (egg?.lift ?? 0) - spriteLift, { alpha, flash, tint, outline: cloneLook ? CLONE_OUTLINE : mega.outline })
   if (p.versus && g.versus) drawGrassFront(ctx, mapOf(g.versus).grass, p.x, p.y, s.bodyW, g.now, p.moving, p.slot)
   // The shiny entrance plays shortly after the run starts.
   if (p.shiny) drawSparkles(ctx, p.x, p.y - s.bodyH / 2, Math.max(s.bodyW, s.bodyH), g.now - 0.3, 0)
