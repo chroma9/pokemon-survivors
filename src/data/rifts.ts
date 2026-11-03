@@ -30,10 +30,10 @@ export type RiftLegend = (typeof RIFT_LEGENDS)[number] | EventRift
 export const EVENT_RIFT = { odds: 0.35 } as const
 
 /** The legendaries a rift draws: Latios never comes alone, he fights beside Latias in her domain (`partner`, `data/domains/latis.ts`). */
-/** Public Rift pool. Palkia is registered for admin omen tests but hidden until his release. */
-export const RIFT_DRAWS = RIFT_LEGENDS.filter((l): l is Exclude<(typeof RIFT_LEGENDS)[number], 'latios' | 'palkia'> => l !== 'latios' && l !== 'palkia')
+/** Public Rift pool: Latios joins Latias rather than appearing alone. */
+export const RIFT_DRAWS = RIFT_LEGENDS.filter((l): l is Exclude<(typeof RIFT_LEGENDS)[number], 'latios'> => l !== 'latios')
 /** Legendaries counted toward the public Rift-completion achievement. */
-export const RIFT_PUBLIC_LEGENDS = RIFT_LEGENDS.filter((l) => l !== 'palkia')
+export const RIFT_PUBLIC_LEGENDS = RIFT_LEGENDS
 
 /** How an arena looks: floor tiles (base, alternate, grout), the wall ring (light, dark), the void past it and its floating motes. */
 export type ArenaTheme = {
