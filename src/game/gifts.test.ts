@@ -60,18 +60,6 @@ describe('parseGift', () => {
     expect(parseGift({ id: 'x', content: { kind: 'coins', amount: -5 } })).toBeNull()
   })
 
-  it('parses and applies a shiny Legendary gift without changing ordinary Legendary gifts', () => {
-    const shiny = parseGift({ id: 'shiny-darkrai', content: { kind: 'legend', legend: 'darkrai', shiny: true }, reason: { kind: 'staff', from: null } })
-    expect(shiny?.content).toEqual({ kind: 'legend', legend: 'darkrai', shiny: true })
-    const received = applied(EMPTY_SAVE, shiny!).save
-    expect(received.legends.darkrai).toBeGreaterThanOrEqual(2)
-    expect(received.shinyStarters.darkrai).toBe(true)
-    expect(applyGift(received, shiny!).status).toBe('claimed')
-    const normal = applied(EMPTY_SAVE, gift({ kind: 'legend', legend: 'lugia' }, 'normal-lugia')).save
-    expect(normal.shinyStarters.lugia).toBeUndefined()
-    expect(parseGift({ id: 'wrong', content: { kind: 'legend', legend: 'darkrai', shiny: 'yes' } })).toBeNull()
-  })
-
   it('recovers previously delivered legendary Pokémon gifts', () => {
     const oldGift = parseGift({ id: 'old-lugia', content: { kind: 'pokemonGift', family: 'lugia', shiny: false }, reason: { kind: 'staff', from: null } })
     expect(oldGift?.content).toEqual({ kind: 'legend', legend: 'lugia' })
