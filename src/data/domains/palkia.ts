@@ -4,7 +4,7 @@ import { DIALGA_DOMAIN } from './dialga'
 /**
  * Palkia shares Spear Pillar's crossing and arena with Dialga, but not its
  * time skips or boss attacks. Spacial Rend uses a dedicated spatial-fracture
- * beam; its normal patterns combine water volleys and dragon projectiles.
+ * cuts; its normal patterns combine water volleys and targeted spatial strikes.
  */
 export const PALKIA_DOMAIN: LegendDomain = {
   ...DIALGA_DOMAIN,
@@ -40,7 +40,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
       shift: 2.2,
       steer: { kind: 'hold', range: 110, pace: 0.55 },
       patterns: [
-        { kind: 'beam', every: 7, source: 'boss', count: 2, spread: 0.5, windup: 1.2, duration: 0.55, width: 12, length: 380, damage: 21, visual: 'dragon' },
+        { kind: 'strikes', every: 7, target: 'player', count: 3, spread: 72, radius: 17, delay: 1.2, damage: 21, visual: 'spatial' },
         { kind: 'ring', every: 5.3, count: 16, speed: 70, radius: 5, damage: 16, visual: 'water', gap: 0.6 },
       ],
       ultimate: {
@@ -58,7 +58,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
       shift: 2.6,
       steer: { kind: 'chase', pace: 0.55 },
       patterns: [
-        { kind: 'beam', every: 6.2, source: 'boss', count: 3, spread: 0.38, windup: 1.1, duration: 0.65, width: 12, length: 390, damage: 23, visual: 'dragon' },
+        { kind: 'strikes', every: 6.2, target: 'player', count: 5, spread: 90, radius: 17, delay: 1.1, damage: 23, visual: 'spatial' },
         { kind: 'ring', every: 4.9, count: 18, speed: 75, radius: 5, damage: 17, visual: 'water', gap: 0.5 },
       ],
       ultimate: {
