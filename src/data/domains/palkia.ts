@@ -17,15 +17,26 @@ export const PALKIA_DOMAIN: LegendDomain = {
   phases: [
     {
       below: 1,
+      hold: true,
       steer: { kind: 'anchor', x: 0, y: 0, drift: 0, pace: 0.5 },
       patterns: [
         { kind: 'volley', every: 3.5, count: 3, arc: 0.6, speed: 90, windup: 1, radius: 6, damage: 17, visual: 'water' },
         { kind: 'ring', every: 5.7, count: 12, speed: 65, radius: 5, damage: 15, visual: 'dragon', gap: 0.8 },
         { kind: 'strikes', every: 5.3, target: 'player', count: 3, spread: 58, radius: 15, delay: 1.3, damage: 19, visual: 'dragon' },
       ],
+      // The opening Rend introduces the telegraph before its later cross patterns.
+      ultimate: {
+        move: 'Spacial Rend',
+        first: 5,
+        every: 23,
+        steps: [
+          { at: 0, pattern: { kind: 'beam', every: 0, source: 'edge', count: 1, spread: 0, windup: 1.6, duration: 0.35, width: 18, length: 500, damage: 22, visual: 'dragon' } },
+        ],
+      },
     },
     {
       below: 0.66,
+      hold: true,
       shift: 2.2,
       steer: { kind: 'hold', range: 110, pace: 0.55 },
       patterns: [
@@ -43,6 +54,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
     },
     {
       below: 0.33,
+      hold: true,
       shift: 2.6,
       steer: { kind: 'chase', pace: 0.55 },
       patterns: [
