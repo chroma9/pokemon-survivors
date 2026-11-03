@@ -989,7 +989,8 @@ export const titleScreen = (
       pressable(rails ? challengeTile() : challengeCard(), 'challenge'),
       pressable(rails ? missionsTile() : missionsCard(), 'missions'),
     )
-    const kind = ['lobby', rails ? 'rails' : '', tiles.length > 6 ? 'dock7' : tiles.length > 5 ? 'dock6' : ''].join(' ').trim()
+    // Eight lobby tiles require a separate landscape column for Co-op.
+    const kind = ['lobby', rails ? 'rails' : '', tiles.length > 6 ? 'dock7' : tiles.length > 5 ? 'dock6' : '', tiles.length > 7 ? 'dock8' : ''].join(' ').trim()
     const next = h(
       'div',
       { class: kind },
