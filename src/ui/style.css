@@ -7047,6 +7047,11 @@ button {
     font-size: 18px;
     gap: 2px 10px;
   }
+  /* Scale pause-menu move icons down on landscape phones to fit all six moves. */
+  .loadout-row img {
+    width: 18px;
+    height: 18px;
+  }
   .result-portrait {
     display: none;
   }
