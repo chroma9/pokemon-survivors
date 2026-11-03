@@ -2232,6 +2232,13 @@ export const es: Messages = {
         phases: ['¡El tiempo se distorsiona! Con el Roar of Time tus ataques se congelan en el aire.', '¡El tiempo se acelera! Dialga es cada vez más rápido.'],
         cues: { stop: '¡El tiempo se detuvo!', forward: '¡El tiempo saltó hacia adelante!', rewind: '¡El tiempo retrocedió!' },
       },
+      palkia: {
+        place: 'Columna Lanza',
+        epithet: 'Señor del Espacio',
+        omen: 'El aire ondula con un extraño brillo rosado…',
+        crossing: '¡El espacio se curva! ¡Cruza la Columna Lanza antes de que el vacío te alcance!',
+        phases: ['¡El espacio se retuerce alrededor de Palkia! Esquiva los ataques convergentes.', '¡Palkia rasga la arena! Evita los cortes cruzados de Spacial Rend.'],
+      },
       latias: {
         place: 'Isla Sur',
         epithet: 'El Dúo Eón',
