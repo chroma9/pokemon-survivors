@@ -9,7 +9,7 @@ const win = (legend: LegendWin['legend'], patch: Partial<LegendWin> = {}): Legen
 const beat = (save: Save, ...wins: LegendWin[]) => wins.reduce((s, w) => recordLegendWin(s, w).save, save)
 
 /** Every regular legend but Arceus captured (the event's Darkrai not). */
-const all22 = (): Save => ({ ...EMPTY_SAVE, legends: Object.fromEntries(REGULAR_LEGENDS.filter((id) => id !== 'arceus').map((id) => [id, 5])) })
+const all23 = (): Save => ({ ...EMPTY_SAVE, legends: Object.fromEntries(REGULAR_LEGENDS.filter((id) => id !== 'arceus').map((id) => [id, 5])) })
 
 describe('recordLegendWin', () => {
   it('escapes until the legend’s wins are in, then catches it', () => {
@@ -23,6 +23,16 @@ describe('recordLegendWin', () => {
     expect(recordLegendWin(three.save, win('kyogre')).result.outcome).toBe('owned')
   })
 
+  it('makes public Palkia unlockable after three Rift wins', () => {
+    expect(legendSource('palkia')).toBe('rift')
+    expect(canPlay(EMPTY_SAVE, 'palkia')).toBe(false)
+    const two = beat(EMPTY_SAVE, win('palkia'), win('palkia'))
+    expect(canPlay(two, 'palkia')).toBe(false)
+    const three = recordLegendWin(two, win('palkia'))
+    expect(three.result.outcome).toBe('caught')
+    expect(canPlay(three.save, 'palkia')).toBe(true)
+  })
+
   it('catches a mythical on its first win, Mewtwo on its fifth', () => {
     expect(recordLegendWin(EMPTY_SAVE, win('jirachi')).result.outcome).toBe('caught')
     const four = beat(EMPTY_SAVE, ...Array.from({ length: 4 }, () => win('mewtwo')))
@@ -30,22 +40,22 @@ describe('recordLegendWin', () => {
     expect(recordLegendWin(four, win('mewtwo')).result.outcome).toBe('caught')
   })
 
-  it('counts Arceus only in endless mode, once the other 22 are captured', () => {
+  it('counts Arceus only in endless mode, once the other 23 are captured', () => {
     expect(recordLegendWin(EMPTY_SAVE, win('arceus', { endless: true })).result).toMatchObject({ outcome: 'escaped', counted: false, wins: 0 })
-    expect(recordLegendWin(all22(), win('arceus')).result).toMatchObject({ outcome: 'escaped', counted: false })
-    const caught = recordLegendWin(all22(), win('arceus', { endless: true }))
+    expect(recordLegendWin(all23(), win('arceus')).result).toMatchObject({ outcome: 'escaped', counted: false })
+    const caught = recordLegendWin(all23(), win('arceus', { endless: true }))
     expect(caught.result.outcome).toBe('caught')
     expect(canPlay(caught.save, 'arceus')).toBe(true)
   })
 
   it('names the regular legends Arceus still waits for: a short one, never an event legend or itself', () => {
-    const { jirachi: _, ...noJirachi } = all22().legends
+    const { jirachi: _, ...noJirachi } = all23().legends
     expect(stillMissing({ ...noJirachi, darkrai: 2, celebi: 1 }, 'arceus')).toEqual(['jirachi'])
-    expect(stillMissing(all22().legends, 'arceus')).toEqual([])
+    expect(stillMissing(all23().legends, 'arceus')).toEqual([])
   })
 
   it('never makes Arceus wait for an event legend: Darkrai, caught in two wins of its own', () => {
-    expect(isCaptured(all22().legends, 'darkrai')).toBe(false)
+    expect(isCaptured(all23().legends, 'darkrai')).toBe(false)
     expect(legendSource('darkrai')).toBe('event')
     const two = beat(EMPTY_SAVE, win('darkrai'), win('darkrai'))
     expect(isCaptured(two.legends, 'darkrai')).toBe(true)
