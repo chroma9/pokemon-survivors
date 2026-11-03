@@ -2228,6 +2228,13 @@ export const zh: Messages = {
         phases: ['時間扭曲了！Roar of Time 期間，你的攻擊會凍結在半空中。', '時間加速了！Dialga 越來越快。'],
         cues: { stop: '時間停止了！', forward: '時間快轉了！', rewind: '時間倒流了！' },
       },
+      palkia: {
+        place: '槍之柱',
+        epithet: '空間之主',
+        omen: '空氣泛起粉紅色的微光，空間開始波動…',
+        crossing: '空間正在扭曲！在虛空追上你之前穿越槍之柱！',
+        phases: ['帕路奇亞周圍的空間開始扭曲！小心交錯的攻擊。', '帕路奇亞撕裂了競技場！避開亞空裂斬的交叉斬擊。'],
+      },
       latias: {
         place: '南方孤島',
         epithet: '無限雙子',
