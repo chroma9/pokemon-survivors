@@ -108,4 +108,4 @@ export const parseCaptures = (raw: unknown): Captures =>
   isRecord(raw) ? Object.fromEntries(LEGEND_IDS.flatMap((id) => (wholeNumber(raw[id]) > 0 ? [[id, wholeNumber(raw[id])]] : []))) : NO_CAPTURES
 
 /** Whether the save can start a run with `id`: a starter, a hatched family, or a captured legend. */
-export const canPlay = (save: Pick<Save, 'hatched' | 'legends'>, id: PlayableId) => (id === 'shadowMewtwo' ? canUseShadowMewtwo() : isLegend(id) ? isCaptured(save.legends, id) : isUnlocked(save.hatched, id))
+export const canPlay = (save: Pick<Save, 'hatched' | 'legends'>, id: PlayableId) => (id === 'shadowMewtwo' || id === 'palkia' ? canUseShadowMewtwo() : isLegend(id) ? isCaptured(save.legends, id) : isUnlocked(save.hatched, id))
