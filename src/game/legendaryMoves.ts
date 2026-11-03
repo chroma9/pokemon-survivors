@@ -401,8 +401,8 @@ export const LEGENDARY_MOVES = {
           x: x0, y: y0, shape: { kind: 'circle', r: 5 },
           motion: { kind: 'static' }, damage: 0,
           ttl: 0.42, activeFrom: Infinity, memo: angle,
-          // Use speed for its span; the art can scale and fade independently.
-          speed: length,
+          // Tier carries the visual's span (the hitboxes own damage).
+          tier: length,
         })
       }
       shakeScreen(g, 1.5)
