@@ -7,7 +7,7 @@ import type { EnemyId } from './enemies'
  * its entry in `ENEMIES`, its patterns in `data/bosses.ts`, its colors here and its
  * floor plan in `data/arenas.ts`.
  */
-export const RIFT_LEGENDS = ['lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga', 'latias', 'latios', 'deoxys'] as const satisfies readonly EnemyId[]
+export const RIFT_LEGENDS = ['lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga', 'palkia', 'latias', 'latios', 'deoxys'] as const satisfies readonly EnemyId[]
 
 /**
  * Event rifts: legendaries a rift brings only during an event, in place of
@@ -53,6 +53,8 @@ export const ARENAS: Record<RiftLegend, ArenaTheme> = {
   rayquaza: { floor: ['#3c6848', '#467654', '#1c3424'], wall: ['#f8e070', '#589860'], void: '#040818', motes: '#f8f0a0' },
   /** Spear Pillar: pale marble in frozen time. */
   dialga: { floor: ['#8890a8', '#949cb4', '#485070'], wall: ['#a8f0f8', '#4868a8'], void: '#080c20', motes: '#78e0f8' },
+  /** Spear Pillar: the same marble beneath Palkia's spatial shimmer. */
+  palkia: { floor: ['#8890a8', '#949cb4', '#485070'], wall: ['#f0a0da', '#9b599d'], void: '#13081e', motes: '#ed94d2' },
   /** Southern Island: warm sand ringed by palms over the open sea, with Latias's red glints. */
   latias: { floor: ['#d0b880', '#dcc490', '#907450'], wall: ['#88d868', '#2c7838'], void: '#0c3850', motes: '#f88898' },
   /** Southern Island at dusk, with Latios's blue glints. */
