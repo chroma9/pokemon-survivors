@@ -3,8 +3,8 @@ import { DIALGA_DOMAIN } from './dialga'
 
 /**
  * Palkia shares Spear Pillar's crossing and arena with Dialga, but not its
- * time skips or boss attacks. Spacial Rend will receive its own visuals in
- * the next stage; these water/dragon patterns provide a playable test fight.
+ * time skips or boss attacks. Spacial Rend uses a dedicated spatial-fracture
+ * beam; its normal patterns combine water volleys and dragon projectiles.
  */
 export const PALKIA_DOMAIN: LegendDomain = {
   ...DIALGA_DOMAIN,
