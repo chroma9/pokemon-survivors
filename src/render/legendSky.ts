@@ -389,6 +389,28 @@ const newMoon: Painter = (ctx, w, h, camX, camY, t, g) => {
   }
 }
 
+/** Palkia's omen: a pink atmospheric wash and faint, slow horizontal space ripples. */
+const spatialShimmer: Painter = (ctx, w, h, _camX, _camY, t, g) => {
+  const omen = g.rift.omen
+  const k = omen ? Math.min(1, 1 - omen.left / RIFT.omenTime) : 1
+  ctx.fillStyle = `rgba(225,95,170,${(0.045 + 0.13 * k).toFixed(3)})`
+  ctx.fillRect(0, 0, w, h)
+  // Narrow curves drift slowly across the playfield without moving pixels,
+  // shaking the camera or affecting HUD elements.
+  ctx.lineWidth = 1
+  for (let i = 0; i < 6; i++) {
+    const y = (i + 0.5) * h / 6
+    ctx.strokeStyle = `rgba(252,180,225,${(0.025 + 0.075 * k).toFixed(3)})`
+    ctx.beginPath()
+    for (let x = 0; x <= w; x += 8) {
+      const yy = y + Math.sin(x * 0.023 + t * 0.75 + i * 1.4) * (1 + 2 * k)
+      if (x === 0) ctx.moveTo(x, yy)
+      else ctx.lineTo(x, yy)
+    }
+    ctx.stroke()
+  }
+}
+
 const TINTS: Record<LegendSky, string> = {
   downpour: 'rgba(8,18,52,0.42)',
   harshSun: 'rgba(248,152,40,0.18)',
@@ -399,10 +421,11 @@ const TINTS: Record<LegendSky, string> = {
   mist: 'rgba(232,224,248,0.22)',
   meteors: 'rgba(16,8,40,0.3)',
   newMoon: 'rgba(6,2,16,0.5)',
+  spatialShimmer: 'rgba(225,95,170,0.15)',
 }
 
 /** The skies painted so far; the others get their tint until theirs are written. */
-const PAINTERS: Partial<Record<LegendSky, Painter>> = { downpour, harshSun, gale, storm, embers, timeWarp, mist, meteors, newMoon }
+const PAINTERS: Partial<Record<LegendSky, Painter>> = { downpour, harshSun, gale, storm, embers, timeWarp, mist, meteors, newMoon, spatialShimmer }
 
 /** The sky in play: a domain legendary's omen or open portal on the map, or its domain once it has shown itself. */
 export const skyNow = (g: Game): LegendSky | null => {
