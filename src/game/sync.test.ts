@@ -69,6 +69,13 @@ describe('mergeSaves', () => {
     expect(mergeSaves(before, invested)).toMatchObject({ wallet: 170_000, shop: { level: 2 } })
   })
 
+  it('allows No companion to unequip an existing companion during save merge', () => {
+    const equipped = save({ companion: { id: 'pikachu', shiny: false } })
+    const unequipped = save({ companion: null })
+    expect(mergeSaves(equipped, unequipped).companion).toBeNull()
+    expect(mergeSaves(unequipped, equipped).companion).toEqual(equipped.companion)
+  })
+
   it("takes the incoming side's partner and difficulty: the device that played last picked them", () => {
     const m = mergeSaves(save({ partner: 'squirtle', difficulty: 'hard' }), save({ partner: 'gible', difficulty: 'normal' }))
     expect(m.partner).toBe('gible')
