@@ -38467,7 +38467,7 @@
     "body": {
       "bodyW": 54,
       "bodyH": 62,
-      "footY": 15
+      "footY": 0
     },
     "cry": true,
     "shiny": {
@@ -38503,7 +38503,7 @@
       "body": {
         "bodyW": 54,
         "bodyH": 62,
-        "footY": 15
+        "footY": 0
       }
     }
   },
