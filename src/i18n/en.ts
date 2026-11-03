@@ -4777,6 +4777,15 @@ export const en: Messages = {
         '0.6s faster cooldown and +25 damage',
       ],
     },
+    spacialRend: {
+      description: "Palkia tears a sharp dimensional slash through space, damaging enemies along its path.",
+      upgrades: [
+        "+18 damage",
+        "+20% area",
+        { fork: [{ name: "Parallel Rends", desc: "+1 slash per cast" }, { name: "Deep Fracture", desc: "+25 damage and cooldown 0.4s faster" }] },
+        "Cooldown 0.5s faster and +18 damage",
+      ],
+    },
     mistBall: {
       description: 'Latias\'s mist orbs drift to different foes and burst into a mist that lingers, hurting and weakening whoever is inside (they deal less contact damage).',
       upgrades: [
@@ -5128,6 +5137,7 @@ export const en: Messages = {
     kyogre: 'Lord of the seas. Brings rain; turns Primal.',
     groudon: 'Lord of the land. Brings sun; turns Primal.',
     rayquaza: 'Lord of the sky. Weather can’t touch it; turns Mega.',
+    palkia: "Lord of space. Its dimensional cuts slice through hordes.",
     dialga: 'Lord of time. Armored and relentless.',
     latias: 'Swift Eon. Floats over lava and traps.',
     latios: 'Sharp Eon. Fast and deadly from afar.',
