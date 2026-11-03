@@ -2528,7 +2528,6 @@ export const pt = {
         crossing: 'A torre está em chamas! Suba andar por andar!',
         phases: ['Ho-Oh levanta voo! Desvie dos rastros de fogo e do Brave Bird.', 'Ho-Oh *renasce das cinzas*! A beirada do telhado arde.'],
       },
-      palkia: "Senhor do espaço. Seus cortes dimensionais atravessam hordas.",
     dialga: {
         place: 'Pilar Lança',
         epithet: 'Senhor do Tempo',
@@ -5459,6 +5458,7 @@ export const pt = {
     groudon: 'Senhor da terra. Traz o sol; vira Primal.',
     rayquaza: 'Senhor do céu. O clima não o toca; vira Mega.',
     dialga: 'Senhor do tempo. Blindado e implacável.',
+    palkia: 'Senhor do espaço. Seus cortes dimensionais atravessam hordas.',
     latias: 'Eon veloz. Flutua sobre lava e armadilhas.',
     latios: 'Eon certeiro. Rápido e letal à distância.',
     deoxys: 'Vírus do espaço. O especial troca de Forma.',
