@@ -127,7 +127,18 @@ const mergeTrainerSave = (cloud: ReturnType<typeof loadSave>, local: ReturnType<
   const localChanged = baseline ? !sameEggs(local, baseline) : revision > 0 && seenRevision === revision
   const cloudChanged = baseline ? !sameEggs(cloud, baseline) : false
   const eggs = localChanged && (!cloudChanged || seenRevision === revision) ? local.eggs : cloud.eggs
-  return { ...combined, eggs }
+  // A null active companion is an intentional "No companion" selection.
+  // But a fresh browser's default null must not clear its existing cloud pick.
+  const localCompanionChanged = baseline
+    ? JSON.stringify(local.companion) !== JSON.stringify(baseline.companion)
+    : revision > 0 && seenRevision === revision
+  const cloudCompanionChanged = baseline
+    ? JSON.stringify(cloud.companion) !== JSON.stringify(baseline.companion)
+    : false
+  const companion = localCompanionChanged && (!cloudCompanionChanged || seenRevision === revision)
+    ? local.companion
+    : cloud.companion
+  return { ...combined, eggs, companion }
 }
 
 /** Merge server and device progress, then CAS upload. A fresh local edit reruns syncing. */
