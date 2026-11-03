@@ -111,7 +111,15 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const visibleHatchlings = HATCHLING_IDS.filter(onixTesterAllowed)
   const firstHatched = visibleHatchlings.find((id) => save.hatched[id]) ?? visibleHatchlings[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
-  const legendIds = shownLegends(brasiliaDay(today())).filter((id) => (id !== 'shadowMewtwo' && id !== 'palkia') || canUseMewtwoClone())
+  const legendIds = [...shownLegends(brasiliaDay(today())).filter((id) => (id !== 'shadowMewtwo' && id !== 'palkia') || canUseMewtwoClone())]
+  // Private Palkia belongs next to Dialga in the selection grid, not at the
+  // end with the private legends. Keep his existing tester-only visibility.
+  const palkiaIndex = legendIds.indexOf('palkia')
+  const dialgaIndex = legendIds.indexOf('dialga')
+  if (palkiaIndex >= 0 && dialgaIndex >= 0) {
+    legendIds.splice(palkiaIndex, 1)
+    legendIds.splice(legendIds.indexOf('dialga') + 1, 0, 'palkia')
+  }
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
   const cursor: { starters: StarterId; eggs: HatchlingId; legends: LegendId } = {
     starters: isStarter(initial) ? initial : 'charmander',
