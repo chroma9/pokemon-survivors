@@ -2230,6 +2230,13 @@ export const en: Messages = {
         phases: ['Time warps! During Roar of Time your attacks freeze in mid-air.', 'Time speeds up! Dialga keeps getting faster.'],
         cues: { stop: 'Time stopped!', forward: 'Time skipped ahead!', rewind: 'Time rewound!' },
       },
+      palkia: {
+        place: 'Spear Pillar',
+        epithet: 'Lord of Space',
+        omen: 'The air ripples with a strange pink shimmer…',
+        crossing: 'Space is bending! Cross Spear Pillar before the void catches you!',
+        phases: ['Space twists around Palkia! Watch for converging attacks.', 'Palkia tears across the arena! Avoid the crossing Spacial Rend strikes.'],
+      },
       latias: {
         place: 'Southern Island',
         epithet: 'The Eon Duo',
