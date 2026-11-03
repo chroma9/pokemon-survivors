@@ -2528,7 +2528,8 @@ export const pt = {
         crossing: 'A torre está em chamas! Suba andar por andar!',
         phases: ['Ho-Oh levanta voo! Desvie dos rastros de fogo e do Brave Bird.', 'Ho-Oh *renasce das cinzas*! A beirada do telhado arde.'],
       },
-      dialga: {
+      palkia: "Senhor do espaço. Seus cortes dimensionais atravessam hordas.",
+    dialga: {
         place: 'Pilar Lança',
         epithet: 'Senhor do Tempo',
         omen: 'O tempo começa a tropeçar…',
@@ -5095,6 +5096,15 @@ export const pt = {
         '+15% de área e o tempo para +0.3s',
         { fork: [{ name: 'Tempo acelerado', desc: 'Recarga 0.7s mais rápida' }, { name: 'Fim dos tempos', desc: 'Quem cai explode; +30 de dano' }] },
         'Recarga 0.6s mais rápida e +25 de dano',
+      ],
+    },
+    spacialRend: {
+      description: "Um corte dimensional de Palkia rasga o espaço em linha reta, atingindo os inimigos ao longo da fenda.",
+      upgrades: [
+        "+18 de dano",
+        "+20% de área",
+        { fork: [{ name: "Fendas paralelas", desc: "+1 corte por lançamento" }, { name: "Corte profundo", desc: "+25 de dano e recarga 0.4s mais rápida" }] },
+        "Recarga 0.5s mais rápida e +18 de dano",
       ],
     },
     mistBall: {
