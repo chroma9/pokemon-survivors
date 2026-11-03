@@ -4,6 +4,8 @@ import { brasiliaDay, type DayKey } from './game/day'
 import { capLeft, festivalGifts, festivalOn, latestFestival, parseFestivalStatus, plazaStage, type FestivalStatus, type FestivalTotals } from './game/festival'
 import { loadSave, today } from './ui/save'
 import { timeoutSignal } from './net/timeout'
+import { coopUrl } from './coopShell'
+import { currentTrainer, donateTrainerFestival, trainerToken } from './trainerAccounts'
 
 /**
  * Festival da Praça on the device: asks the API for the pot (`GET /festival`)
@@ -94,14 +96,18 @@ const changed = () => {
  * `force`; skipped while no festival has opened, or without an API. Never throws.
  */
 export const loadFestival = (force = false): Promise<FestivalStatus | null> => {
-  if (!API_URL || !latestFestival(festivalDay())) return Promise.resolve(status)
+  if (!(coopUrl() || API_URL) || !latestFestival(festivalDay())) return Promise.resolve(status)
   if (asking) return asking
   if (!force && performance.now() - lastAsk < REFRESH_MS) return Promise.resolve(status)
   lastAsk = performance.now()
   asking = (async () => {
     try {
-      const token = await sessionToken()
-      const res = await fetch(`${API_URL}/festival`, { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: timeoutSignal(TIMEOUT_MS) })
+      // Our fork uses Trainer Accounts on the Cloudflare Worker, not Clerk.
+      // The board remains public; signed-in trainers also receive their totals.
+      const relay = coopUrl()
+      const token = relay ? trainerToken() : await sessionToken()
+      const url = relay ? `${relay}/trainers/festival` : `${API_URL}/festival`
+      const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: timeoutSignal(TIMEOUT_MS) })
       const next = res.ok ? parseFestivalStatus(await res.json()) : null
       if (next) {
         status = next
@@ -122,7 +128,8 @@ export const loadFestival = (force = false): Promise<FestivalStatus | null> => {
  * for the new state. Never throws.
  */
 export const donateFestival = async (amount: number): Promise<FestivalDonation> => {
-  const done = await donateToFestival(amount)
+  const relay = coopUrl()
+  const done = relay ? await donateTrainerFestival(relay, amount) : await donateToFestival(amount)
   if (done.ok) await loadFestival(true)
   return done
 }
@@ -133,10 +140,11 @@ export const donateFestival = async (amount: number): Promise<FestivalDonation> 
  */
 export const setDonorPublic = async (show: boolean): Promise<boolean> => {
   try {
-    const token = await sessionToken()
-    if (!API_URL || !token) return false
-    const res = await fetch(`${API_URL}/festival/public`, {
-      method: 'PUT',
+    const relay = coopUrl()
+    const token = relay ? trainerToken() : await sessionToken()
+    if (!(relay || API_URL) || !token) return false
+    const res = await fetch(relay ? `${relay}/trainers/festival/public` : `${API_URL}/festival/public`, {
+      method: relay ? 'POST' : 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ public: show }),
       signal: timeoutSignal(TIMEOUT_MS),
