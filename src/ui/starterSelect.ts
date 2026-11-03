@@ -111,7 +111,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const visibleHatchlings = HATCHLING_IDS.filter(onixTesterAllowed)
   const firstHatched = visibleHatchlings.find((id) => save.hatched[id]) ?? visibleHatchlings[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
-  const legendIds = shownLegends(brasiliaDay(today())).filter((id) => id !== 'shadowMewtwo' || canUseMewtwoClone())
+  const legendIds = shownLegends(brasiliaDay(today())).filter((id) => (id !== 'shadowMewtwo' && id !== 'palkia') || canUseMewtwoClone())
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
   const cursor: { starters: StarterId; eggs: HatchlingId; legends: LegendId } = {
     starters: isStarter(initial) ? initial : 'charmander',
