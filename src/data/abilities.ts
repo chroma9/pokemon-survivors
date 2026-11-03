@@ -393,6 +393,7 @@ export const FAMILY_ABILITIES = {
   groudon: ['solarPower', 'leafGuard', 'roughSkin'],
   rayquaza: ['moxie', 'infiltrator', 'speedBoost'],
   dialga: ['heavyMetal', 'sniper', 'unaware'],
+  palkia: ['pressure', 'sniper', 'adaptability'],
   latias: ['magicBounce', 'naturalCure', 'competitive'],
   latios: ['sniper', 'infiltrator', 'adaptability'],
   deoxys: ['sniper', 'moxie', 'adaptability'],
