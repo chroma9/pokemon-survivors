@@ -16,6 +16,7 @@ import { isRecord, wholeNumber } from './parse'
 import { mergeRibbons, parseRibbon, type Ribbon } from './ribbons'
 import { isSupporterTier, type SupporterTier } from './supporters'
 import { grantShinyPick } from './shinyPicks'
+import { unlockShinyStarter } from './shinyStarters'
 import { equipStyle, grantStyle, parseStyle, type StyleSave } from './style'
 
 /**
@@ -47,7 +48,7 @@ export type GiftContent =
   /** `count` of a Bag item (`data/shop.ts`), straight into the Bag. */
   | { kind: 'bag'; item: BagItem; count: number }
   /** A legend captured for the Legend mode (a festival's last prize, Cresselia). */
-  | { kind: 'legend'; legend: LegendId }
+  | { kind: 'legend'; legend: LegendId; shiny?: boolean }
 
 export type GiftKind = GiftContent['kind']
 
@@ -139,7 +140,7 @@ export const parseGiftContent = (v: unknown): GiftContent | null => {
       if (typeof v.shiny !== 'boolean') return null
       if (isOneOf(v.family, HATCHLING_IDS)) return { kind: 'pokemonGift', family: v.family, shiny: v.shiny }
       // Legacy admin gifts used pokemonGift even for legends; preserve those gifts.
-      if (isOneOf(v.family, LEGEND_IDS)) return { kind: 'legend', legend: v.family }
+      if (isOneOf(v.family, LEGEND_IDS)) return { kind: 'legend', legend: v.family, ...(v.shiny ? { shiny: true } : {}) }
       return null
     case 'ribbon': {
       const ribbon = parseRibbon(v.ribbon)
@@ -154,7 +155,9 @@ export const parseGiftContent = (v: unknown): GiftContent | null => {
       return isOneOf(v.item, BAG_ITEM_IDS) && count > 0 ? { kind: 'bag', item: v.item, count } : null
     }
     case 'legend':
-      return isLegend(v.legend) ? { kind: 'legend', legend: v.legend } : null
+      return isLegend(v.legend) && (v.shiny === undefined || typeof v.shiny === 'boolean')
+        ? { kind: 'legend', legend: v.legend, ...(v.shiny ? { shiny: true } : {}) }
+        : null
     default:
       return null
   }
@@ -267,7 +270,11 @@ const give = (save: Save, content: GiftContent, id: string): { save: Save; hatch
     case 'bag':
       return { save: { ...save, bag: addToBag(save.bag, content.item, content.count) }, hatch: null }
     case 'legend':
-      return { save: { ...save, legends: captureByGift(save.legends, content.legend) }, hatch: null }
+      return { save: {
+        ...save,
+        legends: captureByGift(save.legends, content.legend),
+        shinyStarters: content.shiny ? unlockShinyStarter(save.shinyStarters, content.legend) : save.shinyStarters,
+      }, hatch: null }
   }
 }
 
