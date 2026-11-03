@@ -5,7 +5,7 @@ import { capLeft, festivalGifts, festivalOn, latestFestival, parseFestivalStatus
 import { loadSave, today } from './ui/save'
 import { timeoutSignal } from './net/timeout'
 import { coopUrl } from './coopShell'
-import { currentTrainer, donateTrainerFestival, trainerToken } from './trainerAccounts'
+import { donateTrainerFestival, trainerToken } from './trainerAccounts'
 
 /**
  * Festival da Praça on the device: asks the API for the pot (`GET /festival`)
