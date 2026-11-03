@@ -86,6 +86,7 @@ import { levelUpDevTools } from './game/levelUpDev'
 import { legendDevTools } from './game/legendDev'
 import { bankCapture, captureDevTools, showCapture } from './ui/capture'
 import { riftDevTools } from './game/riftDev'
+import { startOmen } from './game/riftPortal'
 import { placeDevTools } from './game/placeDev'
 import { placeFeedback } from './ui/places'
 import { landmarkFeedback } from './ui/landmarks'
@@ -4217,6 +4218,17 @@ if (!import.meta.env.DEV) {
       if (!stored) return 'ps: no pre-cheat save backup'
       writeSave(parseSave(stored))
       return 'ps: original save restored; refresh the page'
+    },
+    /** Authenticated production Rift test: begin the real 20-second omen. */
+    omen: async (legend: string) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!isRiftLegend(legend)) return 'ps.omen: unknown Rift legendary'
+      const g = run?.game
+      if (!g) return 'ps.omen: start a run first'
+      if (run?.coop) return 'ps.omen: unavailable in co-op (would desync the room)'
+      if (g.rift.omen || g.rift.portal || g.rift.arena) return 'ps.omen: a Rift is already active'
+      startOmen(g, legend)
+      return `Rift omen started: ${legend}`
     },
     money: async (amount = 20000) => {
       if (!await authorized()) return 'ps: unauthorized'
