@@ -148,6 +148,21 @@ export default {
       const result = await env.TRAINER_ACCOUNTS.getByName('global').publishAnnouncement(body?.message)
       return json(result, 'error' in result ? 400 : 200, headers)
     }
+    // Held festival donations require the same signed admin token as other
+    // private moderation endpoints. No admin credentials enter the client.
+    if ((path === '/admin/festival' && request.method === 'GET') ||
+        (/^\\/admin\\/festival\\/[0-9a-f-]{36}\\/(approve|void)$/.test(path) && request.method === 'POST')) {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-festival:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const store = env.TRAINER_ACCOUNTS.getByName('global')
+      if (path === '/admin/festival') return json({ donations: await store.festivalHeld() }, 200, headers)
+      const [, , , id, action] = path.split('/')
+      const result = await store.reviewFestivalDonation(id!, action === 'approve')
+      return json(result, 'error' in result ? 404 : 200, headers)
+    }
     // Verify an admin browser session without exposing the secret to the frontend bundle.
     if (path === '/admin/verify' && request.method === 'POST') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-verify:' + ipOf(request) })).success) return json({ admin: false }, 429, headers)
