@@ -229,10 +229,8 @@ export const avoidLegend = (roster: Roster, legend: PlayableId, events: readonly
 }
 
 /** A boss of a player's own species (Mewtwo's finale for a Mewtwo, Arceus's reaper for an Arceus): its dark Clone. */
-// Palkia is an ordinary Rift boss even if a tester is playing Palkia.
-// Same-species Clone tint is reserved for the existing finale/reaper encounters.
-export const isClone = (g: Game, e: Enemy) =>
-  e.boss && e.kind !== 'palkia' && g.players.some((p) => p.legend !== null && e.kind === p.legend.id)
+/** A boss of a player's own species (Mewtwo's finale for a Mewtwo, Arceus's reaper for an Arceus): its dark Clone. */
+export const isClone = (g: Game, e: Enemy) => e.boss && g.players.some((p) => p.legend !== null && e.kind === p.legend.id)
 
 /* ---------------- Presence ---------------- */
 
