@@ -70,7 +70,7 @@ describe('mergeSaves', () => {
   })
 
   it('allows No companion to unequip an existing companion during save merge', () => {
-    const equipped = save({ companion: { id: 'pikachu', shiny: false } })
+    const equipped = save({ companion: { id: 'charmander', shiny: false } })
     const unequipped = save({ companion: null })
     expect(mergeSaves(equipped, unequipped).companion).toBeNull()
     expect(mergeSaves(unequipped, equipped).companion).toEqual(equipped.companion)
