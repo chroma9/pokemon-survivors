@@ -102,10 +102,12 @@ const TUNNEL = ['.sss.', 'sssss', 'skkks', 'skkks']
 const MAZE = ['mmmmm', 'm...m', 'm.m.m', 'm.m..', 'mmmmm']
 const RUINS = ['sssss', '.s.s.', '.s.s.', 'sssss']
 const TENT = ['..o..', '.ooo.', 'oo.oo', 'oo.oo']
+const STAR = ['..y..', '.yyy.', 'yywyy', '.yyy.', '.y.y.']
 
 const GLYPHS = lazy(() => ({
   boss: [glyph(SKULL, { w: '#f8f0e0', k: DARK }), glyph(SKULL, { w: '#f86858', k: DARK })],
   alpha: [glyph(DIAMOND, { c: '#e02838', w: '#f8e0b0' }), glyph(DIAMOND, { c: '#f8a020', w: '#f8f0d0' })],
+  shiny: [glyph(STAR, { y: '#f8d030', w: '#ffffff' }), glyph(STAR, { y: '#fff4a8', w: '#f8d030' })],
   portal: [glyph(PORTAL, { p: '#7850c8', l: '#c8a8f8', w: '#ffffff' }), glyph(PORTAL, { p: '#c8a8f8', l: '#7850c8', w: '#ffffff' })],
   place: {
     cave: glyph(DOOR, { c: '#a87848', k: '#281810' }),
@@ -545,6 +547,7 @@ export const drawMinimap = (ctx: Ctx, g: Game, shape: MinimapShape, t: number) =
     if (e.dying >= 0) continue
     if (e.alpha) marker(ctx, v, shape, art.alpha[e.alpha.enraged ? blink : 0]!, e.x, e.y, true)
     else if (e.boss) marker(ctx, v, shape, art.boss[blink]!, e.x, e.y, true)
+    else if (e.shiny) marker(ctx, v, shape, art.shiny[blink]!, e.x, e.y, true)
   }
   // Teammates, in their slot's color; a fainted one greyed.
   for (const p of g.players) {
