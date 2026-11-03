@@ -28,8 +28,8 @@ export const currentTrainer = (): TrainerProfile | null => {
 }
 const request = async (relay: string, path: string, method = 'GET', body?: unknown) => {
   const response = await fetch(relay + '/trainers/' + path, { method, headers: { 'Content-Type': 'application/json', ...(trainerToken() ? { Authorization: 'Bearer ' + trainerToken() } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) })
-  const result = await response.json()
-  if (!response.ok) throw Error(result.error ?? 'Request failed')
+  const result = await response.json() as Record<string, any>
+  if (!response.ok) throw Error(typeof result.error === 'string' ? result.error : 'Request failed')
   return result
 }
 export const registerTrainer = async (relay: string, handle: string, password: string, name: string) => {
@@ -142,7 +142,7 @@ export const syncTrainerSave = async (relay: string) => {
       const merged = cloud.data === null ? local : mergeTrainerSave(parseSaveData(cloud.data), local, cloud.revision)
       const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
       if (result.status === 409) continue
-      const body = await result.json()
+      const body = await result.json() as { error?: string; revision: number }
       if (!result.ok) throw Error(body.error ?? 'Cloud save failed')
       localStorage.setItem(REV, String(body.revision))
       // Keep changes made during the HTTP request and schedule another sync.
