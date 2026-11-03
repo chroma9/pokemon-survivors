@@ -1068,41 +1068,72 @@ export const drawLegendaryGround = (ctx: Ctx, g: Game, t: number) => {
  * asymmetrical pink-white edges. The invisible overlapping hitboxes deliver
  * its damage; this one visual renders the whole cut once. */
 const drawSpatialSlash = (ctx: Ctx, a: Attack) => {
-  const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.25))
-  if (fade <= 0) return
+  const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
+  const open = Math.max(0, Math.min(1, a.age / 0.07))
+  if (fade <= 0 || open <= 0) return
   const angle = a.memo
   const dx = Math.cos(angle)
   const dy = Math.sin(angle)
   const nx = -dy
   const ny = dx
   const length = a.tier
-  const half = 3.8 * fade
+  // Unlike a beam, each slash opens as a tapered fracture across the target.
+  // Both lips share a broken centerline but have different widths and jagged
+  // edges, like a fissure in the picture rather than glowing energy.
   ctx.save()
   ctx.globalAlpha = fade
+  ctx.lineJoin = 'miter'
   ctx.lineCap = 'butt'
-  // The line begins at the Pokémon and flashes almost entirely open at once,
-  // closing from both ends in the final quarter-second.
-  const reveal = a.age < 0.08 ? Math.max(0.01, a.age / 0.08) : 1
-  const span = length * reveal * Math.min(1, fade * 1.5)
-  for (const [off, color, thick] of [
-    [0, '#e95bb9', half * 2 + 5],
-    [0, '#ffedf9', half * 2 + 2],
-    [0, '#201025', half * 2],
-    [-half * 0.8, '#ffffff', 1.6],
-    [half * 0.8, '#dc63c1', 1.6],
-  ] as const) {
-    ctx.strokeStyle = color
-    ctx.lineWidth = Math.max(0.5, thick)
+  const n = 16
+  const points: Array<{ x: number; y: number; w: number }> = []
+  for (let j = 0; j <= n; j++) {
+    const u = j / n
+    const d = u * length
+    const crack = Math.sin(u * 57 + a.id * 0.31) * 2.7 + Math.sin(u * 119 + a.id) * 1.1
+    const taper = Math.pow(Math.max(0, 1 - Math.abs(u * 2 - 1)), 0.6)
+    points.push({
+      x: a.x + dx * d + nx * crack,
+      y: a.y + dy * d + ny * crack,
+      w: (1 + 9 * taper) * open * fade,
+    })
+  }
+  const path = (offset: number) => {
     ctx.beginPath()
-    for (let k = 0; k <= 18; k++) {
-      const u = k / 18
-      const dist = u * span
-      const jag = Math.sin(u * 47 + a.id) * 1.3 + Math.sin(u * 107) * 0.5
-      const x = a.x + dx * dist + nx * (off + jag)
-      const y = a.y + dy * dist + ny * (off + jag)
-      if (k === 0) ctx.moveTo(x, y)
+    for (let j = 0; j <= n; j++) {
+      const p = points[j]!
+      const x = p.x + nx * p.w * offset
+      const y = p.y + ny * p.w * offset
+      if (j === 0) ctx.moveTo(x, y)
       else ctx.lineTo(x, y)
     }
+    for (let j = n; j >= 0; j--) {
+      const p = points[j]!
+      const x = p.x - nx * p.w * offset
+      const y = p.y - ny * p.w * offset
+      ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+  }
+  // Thin bright outline, narrow pink edge, hollow nearly-black center.
+  path(0.72)
+  ctx.fillStyle = '#f7e4fa'
+  ctx.fill()
+  path(0.57)
+  ctx.fillStyle = '#d956ae'
+  ctx.fill()
+  path(0.41)
+  ctx.fillStyle = '#150d23'
+  ctx.fill()
+  // Sharp splinter-like glints detach only along the fracture, never at the
+  // caster, with no shiny round highlights or laser-style parallel rails.
+  ctx.strokeStyle = '#f6b2e7'
+  ctx.lineWidth = 1
+  for (let i = 2; i < n - 1; i += 3) {
+    const p = points[i]!
+    const direction = i % 2 ? 1 : -1
+    ctx.beginPath()
+    ctx.moveTo(p.x + nx * p.w * 0.5 * direction, p.y + ny * p.w * 0.5 * direction)
+    ctx.lineTo(p.x + nx * (p.w + 4) * direction + dx * 4, p.y + ny * (p.w + 4) * direction + dy * 4)
     ctx.stroke()
   }
   ctx.restore()
