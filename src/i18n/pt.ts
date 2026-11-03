@@ -2536,6 +2536,13 @@ export const pt = {
         phases: ['O tempo se distorce! No Roar of Time, seus golpes congelam no ar.', 'O tempo acelera! Dialga fica cada vez mais rápido.'],
         cues: { stop: 'O tempo parou!', forward: 'O tempo saltou para frente!', rewind: 'O tempo voltou!' },
       },
+      palkia: {
+        place: 'Pilar Lança',
+        epithet: 'Senhor do Espaço',
+        omen: 'O ar ondula com um estranho brilho rosado…',
+        crossing: 'O espaço está se curvando! Atravesse o Pilar Lança antes que o vazio alcance você!',
+        phases: ['O espaço se retorce ao redor de Palkia! Cuidado com os ataques convergentes.', 'Palkia rasga a arena! Desvie dos cortes cruzados de Spacial Rend.'],
+      },
       latias: {
         place: 'Ilha do Sul',
         epithet: 'Dupla Eon',
