@@ -136,14 +136,13 @@ export class TrainerAccounts extends DurableObject<Env> {
     const hatchling = (HATCHLING_IDS as readonly string[]).includes(family)
     const legend = (LEGEND_IDS as readonly string[]).includes(family)
     if (!hatchling && !legend) return { error: 'unknown_pokemon' }
-    if (legend && shinyInput) return { error: 'shiny_legend_gifts_unsupported' }
     const id = await this.ctx.storage.get<string>('name:' + handle)
     const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
     if (!user) return { error: 'not_found' }
     const giftId = 'private-event-pokemon-' + crypto.randomUUID()
     await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
       id: giftId,
-      content: legend ? { kind: 'legend', legend: family } : { kind: 'pokemonGift', family, shiny: shinyInput },
+      content: legend ? { kind: 'legend', legend: family, ...(shinyInput ? { shiny: true } : {}) } : { kind: 'pokemonGift', family, shiny: shinyInput },
       reason: { kind: 'staff', from: null },
     })
     return { ok: true, handle: user.handle, family, shiny: shinyInput, giftId }
