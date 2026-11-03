@@ -459,7 +459,10 @@ const inSky = (g: Game) => g.place.inside?.id === 'sky'
 const airborne = (s: SpeciesSprites, aloft: boolean, walk: AnimName): AnimName => (aloft && s.anims.Fly ? 'Fly' : walk)
 
 const enemyAnim = (e: Enemy, s: SpeciesSprites, aloft: boolean): AnimName =>
-  e.dying >= 0 || e.flash > 0 ? 'Hurt' : airborne(s, aloft, isHeld(e.status) || traitPace(e) === 0 ? 'Idle' : 'Walk')
+  e.dying >= 0 || e.flash > 0 ? 'Hurt' : airborne(s, aloft,
+    // Palkia is stationary during its entrance and first phase; the Walk
+    // sheet's stepping frames make it appear to twitch in place.
+    (e.kind === 'palkia' && (!e.fight || e.fight.phase === 0)) || isHeld(e.status) || traitPace(e) === 0 ? 'Idle' : 'Walk')
 
 /**
  * `time` is game time (shiny entrance), `t` wall time (status tint). `calm`
