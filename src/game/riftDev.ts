@@ -1,5 +1,5 @@
 import type { EnemyId } from '../data/enemies'
-import { isRiftLegend, type RiftLegend } from '../data/rifts'
+import type { RiftLegend } from '../data/rifts'
 import { bossWaveAt, EVENTS, RUN_LENGTH, TRIO_IDS, TRIOS, type TrioId } from '../data/waves'
 import { startEndless } from './endless'
 import { pickLegend } from './rift'
@@ -67,15 +67,6 @@ export const riftDevTools = (game: () => Game | undefined) => {
       })(),
     /** Starts a rift's omen now (its weather, then its portal 20 s later). */
     omen: (legend?: RiftLegend) => playing((g) => startOmen(g, legend))(),
-    /** Starts an actual Rift omen by legendary ID: ps.startLegendary('dialga'). */
-    startLegendary: (legend: string) => {
-      const g = game()
-      if (!g) return 'ps.startLegendary: start a run first'
-      if (!isRiftLegend(legend)) return `ps.startLegendary: unknown Rift legendary "${legend}"`
-      if (g.rift.omen || g.rift.portal || g.rift.arena) return 'ps.startLegendary: a Rift is already active'
-      startOmen(g, legend)
-      return `Rift omen started: ${legend}`
-    },
     /** In a domain, jumps to an act: `ps.riftAct('encounter')`, `ps.riftAct('battle', 2)` for the top of phase 2, or `ps.riftAct('capture')`. */
     riftAct: (act: 'encounter' | 'battle' | 'capture', phase?: number) => playing((g) => jumpToAct(g, act, phase))(),
     /** In a pair's battle (Latias and Latios), knocks one out now (`ps.knockOut('latios')`; Latias without an argument): the other enrages and counts down to its revival. */
