@@ -58,7 +58,7 @@ describe('festival calendar', () => {
 
 describe('the pot', () => {
   it('reaches milestones and plaza stages as it grows', () => {
-    expect([0, 10_000_000, 41_000_000, 60_000_000, 100_000_000, 150_000_000, 200_000_000].map((pot) => [reachedMilestones(lanternas, pot), plazaStage(lanternas, pot)])).toEqual([
+    expect([0, 500_000, 2_050_000, 3_000_000, 5_000_000, 7_500_000, 500_000].map((pot) => [reachedMilestones(lanternas, pot), plazaStage(lanternas, pot)])).toEqual([
       [0, 0],
       [1, 1],
       [2, 2],
@@ -72,7 +72,7 @@ describe('the pot', () => {
 })
 
 describe('festivalGifts', () => {
-  const totals = { pots: { lanternas: 41_000_000 }, given: {} }
+  const totals = { pots: { lanternas: 2_050_000 }, given: {} }
 
   it('gives everyone the milestones the pot reached, until the save opened them', () => {
     const gifts = festivalGifts(EMPTY_SAVE, totals, '2026-11-05')
@@ -88,7 +88,7 @@ describe('festivalGifts', () => {
   })
 
   it('puts the Lures in the Bag and hatches the shiny Togepi', () => {
-    const save = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, { pots: { lanternas: 150_000_000 }, given: {} }, '2026-11-16'))
+    const save = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, { pots: { lanternas: 7_500_000 }, given: {} }, '2026-11-16'))
     expect(bagCount(save.bag, 'lure')).toBe(3)
     expect(save.hatched.togepi).toEqual({ shiny: true })
     expect(save.eggs.map((e) => e.tier)).toEqual(['rare', 'kecleon'])
@@ -96,13 +96,13 @@ describe('festivalGifts', () => {
 })
 
 describe('Cresselia, the last prize', () => {
-  const totals = { pots: { lanternas: 200_000_000 }, given: {} }
+  const totals = { pots: { lanternas: 500_000 }, given: {} }
   const opened = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, totals, '2026-11-16'))
 
   it('is captured for the Legend mode by the last milestone, and only kept when the API sums the pot back', () => {
     expect(isCaptured(opened.legends, 'cresselia')).toBe(true)
     expect(isCaptured(keepGiven(opened, gameGiftsApplied(opened, totals)).legends, 'cresselia')).toBe(true)
-    expect(keepGiven(opened, gameGiftsApplied(opened, { pots: { lanternas: 199_999_999 }, given: {} })).legends.cresselia).toBeUndefined()
+    expect(keepGiven(opened, gameGiftsApplied(opened, { pots: { lanternas: 9_999_999 }, given: {} })).legends.cresselia).toBeUndefined()
   })
 
   it('stays hidden until the festival is announced, the day before it opens', () => {
@@ -112,17 +112,17 @@ describe('Cresselia, the last prize', () => {
 })
 
 describe('festivalGiftsVouched', () => {
-  const opened = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, { pots: { lanternas: 30_000_000 }, given: { lanternas: 60_000 } }, '2026-11-05'))
+  const opened = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, { pots: { lanternas: 1_500_000 }, given: { lanternas: 60_000 } }, '2026-11-05'))
   const push = (totals: Parameters<typeof festivalGiftsVouched>[1]) => keepGiven(opened, gameGiftsApplied(opened, totals))
 
   it('keeps the Lantern frame and the Mecenas title when the API sums back them, after the claim window too', () => {
-    const kept = push({ pots: { lanternas: 30_000_000 }, given: { lanternas: 60_000 } })
+    const kept = push({ pots: { lanternas: 1_500_000 }, given: { lanternas: 60_000 } })
     expect(kept.style.owned.frame).toContain('lantern')
     expect(kept.titles).toEqual(['patron'])
   })
 
   it('drops them from a save that claims more than the pot or the donations reached', () => {
-    const kept = push({ pots: { lanternas: 29_999_999 }, given: { lanternas: 10_000 } })
+    const kept = push({ pots: { lanternas: 1_499_999 }, given: { lanternas: 10_000 } })
     expect(kept.style.owned.frame).not.toContain('lantern')
     expect(kept.titles).toEqual([])
     expect(keepGiven(opened, gameGiftsApplied(opened)).titles).toEqual([])
@@ -163,7 +163,7 @@ describe('parseFestivalStatus', () => {
     const status = parseFestivalStatus({
       day: '2026-11-05',
       festival: 'lanternas',
-      pots: { lanternas: 41_208_400, nope: 5 },
+      pots: { lanternas: 2_060_420, nope: 5 },
       top: [{ handle: 'okashiwaya', amount: 2_600_000 }, { handle: '!!', amount: 1 }],
       donors: 312,
       me: { today: 50_000, given: { lanternas: 50_000 }, held: 0, public: false, rank: 87 },
@@ -171,7 +171,7 @@ describe('parseFestivalStatus', () => {
     expect(status).toEqual({
       day: '2026-11-05',
       festival: 'lanternas',
-      pots: { lanternas: 41_208_400 },
+      pots: { lanternas: 2_060_420 },
       top: [{ handle: 'okashiwaya', amount: 2_600_000 }],
       donors: 312,
       me: { today: 50_000, given: { lanternas: 50_000 }, held: 0, public: false, rank: 87 },
