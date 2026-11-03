@@ -29,7 +29,6 @@ export const PALKIA_DOMAIN: LegendDomain = {
       shift: 2.2,
       steer: { kind: 'hold', range: 110, pace: 0.55 },
       patterns: [
-        { kind: 'teleport', every: 9.5, to: 'far', windup: 1.1, radius: 28, damage: 18, visual: 'dragon' },
         { kind: 'beam', every: 7, source: 'boss', count: 2, spread: 0.5, windup: 1.2, duration: 0.55, width: 12, length: 380, damage: 21, visual: 'dragon' },
         { kind: 'ring', every: 5.3, count: 16, speed: 70, radius: 5, damage: 16, visual: 'water', gap: 0.6 },
       ],
@@ -47,7 +46,6 @@ export const PALKIA_DOMAIN: LegendDomain = {
       shift: 2.6,
       steer: { kind: 'chase', pace: 0.55 },
       patterns: [
-        { kind: 'teleport', every: 8, to: 'player', windup: 1.1, radius: 26, damage: 21, visual: 'dragon' },
         { kind: 'beam', every: 6.2, source: 'boss', count: 3, spread: 0.38, windup: 1.1, duration: 0.65, width: 12, length: 390, damage: 23, visual: 'dragon' },
         { kind: 'ring', every: 4.9, count: 18, speed: 75, radius: 5, damage: 17, visual: 'water', gap: 0.5 },
       ],
