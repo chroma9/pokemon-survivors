@@ -4220,7 +4220,7 @@ if (!import.meta.env.DEV) {
       return 'ps: original save restored; refresh the page'
     },
     /** Authenticated production Rift test: begin the real 20-second omen. */
-    omen: async (legend: string) => {
+    omen: async (legend: EnemyId) => {
       if (!await authorized()) return 'ps: unauthorized'
       if (!isRiftLegend(legend)) return 'ps.omen: unknown Rift legendary'
       const g = run?.game
