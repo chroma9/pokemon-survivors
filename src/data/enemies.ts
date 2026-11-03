@@ -94,6 +94,7 @@ export const ENEMIES = {
   groudon: { dex: 383, name: 'Groudon', types: ['ground'], hp: 4200, speed: 38, damage: 32, xp: 0, mass: 40, boss: true, legendary: true },
   rayquaza: { dex: 384, name: 'Rayquaza', types: ['dragon', 'flying'], hp: 3000, speed: 66, damage: 30, xp: 0, mass: 40, boss: true, legendary: true },
   dialga: { dex: 483, name: 'Dialga', types: ['steel', 'dragon'], hp: 3600, speed: 46, damage: 30, xp: 0, mass: 40, boss: true, legendary: true },
+  palkia: { dex: 484, name: 'Palkia', types: ['water', 'dragon'], hp: 3600, speed: 46, damage: 30, xp: 0, mass: 40, boss: true, legendary: true },
   latias: { dex: 380, name: 'Latias', types: ['dragon', 'psychic'], hp: 3200, speed: 64, damage: 28, xp: 0, mass: 40, boss: true, legendary: true },
   latios: { dex: 381, name: 'Latios', types: ['dragon', 'psychic'], hp: 3200, speed: 66, damage: 30, xp: 0, mass: 40, boss: true, legendary: true },
   deoxys: { dex: 386, name: 'Deoxys', types: ['psychic'], hp: 2800, speed: 70, damage: 32, xp: 0, mass: 40, boss: true, legendary: true },
