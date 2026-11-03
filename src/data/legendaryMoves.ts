@@ -21,6 +21,7 @@ export const LEGENDARY_MOVE_OF = {
   groudon: 'scorchingSands',
   rayquaza: 'dragonAscent',
   dialga: 'roarOfTime',
+  palkia: 'spacialRend',
   latias: 'mistBall',
   latios: 'lusterPurge',
   deoxys: 'psychoBoost',
