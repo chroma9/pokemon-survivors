@@ -154,7 +154,8 @@ const byDex = (a: DexEntry, b: DexEntry) => a.dex - b.dex
 export const gameDex = (): DexEntry[] => {
   const playable = [...STARTER_IDS.flatMap((id) => playableEntries(id, 'starter')), ...HATCHLING_IDS.flatMap((id) => playableEntries(id, 'egg'))]
   const listed = new Set(playable.map((e) => e.dex))
-  const wild = [...wildByDex].filter(([dex]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
+  // Palkia's boss is test-only until its release; do not tease #484 or change public Dex totals.
+  const wild = [...wildByDex].filter(([dex, id]) => !listed.has(dex) && id !== 'palkia').map(([, id]) => wildEntry(id))
   return [...playable, ...wild, eventEntry()].sort(byDex)
 }
 
