@@ -30,7 +30,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
         first: 5,
         every: 23,
         steps: [
-          { at: 0, pattern: { kind: 'beam', every: 0, source: 'edge', count: 1, spread: 0, windup: 1.6, duration: 0.35, width: 18, length: 500, damage: 22, visual: 'dragon' } },
+          { at: 0, pattern: { kind: 'beam', every: 0, source: 'edge', count: 1, spread: 0, windup: 1.6, duration: 0.35, width: 18, length: 500, damage: 22, visual: 'spatial' } },
         ],
       },
     },
@@ -48,7 +48,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
         first: 6,
         every: 22,
         steps: [
-          { at: 0, pattern: { kind: 'beam', every: 0, source: 'edge', count: 2, spread: 85, windup: 1.4, duration: 0.35, width: 18, length: 500, damage: 25, visual: 'dragon' } },
+          { at: 0, pattern: { kind: 'beam', every: 0, source: 'edge', count: 2, spread: 85, windup: 1.4, duration: 0.35, width: 18, length: 500, damage: 25, visual: 'spatial' } },
         ],
       },
     },
@@ -66,7 +66,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
         first: 5,
         every: 19,
         steps: [
-          { at: 0, pattern: { kind: 'beam', every: 0, source: 'lattice', count: 2, spread: 105, windup: 1.5, duration: 0.4, width: 16, length: 500, damage: 28, visual: 'dragon', cross: 'dragon' } },
+          { at: 0, pattern: { kind: 'beam', every: 0, source: 'lattice', count: 2, spread: 105, windup: 1.5, duration: 0.4, width: 16, length: 500, damage: 28, visual: 'spatial', cross: 'spatial' } },
         ],
       },
     },
