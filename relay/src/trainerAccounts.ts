@@ -2,6 +2,11 @@ import { DurableObject } from 'cloudflare:workers'
 import type { Env } from './env'
 import { HATCHLING_IDS } from '../../src/data/hatchlings'
 import { LEGEND_IDS } from '../../src/data/legends'
+import { FESTIVAL, type FestivalId } from '../../src/data/festivals'
+import { brasiliaDay } from '../../src/game/day'
+import { festivalOn, latestFestival, donationRefusal, isHeld, parseDonationAmount, donateFrom } from '../../src/game/festival'
+import { parseSaveData } from '../../src/game/meta'
+import type { Save } from '../../src/game/meta'
 // Keep Worker gift validation independent of browser game modules.
 // Keep Worker-only referral definitions independent of browser game modules.
 // These mirror src/game/referral.ts; verify both when changing rewards.
@@ -273,6 +278,90 @@ export class TrainerAccounts extends DurableObject<Env> {
       }
     }
     return { candies }
+  }
+
+  /** Private festival ledger. The Durable Object owns the money and every
+   * contribution; browsers cannot submit their own claimed totals. */
+  private async festivalRecords() {
+    const records = await this.ctx.storage.list<{
+      userId: string; festival: FestivalId; day: string; amount: number;
+      held: boolean; handle: string; at: number;
+    }>({ prefix: 'festival:donation:' })
+    return [...records.values()]
+  }
+
+  async festivalStatus(token: string) {
+    const day = brasiliaDay(new Date())
+    const shown = latestFestival(day)
+    const user = await this.identify(token)
+    const records = await this.festivalRecords()
+    const pots: Partial<Record<FestivalId, number>> = {}
+    for (const record of records) if (!record.held) {
+      pots[record.festival] = (pots[record.festival] ?? 0) + record.amount
+    }
+    const entries = shown ? records.filter((r) => r.festival === shown.id && !r.held) : []
+    const byUser = new Map<string, { handle: string; amount: number }>()
+    for (const entry of entries) {
+      const old = byUser.get(entry.userId)
+      byUser.set(entry.userId, { handle: entry.handle, amount: (old?.amount ?? 0) + entry.amount })
+    }
+    const ranked = [...byUser.entries()].sort((a, b) => b[1].amount - a[1].amount)
+    const plaque = await this.ctx.storage.list<boolean>({ prefix: 'festival:public:' })
+    const top = ranked.filter(([id]) => plaque.get('festival:public:' + id) !== false)
+      .slice(0, FESTIVAL.top).map(([, donor]) => donor)
+    const mine = user ? {
+      today: records.filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0),
+      given: Object.fromEntries([...new Set(records.map((r) => r.festival))].map((festival) => [
+        festival, records.filter((r) => r.userId === user.id && r.festival === festival && !r.held).reduce((n, r) => n + r.amount, 0),
+      ])),
+      held: records.filter((r) => r.userId === user.id && r.held).reduce((n, r) => n + r.amount, 0),
+      public: plaque.get('festival:public:' + user.id) !== false,
+      rank: ranked.findIndex(([id]) => id === user.id) + 1 || null,
+    } : null
+    return { day, festival: shown?.id ?? null, pots, top, donors: byUser.size, me: mine }
+  }
+
+  async setFestivalPublic(token: string, show: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    if (typeof show !== 'boolean') return { error: 'invalid' as const }
+    await this.ctx.storage.put('festival:public:' + user.id, show)
+    return { ok: true as const }
+  }
+
+  /** Atomic wallet debit and immutable ledger insert in one DO storage transaction.
+   * Revision checked before debit: another tab's save sync cannot silently overwrite it.
+   */
+  async donateFestival(token: string, amountInput: unknown, revision: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    const amount = parseDonationAmount(amountInput)
+    if (amount === null) return { error: 'invalid' as const }
+    const key = 'save:' + user.id
+    const day = brasiliaDay(new Date())
+    const festival = festivalOn(day)
+    const records = await this.festivalRecords()
+    const today = records.filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
+    return this.ctx.storage.transaction(async (tx) => {
+      const stored = await tx.get<{ revision: number; data: Save; updated: number }>(key)
+      if (!stored?.data) return { error: 'nosave' as const }
+      if (!Number.isSafeInteger(revision) || revision !== stored.revision) return { error: 'stale' as const }
+      const save = parseSaveData(stored.data)
+      const refusal = donationRefusal({
+        festival, amount, handle: user.handle,
+        runs: save.achievements.lifetime.runs, today, wallet: save.wallet,
+      })
+      if (refusal) return { error: refusal }
+      if (!festival) return { error: 'closed' as const }
+      const held = isHeld(save.wallet)
+      const next = donateFrom(save, amount)
+      const recordId = crypto.randomUUID()
+      await tx.put(key, { revision: stored.revision + 1, data: next, updated: Date.now() })
+      await tx.put('festival:donation:' + recordId, {
+        userId: user.id, festival: festival.id, day, amount, held, handle: user.handle, at: Date.now(),
+      })
+      return { ok: true as const, save: next, revision: stored.revision + 1, held, today: today + amount }
+    })
   }
 
   /** Optimistic revisioned cloud saves. No unverified client can replace another revision. */
