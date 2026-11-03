@@ -4774,6 +4774,15 @@ export const fr: Messages = {
         'Recharge −0.6s et +25 dégâts',
       ],
     },
+    spacialRend: {
+      description: "Palkia déchire l’espace d’une entaille dimensionnelle qui blesse les ennemis sur son passage.",
+      upgrades: [
+        "+18 dégâts",
+        "+20 % de zone",
+        { fork: [{ name: "Failles parallèles", desc: "+1 entaille par utilisation" }, { name: "Fracture profonde", desc: "+25 dégâts et recharge accélérée de 0,4 s" }] },
+        "Recharge accélérée de 0,5 s et +18 dégâts",
+      ],
+    },
     mistBall: {
       description: 'Les orbes de brume de Latias dérivent vers différents ennemis et éclatent en une brume persistante qui blesse et affaiblit ceux qui sont dedans (ils infligent moins de dégâts de contact).',
       upgrades: [
@@ -5124,6 +5133,7 @@ export const fr: Messages = {
     kyogre: 'Seigneur des mers. Fait tomber la pluie ; devient Primo.',
     groudon: 'Seigneur des terres. Fait venir le soleil ; devient Primo.',
     rayquaza: 'Seigneur du ciel. La météo ne l’atteint pas ; devient Méga.',
+    palkia: "Seigneur de l’espace. Ses failles dimensionnelles traversent les hordes.",
     dialga: 'Seigneur du temps. Blindé et implacable.',
     latias: 'Éon rapide. Flotte au-dessus de la lave et des pièges.',
     latios: 'Éon tranchant. Rapide et mortel à distance.',
