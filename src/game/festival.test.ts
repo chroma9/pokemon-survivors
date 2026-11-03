@@ -58,7 +58,7 @@ describe('festival calendar', () => {
 
 describe('the pot', () => {
   it('reaches milestones and plaza stages as it grows', () => {
-    expect([0, 500_000, 2_050_000, 3_000_000, 5_000_000, 7_500_000, 500_000].map((pot) => [reachedMilestones(lanternas, pot), plazaStage(lanternas, pot)])).toEqual([
+    expect([0, 500_000, 2_050_000, 3_000_000, 5_000_000, 7_500_000, 10_000_000].map((pot) => [reachedMilestones(lanternas, pot), plazaStage(lanternas, pot)])).toEqual([
       [0, 0],
       [1, 1],
       [2, 2],
@@ -96,7 +96,7 @@ describe('festivalGifts', () => {
 })
 
 describe('Cresselia, the last prize', () => {
-  const totals = { pots: { lanternas: 500_000 }, given: {} }
+  const totals = { pots: { lanternas: 10_000_000 }, given: {} }
   const opened = openAll(EMPTY_SAVE, festivalGifts(EMPTY_SAVE, totals, '2026-11-16'))
 
   it('is captured for the Legend mode by the last milestone, and only kept when the API sums the pot back', () => {
