@@ -4774,6 +4774,15 @@ export const zh: Messages = {
         '冷卻縮短0.6秒，傷害+25',
       ],
     },
+    spacialRend: {
+      description: "帕路奇亞撕裂空間，沿裂縫對敵人造成傷害。",
+      upgrades: [
+        "傷害 +18",
+        "範圍 +20%",
+        { fork: [{ name: "平行裂縫", desc: "每次施放增加 1 道斬擊" }, { name: "深層裂痕", desc: "傷害 +25，冷卻縮短 0.4 秒" }] },
+        "冷卻縮短 0.5 秒，傷害 +18",
+      ],
+    },
     mistBall: {
       description: 'Latias的霧球飄向不同的敵人，爆發成久久不散的霧氣，傷害並削弱裡面的敵人（接觸傷害降低）。',
       upgrades: [
@@ -5124,6 +5133,7 @@ export const zh: Messages = {
     kyogre: '海洋之王。帶來雨水；會原始回歸。',
     groudon: '大地之王。帶來陽光；會原始回歸。',
     rayquaza: '天空之王。不受天氣影響；會超級進化。',
+    palkia: "空間之主。以空間裂斬穿透敵群。",
     dialga: '時間之王。裝甲厚重，毫不留情。',
     latias: '迅捷的無限。飄浮於熔岩與陷阱之上。',
     latios: '銳利的無限。速度快，遠距離致命。',
