@@ -4779,6 +4779,15 @@ export const es: Messages = {
         'Recarga 0.6s más rápida y +25 de daño',
       ],
     },
+    spacialRend: {
+      description: "Palkia rasga el espacio con un corte dimensional que daña a los enemigos a lo largo de la grieta.",
+      upgrades: [
+        "+18 de daño",
+        "+20% de área",
+        { fork: [{ name: "Cortes paralelos", desc: "+1 corte por uso" }, { name: "Fractura profunda", desc: "+25 de daño y recarga 0.4s más rápida" }] },
+        "Recarga 0.5s más rápida y +18 de daño",
+      ],
+    },
     mistBall: {
       description: 'Las esferas de niebla de Latias flotan hacia enemigos distintos y estallan en una niebla que se queda, hiriendo y debilitando a quien está dentro (hacen menos daño al tocarte).',
       upgrades: [
@@ -5130,6 +5139,7 @@ export const es: Messages = {
     kyogre: 'Señor de los mares. Trae la lluvia; se vuelve Primigenio.',
     groudon: 'Señor de la tierra. Trae el sol; se vuelve Primigenio.',
     rayquaza: 'Señor del cielo. El clima no lo toca; se vuelve Mega.',
+    palkia: "Señor del espacio. Sus cortes dimensionales atraviesan hordas.",
     dialga: 'Señor del tiempo. Blindado e implacable.',
     latias: 'Eón veloz. Flota sobre lava y trampas.',
     latios: 'Eón certero. Rápido y letal a distancia.',
