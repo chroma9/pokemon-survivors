@@ -78,6 +78,7 @@ export const CAST_SFX: Partial<Record<MoveId, readonly [Sfx, number]>> = {
   scorchingSands: ['sands', 250],
   dragonAscent: ['ascent', 300],
   roarOfTime: ['roarOfTime', 500],
+  spacialRend: ['hyperspace', 400],
   mistBall: ['mist', 250],
   lusterPurge: ['lusterPurge', 250],
   psychoBoost: ['psychoBoost', 300],
