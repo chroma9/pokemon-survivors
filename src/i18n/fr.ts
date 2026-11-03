@@ -2228,6 +2228,13 @@ export const fr: Messages = {
         phases: ['Le temps se déforme ! Pendant Roar of Time, tes attaques se figent en l’air.', 'Le temps s’accélère ! Dialga va de plus en plus vite.'],
         cues: { stop: 'Le temps s’est arrêté !', forward: 'Le temps a fait un bond !', rewind: 'Le temps est revenu en arrière !' },
       },
+      palkia: {
+        place: 'Colonnes Lances',
+        epithet: 'Seigneur de l’Espace',
+        omen: 'L’air ondule sous une étrange lueur rose…',
+        crossing: 'L’espace se déforme ! Traverse les Colonnes Lances avant que le vide ne te rattrape !',
+        phases: ['L’espace se tord autour de Palkia ! Esquive les attaques convergentes.', 'Palkia déchire l’arène ! Évite les entailles croisées de Spacial Rend.'],
+      },
       latias: {
         place: 'Île du Sud',
         epithet: 'Le Duo Éon',
