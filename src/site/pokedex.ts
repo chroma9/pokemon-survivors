@@ -154,8 +154,7 @@ const byDex = (a: DexEntry, b: DexEntry) => a.dex - b.dex
 export const gameDex = (): DexEntry[] => {
   const playable = [...STARTER_IDS.flatMap((id) => playableEntries(id, 'starter')), ...HATCHLING_IDS.flatMap((id) => playableEntries(id, 'egg'))]
   const listed = new Set(playable.map((e) => e.dex))
-  // Palkia's boss is test-only until its release; do not tease #484 or change public Dex totals.
-  const wild = [...wildByDex].filter(([dex, id]) => !listed.has(dex) && id !== 'palkia').map(([, id]) => wildEntry(id))
+  const wild = [...wildByDex].filter(([dex, id]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
   return [...playable, ...wild, eventEntry()].sort(byDex)
 }
 
@@ -278,7 +277,7 @@ export const dexPages = (): readonly DexPage[] => {
     return { kind: 'family', id, slug: slugOf(PLAYABLE[id].line[0].name), entries: own.sort((a, b) => stage(a) - stage(b) || a.dex - b.dex) }
   })
   // A festival legend (Cresselia) is a surprise for now: its page comes with its festival's announcement.
-  const legends = LEGEND_IDS.filter((id) => id !== 'shadowMewtwo' && id !== 'palkia' && !legendFestival(id)).map((id): DexPage => {
+  const legends = LEGEND_IDS.filter((id) => id !== 'shadowMewtwo' && !legendFestival(id)).map((id): DexPage => {
     const entry = entries.find((e) => e.source.kind === 'wild' && e.source.id === id)
     if (!entry) throw new Error(`No Pokédex entry for legend ${id}`)
     return { kind: 'legend', id, slug: entry.slug, entries: [entry] }
