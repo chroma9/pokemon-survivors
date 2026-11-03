@@ -250,7 +250,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
     const giving = p.kind === 'running' && tab === 'fountain' && signedIn()
     const n = amount()
     const why = giving && (chip !== null || custom) ? refusal(n) : null
-    const text = said?.text ?? (p.kind !== 'running' ? (p.kind === 'after' ? m.after.claim : m.foot) : !signedIn() ? (accountsEnabled || Boolean(currentTrainer()) ? m.guest : m.guestOffline) : (why ?? m.foot))
+    const text = said?.text ?? (p.kind !== 'running' ? (p.kind === 'after' ? m.after.claim : m.foot) : !signedIn() ? m.guest : (why ?? m.foot))
     setText(footText, text)
     footText.className = `festival-foot-text ${said?.tone ?? (why && n !== null ? 'error' : '')}`
     donateBtn.hidden = !giving || said?.handle === true
