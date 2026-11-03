@@ -1,6 +1,6 @@
 import type { EggTier } from '../game/eggs'
 import { PLACE_IDS } from './places'
-import { RIFT_LEGENDS } from './rifts'
+import { RIFT_PUBLIC_LEGENDS } from './rifts'
 
 /**
  * Achievements: lifetime goals with a bronze, silver or gold medal. Names,
@@ -86,7 +86,7 @@ export const ACHIEVEMENTS = {
   alpha25: { medal: 'silver', stat: 'alphaKills', target: 25 },
   alpha100: { medal: 'gold', stat: 'alphaKills', target: 100, title: true },
   /** Every rift legendary beaten at least once (unlocked ones stay unlocked when the list grows). */
-  legends: { medal: 'gold', stat: 'legends', target: RIFT_LEGENDS.length, title: true },
+  legends: { medal: 'gold', stat: 'legends', target: RIFT_PUBLIC_LEGENDS.length, title: true },
   shinyLegend: { medal: 'gold', stat: 'shinyLegends', target: 1 },
   /** Every place cleared at least once: the cave's treasure, Spiritomb and a flight with a wing (which takes a Flying type). */
   explorer: { medal: 'gold', stat: 'places', target: PLACE_IDS.length, title: true },
