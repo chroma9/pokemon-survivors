@@ -294,6 +294,23 @@ export default {
         const result = await store.putSave(token, data?.revision, data?.data)
         return json(result, 'error' in result ? (result.error === 'conflict' ? 409 : result.error === 'unauthorized' ? 401 : 400) : 200, headers)
       }
+      // The private Festival da Praça runs on Trainer Accounts, not Clerk.
+      if (path === '/trainers/festival' && request.method === 'GET') {
+        return json(await store.festivalStatus(token), 200, headers)
+      }
+      if (path === '/trainers/festival/donate' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { amount?: unknown; revision?: unknown } | null
+        const result = await store.donateFestival(token, data?.amount, data?.revision)
+        const code = 'error' in result
+          ? result.error === 'unauthorized' ? 401 : result.error === 'invalid' ? 400 : result.error === 'stale' ? 409 : 403
+          : 200
+        return json(result, code, headers)
+      }
+      if (path === '/trainers/festival/public' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { public?: unknown } | null
+        const result = await store.setFestivalPublic(token, data?.public)
+        return json(result, 'error' in result ? 400 : 200, headers)
+      }
       if (path === '/trainers/referrals' && request.method === 'GET') {
         const result = await store.referrals(token)
         return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
