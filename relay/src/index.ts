@@ -151,7 +151,7 @@ export default {
     // Held festival donations require the same signed admin token as other
     // private moderation endpoints. No admin credentials enter the client.
     if ((path === '/admin/festival' && request.method === 'GET') ||
-        (/^\\/admin\\/festival\\/[0-9a-f-]{36}\\/(approve|void)$/.test(path) && request.method === 'POST')) {
+        (/^\/admin\/festival\/[0-9a-f-]{36}\/(approve|void)$/.test(path) && request.method === 'POST')) {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-festival:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
       const secret = env.GAME_ADMIN_TOKEN ?? ''
