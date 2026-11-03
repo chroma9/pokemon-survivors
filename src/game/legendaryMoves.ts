@@ -67,7 +67,7 @@ export type LegendaryVisual =
   | 'whirlwind' | 'whirlBurst' | 'phoenix' | 'sacredFlame' | 'originRing' | 'originBeam' | 'sandWave' | 'hotSand'
   | 'ascentRise' | 'ascentComet' | 'ascentImpact' | 'timeClock' | 'timeRing' | 'timeSnap' | 'mistBall' | 'mistCloud'
   | 'lusterBeam' | 'boostCore' | 'boostComet' | 'boostBurst' | 'wishStar' | 'wishFall' | 'wishBurst'
-  | 'ancientRock' | 'magicalLeaf' | 'voidOrb' | 'voidBurst' | 'voidPool' | 'lunarMoon' | 'lunarCrescent' | 'lunarBurst'
+  | 'ancientRock' | 'magicalLeaf' | 'voidOrb' | 'voidBurst' | 'voidPool' | 'lunarMoon' | 'lunarCrescent' | 'lunarBurst' | 'spatialSlash'
 
 /** Whirlwind: the cyclone's pull (px/s) and the gust it ends with (× damage, × area). */
 export const WHIRL = { pull: 150, burst: 2.2, burstR: 46 } as const
@@ -357,6 +357,56 @@ export const LEGENDARY_MOVES = {
       })
       shakeScreen(g, 3)
       cast(g, 'roarOfTime')
+    },
+  },
+
+  /* Palkia — sharp spatial rifts rather than an energy beam. */
+  spacialRend: {
+    name: 'Spacial Rend',
+    type: 'dragon',
+    legendary: true,
+    base: stats({ damage: 76, cooldown: 3.7, amount: 1, area: 1, knockback: 65 }),
+    upgrades: [
+      { damage: 18 },
+      { area: 0.2 },
+      { fork: [{ stats: { amount: 1 } }, { stats: { damage: 25, cooldown: -0.4 } }] },
+      { cooldown: -0.5, damage: 18 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      const baseAngle = aimAt(g, 250)
+      const length = 175 * s.area
+      for (let i = 0; i < s.amount; i++) {
+        const angle = baseAngle + (i - (s.amount - 1) / 2) * 0.33
+        const dx = dm.cos(angle)
+        const dy = dm.sin(angle)
+        const x0 = p.x + dx * 14
+        const y0 = p.y - 9 + dy * 14
+        // Shared hit tracking prevents overlapping segments from striking the
+        // same enemy multiple times during one dimensional cut.
+        const hits = new Map<number, number>()
+        const segments = Math.max(8, Math.ceil(length / 14))
+        for (let j = 0; j <= segments; j++) {
+          const u = j / segments
+          spawnAttack(g, {
+            ...look('spacialRend', 'dragon', 'hitbox'),
+            x: x0 + dx * length * u, y: y0 + dy * length * u,
+            shape: { kind: 'circle', r: 10 * s.area },
+            motion: { kind: 'static' }, damage: s.damage,
+            knockback: s.knockback, hits, ttl: 0.25,
+          })
+        }
+        spawnAttack(g, {
+          ...look('spacialRend', 'dragon', 'spatialSlash'),
+          x: x0, y: y0, shape: { kind: 'circle', r: 5 },
+          motion: { kind: 'static' }, damage: 0,
+          ttl: 0.42, activeFrom: Infinity, memo: angle,
+          // Use speed for its span; the art can scale and fade independently.
+          speed: length,
+        })
+      }
+      shakeScreen(g, 1.5)
+      cast(g, 'spacialRend')
     },
   },
 
