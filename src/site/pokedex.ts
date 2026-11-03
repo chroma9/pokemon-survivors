@@ -278,7 +278,7 @@ export const dexPages = (): readonly DexPage[] => {
     return { kind: 'family', id, slug: slugOf(PLAYABLE[id].line[0].name), entries: own.sort((a, b) => stage(a) - stage(b) || a.dex - b.dex) }
   })
   // A festival legend (Cresselia) is a surprise for now: its page comes with its festival's announcement.
-  const legends = LEGEND_IDS.filter((id) => id !== 'shadowMewtwo' && !legendFestival(id)).map((id): DexPage => {
+  const legends = LEGEND_IDS.filter((id) => id !== 'shadowMewtwo' && id !== 'palkia' && !legendFestival(id)).map((id): DexPage => {
     const entry = entries.find((e) => e.source.kind === 'wild' && e.source.id === id)
     if (!entry) throw new Error(`No Pokédex entry for legend ${id}`)
     return { kind: 'legend', id, slug: entry.slug, entries: [entry] }
