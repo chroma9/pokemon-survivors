@@ -65,7 +65,7 @@ const worth = (s: Save) => s.wallet + totalSpent(s.ranks) + shopInvested(s.shop.
  *   applied on either side never lands again.
  * - Ribbons: a union, one per day (the better one if both sides had that day).
  * - Shiny picks: a union by ticket; a pick made on either side stays made.
- * - The companion: `incoming`'s, if it has one (like the title); gift-only companions: a union.
+ * - The active companion: `incoming`'s, including null when deliberately unequipped; gift-only companions: a union.
  * - Branches taken: per family, `incoming`'s when it has one (like the partner).
  * - Clears: a union, each Pokémon at the harder difficulty of the two.
  * - The Noite das Bruxas candy jar: the fuller one (its rewards are gifts, kept above) and the larger
@@ -107,7 +107,7 @@ export const mergeSaves = (base: Save, incoming: Save): Save => {
     gifts: mergeClaimedGifts(base.gifts, incoming.gifts),
     ribbons: mergeRibbons(base.ribbons, incoming.ribbons),
     shinyPicks: mergeShinyPicks(base.shinyPicks, incoming.shinyPicks),
-    companion: incoming.companion ?? base.companion,
+    companion: incoming.companion,
     companions: mergeCompanions(base.companions, incoming.companions),
     branches: { ...base.branches, ...incoming.branches },
     clears: mergeClears(base.clears, incoming.clears),
