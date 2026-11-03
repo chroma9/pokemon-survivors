@@ -17,7 +17,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
   phases: [
     {
       below: 1,
-      steer: { kind: 'anchor', x: 0, y: 0, drift: 22, pace: 0.5 },
+      steer: { kind: 'anchor', x: 0, y: 0, drift: 0, pace: 0.5 },
       patterns: [
         { kind: 'volley', every: 3.5, count: 3, arc: 0.6, speed: 90, windup: 1, radius: 6, damage: 17, visual: 'water' },
         { kind: 'ring', every: 5.7, count: 12, speed: 65, radius: 5, damage: 15, visual: 'dragon', gap: 0.8 },
