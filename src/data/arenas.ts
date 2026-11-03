@@ -193,6 +193,16 @@ export const ARENA_LAYOUTS: Record<RiftLegend, ArenaLayout> = {
     boss: [0, -100],
     player: [0, 70],
   },
+  /** Palkia shares Dialga's Spear Pillar arena layout. */
+  palkia: {
+    floor: [poly([-R, -90], [R, -90], [R, 110], [-R, 110]), circle(0, -90, 84)],
+    solids: [
+      ...[-112, 112].flatMap((x) => [-52, 24, 100].map((y, i) => ({ piece: x > 0 && i === 1 ? ('marbleStump' as const) : ('column' as const), x, y }))),
+      { piece: 'column', x: -54, y: -150 },
+      { piece: 'column', x: 54, y: -150 },
+    ],
+    pattern: 'slabs', boss: [0, -100], player: [0, 70],
+  },
   latias: SOUTHERN_ISLAND,
   latios: SOUTHERN_ISLAND,
   /** A meteorite adrift in space: a lumpy, cratered rock with clusters of crystal to hide behind. */
