@@ -285,9 +285,9 @@ export class TrainerAccounts extends DurableObject<Env> {
   private async festivalRecords() {
     const records = await this.ctx.storage.list<{
       userId: string; festival: FestivalId; day: string; amount: number;
-      held: boolean; handle: string; at: number;
+      held: boolean; handle: string; at: number; voided?: boolean;
     }>({ prefix: 'festival:donation:' })
-    return [...records.values()]
+    return [...records.values()].filter((r) => !r.voided)
   }
 
   async festivalStatus(token: string) {
@@ -343,8 +343,8 @@ export class TrainerAccounts extends DurableObject<Env> {
     return this.ctx.storage.transaction(async (tx) => {
       // Check the day's cap INSIDE the transaction so simultaneous donations
       // from multiple devices cannot spend the same remaining allowance.
-      const records = await tx.list<{ userId: string; day: string; amount: number }>({ prefix: 'festival:donation:' })
-      const today = [...records.values()].filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
+      const records = await tx.list<{ userId: string; day: string; amount: number; voided?: boolean }>({ prefix: 'festival:donation:' })
+      const today = [...records.values()].filter((r) => !r.voided && r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
       const stored = await tx.get<{ revision: number; data: Save; updated: number }>(key)
       if (!stored?.data) return { error: 'nosave' as const }
       if (!Number.isSafeInteger(revision) || revision !== stored.revision) return { error: 'stale' as const }
@@ -363,6 +363,32 @@ export class TrainerAccounts extends DurableObject<Env> {
         userId: user.id, festival: festival.id, day, amount, held, handle: user.handle, at: Date.now(),
       })
       return { ok: true as const, save: next, revision: stored.revision + 1, held, today: today + amount }
+    })
+  }
+
+  /** Donations awaiting review, never exposed without the Worker admin token. */
+  async festivalHeld() {
+    const records = await this.ctx.storage.list<{
+      userId: string; festival: FestivalId; day: string; amount: number;
+      held: boolean; voided?: boolean; handle: string; at: number;
+    }>({ prefix: 'festival:donation:' })
+    return [...records.entries()].filter(([, r]) => r.held && !r.voided).map(([key, r]) => ({
+      id: key.slice('festival:donation:'.length), festival: r.festival,
+      handle: r.handle, amount: r.amount, day: r.day, at: r.at,
+    }))
+  }
+
+  async reviewFestivalDonation(id: string, approve: boolean) {
+    if (!/^[0-9a-f-]{36}$/.test(id)) return { error: 'invalid' as const }
+    const key = 'festival:donation:' + id
+    return this.ctx.storage.transaction(async (tx) => {
+      const record = await tx.get<{
+        held: boolean; voided?: boolean; userId: string; festival: FestivalId;
+        day: string; amount: number; handle: string; at: number;
+      }>(key)
+      if (!record || !record.held || record.voided) return { error: 'not_found' as const }
+      await tx.put(key, { ...record, held: false, voided: !approve })
+      return { ok: true as const }
     })
   }
 
