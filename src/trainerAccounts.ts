@@ -161,6 +161,49 @@ export const syncTrainerSave = async (relay: string) => {
   }
 }
 let syncTimer: ReturnType<typeof setTimeout> | null = null
+/** Donate using the private Trainer Account's authoritative cloud save.
+ * The Worker debits money and records the donation in one transaction.
+ * Never spend locally until the server confirms it.
+ */
+export const donateTrainerFestival = async (relay: string, amount: number) => {
+  if (!trainerToken()) return { ok: false as const, error: 'guest' }
+  try {
+    await syncTrainerSave(relay)
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const cloud = await request(relay, 'save') as { revision: number; data: unknown }
+      const response = await fetch(relay + '/trainers/festival/donate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() },
+        body: JSON.stringify({ amount, revision: cloud.revision }),
+      })
+      const result = await response.json() as {
+        ok?: boolean; error?: string; save?: unknown; revision?: number; held?: boolean; today?: number
+      }
+      if (!response.ok || result.ok !== true) {
+        if (result.error === 'stale' && attempt === 0) {
+          await syncTrainerSave(relay)
+          continue
+        }
+        return { ok: false as const, error: result.error ?? 'offline' }
+      }
+      if (typeof result.revision !== 'number' || !result.save) return { ok: false as const, error: 'offline' }
+      const authoritative = parseSaveData(result.save)
+      // Merge progress made while the request was in flight. The increased
+      // spent counter ensures an older local wallet cannot refund a donation.
+      const merged = mergeTrainerSave(authoritative, loadSave(), result.revision)
+      writeSave(merged)
+      localStorage.setItem(REV, String(result.revision))
+      localStorage.setItem(BASELINE, JSON.stringify(merged))
+      scheduleTrainerSave(relay)
+      return { ok: true as const, held: result.held === true, today: result.today ?? 0 }
+    }
+    return { ok: false as const, error: 'stale' }
+  } catch (err) {
+    console.warn('Private festival donation failed', err)
+    return { ok: false as const, error: 'offline' }
+  }
+}
+
 export const scheduleTrainerSave = (relay: string) => {
   if (!trainerToken()) return
   if (syncTimer !== null) clearTimeout(syncTimer)
