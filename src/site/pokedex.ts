@@ -154,7 +154,7 @@ const byDex = (a: DexEntry, b: DexEntry) => a.dex - b.dex
 export const gameDex = (): DexEntry[] => {
   const playable = [...STARTER_IDS.flatMap((id) => playableEntries(id, 'starter')), ...HATCHLING_IDS.flatMap((id) => playableEntries(id, 'egg'))]
   const listed = new Set(playable.map((e) => e.dex))
-  const wild = [...wildByDex].filter(([dex, id]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
+  const wild = [...wildByDex].filter(([dex]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
   return [...playable, ...wild, eventEntry()].sort(byDex)
 }
 
