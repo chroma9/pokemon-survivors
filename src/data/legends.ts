@@ -17,10 +17,10 @@ import type { PokeType } from './types'
  * legendary as a boss `wins` times.
  */
 
-/** The 23 regular legendaries, by their `EnemyId`: the ones Arceus waits for and the "every legend" counts. */
+/** The 24 regular legendaries, by their `EnemyId`: the ones Arceus waits for and the "every legend" counts. */
 export const REGULAR_LEGENDS = [
   'articuno', 'zapdos', 'moltres', 'raikou', 'entei', 'suicune', 'regirock', 'regice', 'registeel',
-  'mew', 'celebi', 'jirachi', 'mewtwo', 'lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga',
+  'mew', 'celebi', 'jirachi', 'mewtwo', 'lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga', 'palkia',
   'latias', 'latios', 'deoxys', 'arceus',
 ] as const satisfies readonly EnemyId[]
 
@@ -40,7 +40,7 @@ export const EVENT_LEGENDS = ['darkrai'] as const satisfies readonly EnemyId[]
 export const FESTIVAL_LEGENDS = ['cresselia'] as const
 
 /** Every playable legend: the regular ones, then the event ones, then the festival ones. */
-export const PRIVATE_LEGENDS = ['shadowMewtwo', 'palkia'] as const
+export const PRIVATE_LEGENDS = ['shadowMewtwo'] as const
 export const LEGEND_IDS = [...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS, ...PRIVATE_LEGENDS] as const
 
 export type LegendId = (typeof LEGEND_IDS)[number]
@@ -372,7 +372,7 @@ export const LEGENDS = {
     unlock: { wins: 1, endless: true, last: true },
   },
 
-  /* ---------- Private, excluded from regular Legendary completion ---------- */
+  /* ---------- Spear Pillar's spatial legendary ---------- */
   palkia: {
     name: 'Palkia',
     color: '#e28bc8',
