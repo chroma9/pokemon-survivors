@@ -137,15 +137,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /* ---------- Roster ---------- */
 
 
-  // Palkia's PMD portrait has substantially more empty space above its body
-  // than the other legends. Lift only its roster image (including its shadow)
-  // so the artwork sits at the same height in the selection card.
-  const cellPortrait = (id: PlayableId) => h('img', {
-    class: 'partner-cell-portrait',
-    src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)),
-    alt: '',
-    ...(id === 'palkia' ? { style: 'transform:translateY(-12px)' } : {}),
-  })
+  const cellPortrait = (id: PlayableId) => h('img', { class: 'partner-cell-portrait', src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
   /** A family still in its egg (a legend not captured yet): its first stage's silhouette at 2× (a big legend's at 1×), centered on the body (`bodyOf`) and cropped by the cell like a portrait. */
   const cellSilhouette = (id: HatchlingId | LegendId) => {
     const dex = PLAYABLE[id].line[0].dex
@@ -760,7 +752,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
     const s = playableForm(id) ? loadedSprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
-    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
+    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6 - (id === 'palkia' ? 12 : 0), {
       tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
       outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
     })
