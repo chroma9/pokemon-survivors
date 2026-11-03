@@ -389,26 +389,39 @@ const newMoon: Painter = (ctx, w, h, camX, camY, t, g) => {
   }
 }
 
-/** Palkia's omen: a pink atmospheric wash and faint, slow horizontal space ripples. */
+/** Palkia's omen: visible rose-colored spatial ripples sliding over the sky.
+ * Purely cosmetic (no canvas readback, postprocessing or camera shifts). */
 const spatialShimmer: Painter = (ctx, w, h, _camX, _camY, t, g) => {
-  const omen = g.rift.omen
-  const k = omen ? Math.min(1, 1 - omen.left / RIFT.omenTime) : 1
-  ctx.fillStyle = `rgba(225,95,170,${(0.045 + 0.13 * k).toFixed(3)})`
+  const omen = g.rift.omen?.legend === 'palkia' ? g.rift.omen : null
+  const k = omen ? Math.max(0, Math.min(1, 1 - omen.left / RIFT.omenTime)) : 1
+  const strength = 0.55 + 0.45 * k
+  ctx.save()
+  // Gentle overall pink atmosphere; the waves themselves should remain
+  // readable even over dark weather, bright terrain and low-quality modes.
+  ctx.fillStyle = `rgba(220,72,158,${(0.075 + 0.105 * k).toFixed(3)})`
   ctx.fillRect(0, 0, w, h)
-  // Narrow curves drift slowly across the playfield without moving pixels,
-  // shaking the camera or affecting HUD elements.
-  ctx.lineWidth = 1
-  for (let i = 0; i < 6; i++) {
-    const y = (i + 0.5) * h / 6
-    ctx.strokeStyle = `rgba(252,180,225,${(0.025 + 0.075 * k).toFixed(3)})`
-    ctx.beginPath()
-    for (let x = 0; x <= w; x += 8) {
-      const yy = y + Math.sin(x * 0.023 + t * 0.75 + i * 1.4) * (1 + 2 * k)
-      if (x === 0) ctx.moveTo(x, yy)
-      else ctx.lineTo(x, yy)
+  const bands = Math.max(7, Math.ceil(h / 65))
+  for (let i = 0; i < bands; i++) {
+    const y = (i + 0.5) * h / bands
+    const phase = t * (0.48 + (i % 3) * 0.12) + i * 1.31
+    // A drifting translucent band reads as a refraction of the entire
+    // scene, rather than a geometric laser or a permanent neon stripe.
+    const ribbon = (thick: number, color: string, offset: number) => {
+      ctx.lineWidth = thick
+      ctx.strokeStyle = color
+      ctx.beginPath()
+      for (let x = -8; x <= w + 8; x += 5) {
+        const yy = y + offset + Math.sin(x * 0.019 + phase) * (5 + 5 * strength) + Math.sin(x * 0.041 - phase * 0.7) * 2.5
+        if (x === -8) ctx.moveTo(x, yy)
+        else ctx.lineTo(x, yy)
+      }
+      ctx.stroke()
     }
-    ctx.stroke()
+    ribbon(9, `rgba(237,104,197,${(0.045 + 0.04 * strength).toFixed(3)})`, 0)
+    ribbon(2, `rgba(255,191,233,${(0.18 + 0.17 * strength).toFixed(3)})`, -2)
+    ribbon(1, `rgba(252,125,205,${(0.16 + 0.15 * strength).toFixed(3)})`, 3)
   }
+  ctx.restore()
 }
 
 const TINTS: Record<LegendSky, string> = {
