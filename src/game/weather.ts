@@ -53,6 +53,7 @@ export const HAZARD_TYPES: Record<HazardVisual, readonly PokeType[]> = {
   psychic: ['psychic'],
   water: ['water'],
   dragon: ['dragon'],
+  spatial: ['dragon'],
   steel: ['steel'],
   aero: ['flying'],
   grass: ['grass'],
