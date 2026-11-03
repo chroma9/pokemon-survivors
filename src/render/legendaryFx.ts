@@ -1064,6 +1064,50 @@ export const drawLegendaryGround = (ctx: Ctx, g: Game, t: number) => {
   }
 }
 
+/** Palkia's player move: a dimensional incision with a dark interior and
+ * asymmetrical pink-white edges. The invisible overlapping hitboxes deliver
+ * its damage; this one visual renders the whole cut once. */
+const drawSpatialSlash = (ctx: Ctx, a: Attack) => {
+  const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.25))
+  if (fade <= 0) return
+  const angle = a.memo
+  const dx = Math.cos(angle)
+  const dy = Math.sin(angle)
+  const nx = -dy
+  const ny = dx
+  const length = a.tier
+  const half = 3.8 * fade
+  ctx.save()
+  ctx.globalAlpha = fade
+  ctx.lineCap = 'butt'
+  // The line begins at the Pokémon and flashes almost entirely open at once,
+  // closing from both ends in the final quarter-second.
+  const reveal = a.age < 0.08 ? Math.max(0.01, a.age / 0.08) : 1
+  const span = length * reveal * Math.min(1, fade * 1.5)
+  for (const [off, color, thick] of [
+    [0, '#e95bb9', half * 2 + 5],
+    [0, '#ffedf9', half * 2 + 2],
+    [0, '#201025', half * 2],
+    [-half * 0.8, '#ffffff', 1.6],
+    [half * 0.8, '#dc63c1', 1.6],
+  ] as const) {
+    ctx.strokeStyle = color
+    ctx.lineWidth = Math.max(0.5, thick)
+    ctx.beginPath()
+    for (let k = 0; k <= 18; k++) {
+      const u = k / 18
+      const dist = u * span
+      const jag = Math.sin(u * 47 + a.id) * 1.3 + Math.sin(u * 107) * 0.5
+      const x = a.x + dx * dist + nx * (off + jag)
+      const y = a.y + dy * dist + ny * (off + jag)
+      if (k === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
 /** Air layer (over the Pokémon). */
 export const drawLegendaryAir = (ctx: Ctx, g: Game, t: number, visible: (x: number, y: number, m?: number) => boolean) => {
   // The veil goes first, so the clock and the rings shine over it (and the stopped foes' clocks, `drawStoppedFoes`).
@@ -1072,6 +1116,9 @@ export const drawLegendaryAir = (ctx: Ctx, g: Game, t: number, visible: (x: numb
     if (a.age < 0) continue
     // Rings and beams span the screen: they draw even when their center is off it.
     switch (a.visual) {
+      case 'spatialSlash':
+        drawSpatialSlash(ctx, a)
+        continue
       case 'originRing':
         drawOriginRing(ctx, a, t)
         continue
