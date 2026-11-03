@@ -12,6 +12,7 @@ import { RAYQUAZA_DOMAIN } from './domains/rayquaza'
 import { LUGIA_DOMAIN } from './domains/lugia'
 import { HO_OH_DOMAIN } from './domains/hoOh'
 import { DIALGA_DOMAIN } from './domains/dialga'
+import { PALKIA_DOMAIN } from './domains/palkia'
 import { LATIS_DOMAIN } from './domains/latis'
 import { DEOXYS_DOMAIN } from './domains/deoxys'
 import { DARKRAI_DOMAIN } from './domains/darkrai'
@@ -70,7 +71,7 @@ import { DARKRAI_DOMAIN } from './domains/darkrai'
  */
 
 /** How a legendary's sky looks over the map in its omen and over its domain (`render/legendSky.ts`). */
-export type LegendSky = 'downpour' | 'harshSun' | 'gale' | 'timeWarp' | 'storm' | 'embers' | 'mist' | 'meteors' | 'newMoon'
+export type LegendSky = 'downpour' | 'harshSun' | 'gale' | 'timeWarp' | 'storm' | 'embers' | 'mist' | 'meteors' | 'newMoon' | 'spatialShimmer'
 
 /** How the threat behind the crossing looks (`render/domain.ts`); its rules are the same for every kind. `magma`: lava chasing up a collapsing tunnel; `crumble`: a floor falling away into the sky. */
 export type ThreatKind = 'tide' | 'collapse' | 'fire' | 'void' | 'magma' | 'crumble' | 'storm' | 'time' | 'mist'
@@ -231,6 +232,7 @@ export const DOMAINS: Partial<Record<RiftLegend, LegendDomain>> = {
   lugia: LUGIA_DOMAIN,
   hoOh: HO_OH_DOMAIN,
   dialga: DIALGA_DOMAIN,
+  palkia: PALKIA_DOMAIN,
   latias: LATIS_DOMAIN,
   deoxys: DEOXYS_DOMAIN,
   darkrai: DARKRAI_DOMAIN,
