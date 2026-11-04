@@ -187,6 +187,11 @@ export const killEnemy = (g: Game, e: Enemy, source?: DamageSource | null) => {
   const share = e.boss ? 1 : g.tension.share
   if (e.xp > 0) dropXp(g, e.x, e.y, e.xp * share)
   dropCoins(g, e.x, e.y, coinDrops(g.rng, e, g.endless !== null))
+  // Meowth's Pay Day signature pays on knockouts, rather than TM hit procs.
+  if (source === 'payDay') {
+    const bonus = e.boss ? 50 + Math.floor(g.rng() * 51) : 2 + Math.floor(g.rng() * 4)
+    dropCoins(g, e.x, e.y, [bonus])
+  }
   faintCandies(g, e, share)
   if (e.shiny) dropPickup(g, e.x + 6, e.y, 'pokeball')
   if (e.alpha) {
