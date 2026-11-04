@@ -395,6 +395,9 @@ export const FAMILY_ABILITIES = {
   latios: ['sniper', 'infiltrator', 'adaptability'],
   deoxys: ['sniper', 'moxie', 'adaptability'],
   arceus: ['moldBreaker', 'magicGuard', 'sturdy'],
+  spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
+  shadowMewtwo: ['magicGuard', 'shedSkin', 'protean'],
+  palkia: ['pressure', 'sniper', 'adaptability'],
   darkrai: ['insomnia', 'unnerve', 'infiltrator'],
   cresselia: ['naturalCure', 'magicGuard', 'synchronize'],
 } as const satisfies Record<PlayableId, AbilitySet>
