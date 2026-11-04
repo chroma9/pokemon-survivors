@@ -37,3 +37,20 @@
 ## Status
 
 2026-11-03: clean upstream branch created. Porting work not yet validated. This checklist is an inventory, not a claim that any feature is implemented.
+
+## Phase 1 checkpoint — backend and staged browser modules
+
+- Added `relay/src/trainerAccounts.ts` from working production `main`.
+- Ported Trainer Account and authenticated administration HTTP handlers into the newer upstream `relay/src/index.ts`, retaining the upstream room and Arena routes.
+- Extended `relay/src/env.ts` with `TRAINER_ACCOUNTS`, `TRAINER_AUTH_LIMIT` and `GAME_ADMIN_TOKEN`.
+- Added `relay/wrangler.private.jsonc` (private Durable Object namespace + v5 migration). Secrets are **not** stored in Git.
+- Staged `src/trainerAccounts.ts`, `src/privateAdmin.ts` and `src/ui/privateTrainer.ts` from production for adaptation.
+
+### Not yet complete
+
+- **No build or runtime tests have run.** New upstream interfaces may require TypeScript adaptations.
+- Client UI, startup cloud synchronization and privileged console entry points are not yet wired into upstream `src/main.ts` and `src/ui/title.ts`.
+- Live-room spawn and observatory endpoints are **intentionally excluded** from the first backend port because newer upstream room/shard interfaces require review.
+- Private Trainer Account tokens must be integrated with the new co-op client and relay handshake before private sign-in can replace Clerk in our production flow.
+- Do not deploy until the Wrangler Durable Object binding and secrets are checked for the target environment.
+
