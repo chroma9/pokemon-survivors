@@ -20,7 +20,7 @@ import type { PokeType } from './types'
 /** The 23 regular legendaries, by their `EnemyId`: the ones Arceus waits for and the "every legend" counts. */
 export const REGULAR_LEGENDS = [
   'articuno', 'zapdos', 'moltres', 'raikou', 'entei', 'suicune', 'regirock', 'regice', 'registeel',
-  'mew', 'celebi', 'jirachi', 'mewtwo', 'lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga',
+  'mew', 'celebi', 'jirachi', 'mewtwo', 'lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga', 'palkia',
   'latias', 'latios', 'deoxys', 'arceus',
 ] as const satisfies readonly EnemyId[]
 
@@ -40,7 +40,8 @@ export const EVENT_LEGENDS = ['darkrai'] as const satisfies readonly EnemyId[]
 export const FESTIVAL_LEGENDS = ['cresselia'] as const
 
 /** Every playable legend: the regular ones, then the event ones, then the festival ones. */
-export const LEGEND_IDS = [...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS] as const
+export const PRIVATE_LEGENDS = ['shadowMewtwo'] as const
+export const LEGEND_IDS = [...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS, ...PRIVATE_LEGENDS] as const
 
 export type LegendId = (typeof LEGEND_IDS)[number]
 
@@ -369,6 +370,30 @@ export const LEGENDS = {
     awakenings: [{ maxHp: 30, might: 0.15, armor: 1 }, { maxHp: 45, might: 0.25, area: 0.1, cooldown: -0.05 }],
     innate: { ability: 'multitype' },
     unlock: { wins: 1, endless: true, last: true },
+  },
+
+  palkia: {
+    name: 'Palkia',
+    color: '#e28bc8',
+    stats: { maxHp: 45, armor: 1, might: 0.22, area: 0.12, speed: 3 },
+    signature: LEGENDARY_MOVE_OF.palkia,
+    learnset: [[LEGENDARY_MOVE_OF.palkia, 'dragonBreath', 'dragonTail', 'waterGun', 'whirlpool', 'brine', 'flashCannon', 'earthquake']],
+    line: stage(484, 'Palkia', ['water', 'dragon']),
+    awakenings: [{ maxHp: 30, might: 0.14, area: 0.1 }, { maxHp: 45, might: 0.22, cooldown: -0.05 }],
+    innate: { ability: 'pressure' },
+    unlock: RIFT_WINS,
+  },
+
+  shadowMewtwo: {
+    name: 'Shadow Mewtwo',
+    color: '#604e82',
+    stats: { maxHp: 50, might: 0.25, armor: 1, speed: 4 },
+    signature: 'darkPulse',
+    learnset: [['darkPulse', 'shadowBall', 'fireSpin', 'thunder', 'iceBeam', 'earthquake']],
+    line: stage(150, 'Shadow Mewtwo', ['psychic']),
+    awakenings: [{ maxHp: 30, might: 0.15, armor: 1 }, { maxHp: 45, might: 0.25, area: 0.1, cooldown: -0.05 }],
+    innate: { ability: 'magicGuard' },
+    unlock: { wins: 1 },
   },
 
   /* ---------- The Noite das Bruxas' nightmare ---------- */
