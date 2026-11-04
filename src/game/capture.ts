@@ -1,4 +1,3 @@
-import { canUseMewtwoClone as canUseShadowMewtwo } from '../privateMewtwo'
 import { isLegend, LEGEND_IDS, LEGENDS, REGULAR_LEGENDS, type LegendId, type LegendUnlock } from '../data/legends'
 import { MYTHICALS, TRIO_IDS, TRIOS } from '../data/waves'
 import type { PlayableId } from '../data/hatchlings'
@@ -108,4 +107,6 @@ export const parseCaptures = (raw: unknown): Captures =>
   isRecord(raw) ? Object.fromEntries(LEGEND_IDS.flatMap((id) => (wholeNumber(raw[id]) > 0 ? [[id, wholeNumber(raw[id])]] : []))) : NO_CAPTURES
 
 /** Whether the save can start a run with `id`: a starter, a hatched family, or a captured legend. */
-export const canPlay = (save: Pick<Save, 'hatched' | 'legends'>, id: PlayableId) => (id === 'shadowMewtwo' ? canUseShadowMewtwo() : isLegend(id) ? isCaptured(save.legends, id) : isUnlocked(save.hatched, id))
+/** Private visibility is a UI decision, never a browser-account dependency of the deterministic simulation. */
+export const canPlay = (save: Pick<Save, 'hatched' | 'legends'>, id: PlayableId, privateAllowed = false) =>
+  id === 'shadowMewtwo' ? privateAllowed : isLegend(id) ? isCaptured(save.legends, id) : isUnlocked(save.hatched, id)
