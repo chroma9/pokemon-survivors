@@ -21,34 +21,34 @@ export const importsOf = (text: string): string[] => {
   // an ordinary comment saying "from '../ui/save'" cannot create a false
   // simulation dependency. The regex only recognizes import/export statements
   // starting a source line and literal dynamic imports.
-  const source = text.replace(/\\/\\*[\\s\\S]*?\\*\\/|(^|[^:'"`])\\/\\/[^\\n]*/gm, (part) =>
-    part.replace(/[^\\n]/g, ' '),
+  const source = text.replace(/\/\*[\s\S]*?\*\/|(^|[^:'"\`])\/\/[^\n]*/gm, (part) =>
+    part.replace(/[^\n]/g, ' '),
   )
   const result: string[] = []
-  const lines = source.split('\\n')
+  const lines = source.split('\n')
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!.trim()
-    if (/^import\\s+type\\b|^export\\s+type\\b/.test(line)) continue
-    if (/^import\\s*['"]/.test(line)) {
-      const spec = /^import\\s*['"]([^'"]+)['"]/.exec(line)
+    if (/^import\s+type\b|^export\s+type\b/.test(line)) continue
+    if (/^import\s*['"]/.test(line)) {
+      const spec = /^import\s*['"]([^'"]+)['"]/.exec(line)
       if (spec) result.push(spec[1]!)
       continue
     }
-    if (/^(?:import|export)\\s/.test(line)) {
+    if (/^(?:import|export)\s/.test(line)) {
       // Declarations may span lines. Stop at their module specifier.
-      const stmt = lines.slice(i, i + 20).join('\\n')
-      const match = /\\bfrom\\s*['"]([^'"]+)['"]/.exec(stmt)
+      const stmt = lines.slice(i, i + 20).join('\n')
+      const match = /\bfrom\s*['"]([^'"]+)['"]/.exec(stmt)
       if (match) {
         const prefix = stmt.slice(0, match.index).trim()
-        const body = prefix.replace(/^(?:import|export)\\s*/, '').trim()
-        const named = /^\\{([\\s\\S]*?)\\}$/.exec(body)
-        const onlyTypes = named && named[1]!.split(',').filter(Boolean).every((x) => /^type\\s/.test(x.trim()))
+        const body = prefix.replace(/^(?:import|export)\s*/, '').trim()
+        const named = /^\{([\s\S]*?)\}$/.exec(body)
+        const onlyTypes = named && named[1]!.split(',').filter(Boolean).every((x) => /^type\s/.test(x.trim()))
         if (!onlyTypes) result.push(match[1]!)
       }
     }
   }
   // Literal dynamic imports, never arbitrary strings containing the word.
-  const dynamic = /\\bimport\\s*\\(\\s*['"]([^'"]+)['"]\\s*\\)/g
+  const dynamic = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g
   for (let m = dynamic.exec(source); m; m = dynamic.exec(source)) result.push(m[1]!)
   return result
 }
