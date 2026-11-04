@@ -128,7 +128,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /* ---------- Roster ---------- */
 
 
-  const cellPortrait = (id: PlayableId) => h('img', { class: 'partner-cell-portrait', src: portraitUrl(PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
+  const cellPortrait = (id: PlayableId) => h('img', { class: 'partner-cell-portrait', src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
   /** A family still in its egg (a legend not captured yet): its first stage's silhouette at 2× (a big legend's at 1×), centered on the body (`bodyOf`) and cropped by the cell like a portrait. */
   const cellSilhouette = (id: HatchlingId | LegendId) => {
     const dex = PLAYABLE[id].line[0].dex
