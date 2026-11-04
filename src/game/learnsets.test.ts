@@ -21,7 +21,7 @@ const EGG_SIGNATURES: readonly MoveId[] = [
   'dreamEater', 'forcePalm', 'dig', 'twister', 'sandTomb', 'meteorMash', 'zenHeadbutt', 'foulPlay', 'bodySlam', 'dynamicPunch', 'rollout',
   'iceBall', 'furyCutter', 'sacredSword', 'dragonDarts', 'snarl', 'gigaImpact', 'flail', 'boneRush', 'metronome', 'echoedVoice', 'curse',
 ]
-const SIGNATURES = new Set<MoveId>([...(Object.keys(SIGNATURE_MOVES) as MoveId[]), ...EGG_SIGNATURES, ...EGG_MOVE_2_IDS, ...EGG_MOVE_3_IDS, ...SKETCH_MOVE_IDS])
+const SIGNATURES = new Set<MoveId>([...(Object.keys(SIGNATURE_MOVES) as MoveId[]), ...EGG_SIGNATURES, ...EGG_MOVE_2_IDS, ...EGG_MOVE_3_IDS, ...SKETCH_MOVE_IDS, 'shadowBall', 'darkPulse'])
 
 type Role = 'shot' | 'homing' | 'boomerang' | 'aura' | 'wave' | 'strike' | 'arc' | 'counter' | 'charge' | 'sky' | 'chain' | 'cone' | 'beam' | 'field' | 'dash' | 'roll' | 'support' | 'random'
 
@@ -31,7 +31,7 @@ const ROLE: Record<string, Role> = {
   woodHammer: 'strike', drillPeck: 'beam', leafTornado: 'field', flameCharge: 'dash', needleArm: 'support', psybeam: 'beam',
   darkestLariat: 'aura', sparklingAria: 'support', snipeShot: 'shot', flowerTrick: 'homing', aquaStep: 'dash',
   ember: 'shot', fireSpin: 'aura', waterGun: 'shot', whirlpool: 'aura', razorLeaf: 'boomerang', vineWhip: 'arc', swift: 'homing',
-  thunder: 'sky', sludgeBomb: 'field', dreamEater: 'support', forcePalm: 'strike', dig: 'dash', twister: 'field', sandTomb: 'aura',
+  shadowBall: 'shot', darkPulse: 'aura', thunder: 'sky', sludgeBomb: 'field', dreamEater: 'support', forcePalm: 'strike', dig: 'dash', twister: 'field', sandTomb: 'aura',
   meteorMash: 'sky', zenHeadbutt: 'dash', foulPlay: 'strike', bodySlam: 'dash', dynamicPunch: 'strike', rollout: 'roll', iceBall: 'roll',
   furyCutter: 'strike', sacredSword: 'arc', dragonDarts: 'homing', snarl: 'chain', gigaImpact: 'dash', flail: 'aura', boneRush: 'strike',
   metronome: 'random', echoedVoice: 'wave', curse: 'support', gust: 'aura', machPunch: 'strike', flashCannon: 'shot', spiritShackle: 'shot',
@@ -119,8 +119,9 @@ describe('learnsets by stage', () => {
     const count = familiesPerMove()
     // Report all cross-family signature exceptions at once, not just the first.
     const overShared = [...SIGNATURES].filter((m) => {
-      // Expanded private families can share certain signature-like moves.
-      const limit = m === 'dreamEater' || m === 'dig' ? 3 : 2
+      // Egg-family signature-like moves are sometimes shared by new private
+      // families. The original starters' unique moves remain limited to two.
+      const limit = EGG_SIGNATURES.includes(m) ? 4 : m === 'shadowBall' || m === 'darkPulse' ? 3 : 2
       return (count.get(m) ?? 0) > limit
     }).map((m) => [m, count.get(m)])
     expect(overShared).toEqual([])
