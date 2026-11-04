@@ -19,7 +19,7 @@ import { pollToVote, supporterCount, tierRank, type WallEntry } from '../game/su
 import { formatNumber, locale, t } from '../i18n'
 import { arenaIcon, bulbIcon, coinIcon, coopIcon, discordIcon, eggIcon, giftIcon, heartIcon, itemIcon, medalIcon, newsIcon, pawIcon, pokeballIcon, ribbonIcon, socialIcon, sparkleIcon, supporterIcon, surveyIcon } from '../render/art'
 import { logoScale, titleLogo } from '../render/logo'
-import { drawPokemon, loadedSprites, loadSpecies, sprites, type Dex } from '../render/sprites'
+import { drawPokemon, loadedSprites, loadSpecies, sprites, type Dex, type FormKey } from '../render/sprites'
 import type { LobbyNpc, Place } from '../render/titleScene'
 import { isBoard, type BoardId } from '../render/stadium'
 import { stallGoods } from '../game/stalls'
@@ -86,7 +86,7 @@ export type Meadow = {
    * Puts the partner on its stage. Returns how this lobby lets it go: a no-op
    * once a newer lobby met it (the next title is built before this one goes).
    */
-  meet: (partner: { dex: Dex; shiny: boolean }) => () => void
+  meet: (partner: { dex: Dex; shiny: boolean; form?: FormKey }) => () => void
   /** This frame's keys or stick, a tapped spot, and where the stage holds the partner's feet. */
   steer: (move: Vec, tap: Vec | null, home: Vec) => void
   /** Whether the partner is out in the meadow (else the stage draws it). */
@@ -694,7 +694,7 @@ const partnerStage = (onPlay: () => void) => {
     const r = canvas.getBoundingClientRect()
     return { x: r.left + r.width / 2, y: r.top + (r.height * STAGE.feet) / STAGE.h }
   }
-  return { el, tick, setOut, feet, partner: { dex: form.dex, shiny } }
+  return { el, tick, setOut, feet, partner: { dex: form.dex, shiny, form: spriteForm } }
 }
 
 /* ---------------- Collection dock ---------------- */
