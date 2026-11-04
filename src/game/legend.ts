@@ -71,6 +71,7 @@ export const formAfter = (id: LegendId, awakened: number): LegendDef['form'] | n
 export const legendLook = (g: Game): LegendForm | undefined => {
   const s = g.player.legend
   if (!s) return undefined
+  if (s.id === 'shadowMewtwo') return 'shadow'
   const form = formAfter(s.id, s.awakened)
   if (form) return form.key
   const stance = g.player.special.stance
