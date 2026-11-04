@@ -5,7 +5,7 @@ import { NO_RANKS, UPGRADE_IDS } from '../game/meta'
 import { stateHash } from '../game/snapshot'
 import { COOP } from '../data/coop'
 import type { RunStart } from '../net/protocol'
-import { parseSettings, settingsOf, startGame } from './start'
+import { parseLoadout, parseSettings, settingsOf, startGame } from './start'
 
 const ranked = Object.fromEntries(UPGRADE_IDS.map((id) => [id, 1]))
 const loadout = { starter: 'pichu', ranks: ranked, shiny: false } as const
@@ -21,6 +21,13 @@ const DUO: RunStart = {
 }
 
 const DAY = '2026-11-02'
+
+describe('private co-op legendary loadouts', () => {
+  it('preserves a playable legendary through the shared parser', () => {
+    expect(parseLoadout({ starter: 'palkia', ranks: NO_RANKS, shiny: false }).starter).toBe('palkia')
+    expect(parseLoadout({ starter: 'shadowMewtwo', ranks: NO_RANKS, shiny: false }).starter).toBe('shadowMewtwo')
+  })
+})
 
 describe('the Desafio co-op do dia in a room', () => {
   it("keeps a run room's challenge day across the wire, and never an Arena room's or a bad one", () => {
