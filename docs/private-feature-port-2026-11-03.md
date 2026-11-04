@@ -129,3 +129,11 @@ Following owner direction, **finish transfer before debugging/compilation triage
 - After all feature ports, run game/relay TypeScript checks, tests, visual smoke tests, co-op sync and cloud-save migration checks; only then diagnose/fix failures.
 
 This is a migration checkpoint, **not** a build/test pass or production deployment.
+
+### Additional migrated dependencies
+- Mystery Gift content supports normal/shiny `pokemonGift` families, preserves legacy legendary gifts, and displays the awarded Pokémon portrait.
+- Meowth's signature Pay Day awards coins on enemy defeat while ordinary TM Pay Day retains its separate hit behavior.
+- Shadow Ball/Dark Pulse icons and responsive private Trainer Account styling have been carried over.
+- The five game locale files have Palkia, Shadow Mewtwo, Spiritomb and move descriptions.
+
+**Do not claim completion.** Remaining custom UI, progression, presentation and relay integration differences still need review before whole-branch test/debug.
