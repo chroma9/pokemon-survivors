@@ -78,7 +78,6 @@ export const coopUrl = (): string | null => {
   const configured = import.meta.env.VITE_COOP_URL
   const devOverride = import.meta.env.DEV ? local.get(URL_KEY) : null
   if (devOverride) return devOverride
-  if (configured) return configured
   // Cloudflare Pages creates a different <deployment>.chroma9-survivors.pages.dev
   // hostname for every preview build. Those one-label preview hosts must never
   // depend on an accidentally absent Preview-only Vite environment variable.
@@ -86,6 +85,7 @@ export const coopUrl = (): string | null => {
   if (typeof location !== 'undefined' && /^[a-z0-9-]+\.chroma9-survivors\.pages\.dev$/.test(location.hostname)) {
     return 'https://chroma9-survivors-coop-preview.officialchroma9.workers.dev'
   }
+  if (configured) return configured
   if (!accountsEnabled && !import.meta.env.DEV) return null
   return import.meta.env.DEV ? DEV_RELAY : null
 }
