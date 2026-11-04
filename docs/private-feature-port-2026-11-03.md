@@ -67,3 +67,13 @@
 - Added `.github/workflows/private-port.yml` for branch-only unit tests, TypeScript and relay checks (no deploy step).
 
 **Validation:** Changes committed only to `Updated-11-3-2026`. Successful GitHub Actions checks have not yet been confirmed. End-to-end UI, co-op, token revocation, saved data, and relay deployment tests remain required.
+
+## Phase 1 follow-up — private reward UI parity
+
+- Adapted upstream `src/ui/gifts.ts` with an optional gift source, preserving the original Clerk inbox as the default. The private Trainer Account may now supply its own inbox and gift application callback.
+- Exposed `shinyPicker` and `companionPicker` from upstream `src/ui/supporters.ts`, with optional sync callbacks. Standard upstream callers continue using the existing `syncSave` behavior.
+- Restored the complete working private Trainer Account screen with Mystery Gift opening, shiny ticket selection and companion selection; these now call the adapted upstream components.
+- Backported the explicit `No companion` cloud-save merge fix from production `main` and a dedicated regression test.
+- Kept the new upstream map, game mechanics, and public support UI otherwise unchanged.
+
+**Testing still required:** TypeScript build, GitHub Actions results, end-to-end gift redemption and cloud-save persistence, UI navigation, co-op + Arena, and Cloudflare Worker deployment. None of these are claimed verified yet.
