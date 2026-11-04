@@ -18,7 +18,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
     {
       below: 1,
       hold: true,
-      steer: { kind: 'anchor', x: 0, y: 0, drift: 0, pace: 0.5 },
+      steer: { kind: 'anchor', x: 0, y: 0, drift: 52, pace: 1 },
       patterns: [
         { kind: 'volley', every: 3.5, count: 3, arc: 0.6, speed: 90, windup: 1, radius: 6, damage: 17, visual: 'water' },
         { kind: 'ring', every: 5.7, count: 12, speed: 65, radius: 5, damage: 15, visual: 'dragon', gap: 0.8 },
@@ -38,7 +38,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
       below: 0.66,
       hold: true,
       shift: 2.2,
-      steer: { kind: 'hold', range: 110, pace: 0.55 },
+      steer: { kind: 'orbit', radius: 88, pace: 0.9 },
       patterns: [
         { kind: 'strikes', every: 7, target: 'player', count: 3, spread: 72, radius: 17, delay: 1.2, damage: 21, visual: 'spatial' },
         { kind: 'ring', every: 5.3, count: 16, speed: 70, radius: 5, damage: 16, visual: 'water', gap: 0.6 },
@@ -56,7 +56,7 @@ export const PALKIA_DOMAIN: LegendDomain = {
       below: 0.33,
       hold: true,
       shift: 2.6,
-      steer: { kind: 'chase', pace: 0.55 },
+      steer: { kind: 'chase', pace: 1.05 },
       patterns: [
         { kind: 'strikes', every: 6.2, target: 'player', count: 5, spread: 90, radius: 17, delay: 1.1, damage: 23, visual: 'spatial' },
         { kind: 'ring', every: 4.9, count: 18, speed: 75, radius: 5, damage: 17, visual: 'water', gap: 0.5 },
