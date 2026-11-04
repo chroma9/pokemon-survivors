@@ -198,6 +198,7 @@ export type CoopDeps = {
   store: Store
   /** A fresh Clerk session token when signed in (asked on every connect), else null (a guest: dev and local relays only). */
   token: () => Promise<string | null>
+  trainerToken?: () => string | null
   name: () => string
   now: () => number
   random: () => number
@@ -441,7 +442,7 @@ export const createCoopClient = (deps: CoopDeps) => {
           v: PROTOCOL,
           build: deps.build,
           room: code,
-          auth: token ? { kind: 'clerk', token } : { kind: 'guest', id: guestId() },
+          auth: deps.trainerToken?.() ? { kind: 'trainer', token: deps.trainerToken()! } : token ? { kind: 'clerk', token } : { kind: 'guest', id: guestId() },
           secret: deps.store.get(secretKey(code)),
           name: deps.name(),
           resume: resumeFrom(),
