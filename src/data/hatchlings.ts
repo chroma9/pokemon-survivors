@@ -45,6 +45,19 @@ export const HATCHLINGS = {
       { maxHp: 35, speed: 4, might: 0.2, area: 0.1 },
     ]),
   },
+  meowth: {
+    name: 'Meowth',
+    color: '#e8d0a0',
+    egg: 'common',
+    // A quick, fragile Normal-type attacker with a coin-flinging signature.
+    stats: { maxHp: -20, speed: 10, might: 0.06, greed: 0.12 },
+    signature: 'payDay',
+    learnset: [
+      ['payDay', 'quickAttack', 'swift', 'flail', 'crunch', 'dig', 'uTurn'],
+      ['bodySlam', 'gigaImpact', 'roost', 'suckerPunch'],
+    ],
+    line: line2(['Meowth', 52, ['normal']], ['Persian', 53, ['normal']], { maxHp: 40, speed: 8, might: 0.24, cooldown: -0.06 }),
+  },
   machop: {
     name: 'Machop',
     color: '#8098b8',
@@ -269,6 +282,16 @@ export const HATCHLINGS = {
   },
 
   /* ---------- Rare eggs ---------- */
+  onix: {
+    name: 'Onix',
+    color: '#9098a0',
+    egg: 'rare',
+    stats: { maxHp: 35, armor: 2, speed: -7, might: 0.05 },
+    signature: 'rockTomb',
+    learnset: [['rockTomb', 'earthquake', 'stealthRock', 'gyroBall', 'heavySlam', 'rockBlast'], ['flashCannon', 'bodySlam'], ['rollout', 'selfDestruct']],
+    line: line2(['Onix', 95, ['rock', 'ground']], ['Steelix', 208, ['steel', 'ground']], { maxHp: 75, armor: 3, might: 0.22, area: 0.1 }),
+  },
+
   gastly: {
     name: 'Gastly',
     color: '#7058a0',
