@@ -22,6 +22,7 @@ describe('the simulation build id', () => {
   it('reads every kind of import specifier', () => {
     expect(importsOf("import a from './a'\nexport { b } from \"./b\"\nimport './c'\nawait import('./d')")).toEqual(['./a', './b', './c', './d'])
     expect(importsOf("import type { T } from '../ui/types'\nexport type { U } from '../ui/uiTypes'\nimport { x } from './runtime'")).toEqual(['./runtime'])
+    expect(importsOf("// import { fake } from '../ui/save'\nconst message = \"from '../trainerAccounts'\"\nimport { type View } from '../render/art'\nimport './actual'")).toEqual(['./actual'])
   })
 
   it('follows the imports from the roots, json included, and nothing that only imports the simulation', () => {
