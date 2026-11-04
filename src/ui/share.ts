@@ -1,4 +1,5 @@
 import { accountHandle, accountState } from '../account'
+import type { TrainerProfile, PublicTrainerCard } from '../trainerAccounts'
 import { currentTrainer, trainerToken } from '../trainerAccounts'
 import { track } from '../analytics'
 import { playSfx } from '../engine/audio'
@@ -6,12 +7,12 @@ import type { Input } from '../engine/input'
 import { formatTime } from '../engine/math'
 import { ACHIEVEMENTS, MEDALS, type Medal, type TitleId } from '../data/achievements'
 import { ENEMIES } from '../data/enemies'
-import { PLAYABLE, type PlayableId } from '../data/hatchlings'
+import { PLAYABLE, PLAYABLE_IDS, type PlayableId } from '../data/hatchlings'
 import { TYPE_COLORS } from '../data/types'
 import { playerForm } from '../game/branch'
 import { dexCounts, dexNews, type Pokedex } from '../game/dex'
 import type { ChallengePlace } from '../game/ranking'
-import { ribbonCounts } from '../game/ribbons'
+import { ribbonCounts, RIBBON_TIERS, type RibbonTier } from '../game/ribbons'
 import { playsShiny } from '../game/shinyPicks'
 import type { Save } from '../game/meta'
 import type { DamageSource, Game } from '../game/types'
@@ -164,6 +165,36 @@ export const trainerShare = (partner: PlayableId): ShareCard => {
     text: t().share.trainerText(shinies.length, counts.caught, trainer.url),
     file: 'pokemon-survivors-trainer-card.png',
   }
+}
+
+/** Another Trainer's public card: reconstructed only from the relay's allowlisted progress fields. */
+export const publicTrainerCard = (profile: TrainerProfile, summary: PublicTrainerCard): Promise<HTMLCanvasElement> => {
+  const id = PLAYABLE_IDS.find((candidate) => candidate === summary.partner) ?? PLAYABLE_IDS[0]!
+  const dex: Pokedex = Object.fromEntries(summary.dexFlags
+    .filter(([n, flags]) => Number.isSafeInteger(n) && Number.isSafeInteger(flags))
+    .map(([n, flags]) => [n, [0, flags]]))
+  const species = gameDex()
+  const counts = dexCounts(dex, species.map((e) => e.dex))
+  const shinies = caughtShinies(dex, boxSpecies())
+    .map((e) => ({ dex: e.dex, legendary: e.role === 'legendary' }))
+    .sort(showcaseOrder)
+    .map((e) => mon(e.dex, true))
+  const earned = new Set(summary.achievements)
+  const medals = Object.fromEntries(MEDALS.map((medal) => [medal,
+    Object.entries(ACHIEVEMENTS).filter(([key, def]) => def.medal === medal && earned.has(key)).length,
+  ])) as Record<Medal, number>
+  const ribbons = Object.fromEntries(RIBBON_TIERS.map((tier) => [tier, summary.ribbons.filter((r) => r === tier).length])) as Record<RibbonTier, number>
+  const title = summary.title && summary.title in t().achievements.titles
+    ? t().achievements.titles[summary.title as TitleId] : null
+  return drawTrainerCard({
+    date: new Date(), name: profile.name,
+    partner: mon(PLAYABLE[id].line[0].dex, summary.partnerShiny),
+    medals, ribbons, shinies: shinies.length,
+    dex: { caught: counts.caught, seen: counts.seen, total: species.length },
+    bestTime: Number.isFinite(summary.bestTime) ? summary.bestTime : 0,
+    showcase: shinies,
+    trainer: { handle: profile.handle, title, link: location.host + location.pathname },
+  })
 }
 
 /* ---------------- Getting it out ---------------- */
