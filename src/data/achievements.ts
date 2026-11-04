@@ -1,6 +1,6 @@
 import type { EggTier } from '../game/eggs'
-import { PLACE_IDS } from './places'
-import { RIFT_PUBLIC_LEGENDS } from './rifts'
+import { HIDDEN_PLACE_IDS, REGULAR_PLACE_IDS } from './places'
+import { RIFT_LEGENDS } from './rifts'
 
 /**
  * Achievements: lifetime goals with a bronze, silver or gold medal. Names,
@@ -26,7 +26,7 @@ export type AchievementStat =
   | 'rifts' | 'legends' | 'overtimeMinutes' | 'reaperDefeats'
   | 'bossKills' | 'chests' | 'meowths' | 'altars' | 'coins' | 'moveEvolutions' | 'missions'
   | 'dexSeen' | 'starterLines' | 'hatches' | 'shinyHatches' | 'megas' | 'alphaKills'
-  | 'placeClears' | 'places' | 'landmarks'
+  | 'placeClears' | 'places' | 'hiddenZones' | 'landmarks'
 
 export type AchievementDef = {
   medal: Medal
@@ -86,10 +86,12 @@ export const ACHIEVEMENTS = {
   alpha25: { medal: 'silver', stat: 'alphaKills', target: 25 },
   alpha100: { medal: 'gold', stat: 'alphaKills', target: 100, title: true },
   /** Every rift legendary beaten at least once (unlocked ones stay unlocked when the list grows). */
-  legends: { medal: 'gold', stat: 'legends', target: RIFT_PUBLIC_LEGENDS.length, title: true },
+  legends: { medal: 'gold', stat: 'legends', target: RIFT_LEGENDS.length, title: true },
   shinyLegend: { medal: 'gold', stat: 'shinyLegends', target: 1 },
   /** Every place cleared at least once: the cave's treasure, Spiritomb and a flight with a wing (which takes a Flying type). */
-  explorer: { medal: 'gold', stat: 'places', target: PLACE_IDS.length, title: true },
+  explorer: { medal: 'gold', stat: 'places', target: REGULAR_PLACE_IDS.length, title: true },
+  /** Every hidden zone found at least once (`hidden` in `data/places.ts`): they're rare, unannounced, and the medal is the only hint that there's more than one. */
+  secrets: { medal: 'gold', stat: 'hiddenZones', target: HIDDEN_PLACE_IDS.length, title: true },
   champion: { medal: 'silver', stat: 'wins', target: 1, title: true },
   wins10: { medal: 'gold', stat: 'wins', target: 10 },
   trio: { medal: 'silver', stat: 'trio', target: 3 },
@@ -125,7 +127,7 @@ export type MedalTitleId = { [K in AchievementId]: (typeof ACHIEVEMENTS)[K] exte
  * the Arena's four for a ranked season's peak tier (`ARENA_REWARDS` in `game/arenaRewards.ts`),
  * the Creator's for making videos of the game (sent from the admin desk, `data/creators.ts`).
  */
-export const GIFT_TITLES = ['ambassador', 'supporter', 'pumpkinKing', 'exorcist', 'vipCustomer', 'tycoon', 'patron', 'ogSupporter', 'arenaPoke', 'arenaGreat', 'arenaUltra', 'arenaMaster', 'creator', 'developer', 'tester'] as const
+export const GIFT_TITLES = ['ambassador', 'supporter', 'pumpkinKing', 'exorcist', 'vipCustomer', 'tycoon', 'patron', 'ogSupporter', 'arenaPoke', 'arenaGreat', 'arenaUltra', 'arenaMaster', 'creator'] as const
 
 export type GiftTitleId = (typeof GIFT_TITLES)[number]
 

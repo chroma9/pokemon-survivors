@@ -79,7 +79,7 @@ export const legendLook = (g: Game): LegendForm | undefined => {
 }
 
 /** Arceus's Multitype: the type of the biome it stands in (its first affinity). */
-const multitypeOf = (g: Game) => BIOMES[g.biome.id].affinity[0] ?? 'normal'
+const multitypeOf = (g: Game) => BIOMES[g.player.biome].affinity[0] ?? 'normal'
 
 const stages = new Map<string, EvolutionStage>()
 
@@ -228,7 +228,6 @@ export const avoidLegend = (roster: Roster, legend: PlayableId, events: readonly
   }
 }
 
-/** A boss of a player's own species (Mewtwo's finale for a Mewtwo, Arceus's reaper for an Arceus): its dark Clone. */
 /** A boss of a player's own species (Mewtwo's finale for a Mewtwo, Arceus's reaper for an Arceus): its dark Clone. */
 export const isClone = (g: Game, e: Enemy) => e.boss && g.players.some((p) => p.legend !== null && e.kind === p.legend.id)
 

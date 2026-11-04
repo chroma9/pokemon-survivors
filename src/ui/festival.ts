@@ -1,5 +1,4 @@
 import { accountHandle, accountsEnabled, accountState, onAccountChange, signIn } from '../account'
-import { currentTrainer, trainerToken } from '../trainerAccounts'
 import { FESTIVAL, type Festival, type FestivalId } from '../data/festivals'
 import { BAG_ITEMS } from '../data/shop'
 import type { FrameId } from '../data/style'
@@ -210,7 +209,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
   )
   el.append(sheet)
 
-  const signedIn = () => accountState().kind === 'signedIn' || Boolean(trainerToken() && currentTrainer())
+  const signedIn = () => accountState().kind === 'signedIn'
   /** The most the player may give now: the rules' cap, today's cap left and the wallet. */
   const most = () => Math.min(FESTIVAL.dailyCap, view.capLeft, loadSave().wallet)
   const amount = () => (custom ? typedAmount(field.value) : chip)
@@ -250,7 +249,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
     const giving = p.kind === 'running' && tab === 'fountain' && signedIn()
     const n = amount()
     const why = giving && (chip !== null || custom) ? refusal(n) : null
-    const text = said?.text ?? (p.kind !== 'running' ? (p.kind === 'after' ? m.after.claim : m.foot) : !signedIn() ? m.guest : (why ?? m.foot))
+    const text = said?.text ?? (p.kind !== 'running' ? (p.kind === 'after' ? m.after.claim : m.foot) : !signedIn() ? (accountsEnabled ? m.guest : m.guestOffline) : (why ?? m.foot))
     setText(footText, text)
     footText.className = `festival-foot-text ${said?.tone ?? (why && n !== null ? 'error' : '')}`
     donateBtn.hidden = !giving || said?.handle === true
@@ -323,7 +322,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
   const renderPlaque = (f: Festival) => {
     const pl = m.plaque
     const mine = view.mine
-    const handle = currentTrainer()?.handle ?? accountHandle()
+    const handle = accountHandle()
     const given = mine?.given[f.id] ?? 0
     plaqueSwitch.setAttribute('aria-checked', String(mine?.public !== false))
     plaqueSwitch.replaceChildren(h('span', {}, pl.show), h('b', {}, mine?.public === false ? pl.hidden : pl.shown))
@@ -539,8 +538,6 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
     render()
   })
   const offAccount = onAccountChange(() => render())
-  const trainerChanged = () => { view = festivalView(); render(); void loadFestival(true) }
-  window.addEventListener('ps:trainer-changed', trainerChanged)
 
   render()
   focus([chips[1]!, signInBtn, tabs.fountain].find((n) => navs().includes(n)) ?? tabs.fountain, false)
@@ -564,7 +561,6 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
       offKeys()
       offFestival()
       offAccount()
-      window.removeEventListener('ps:trainer-changed', trainerChanged)
       nested?.dispose()
       talk.dispose()
       el.remove()

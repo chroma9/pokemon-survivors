@@ -92,6 +92,8 @@ describe('coopStarter', () => {
     expect(coopStarter('gible')).toBe('gible')
     expect(coopStarter('squirtle')).toBe('squirtle')
     expect(coopStarter('mewtwo')).toBe(PLAYABLE_IDS[0])
+    expect(coopStarter('mewtwo', true)).toBe('mewtwo')
+    expect(coopStarter('palkia', true)).toBe('palkia')
   })
 })
 

@@ -1064,9 +1064,7 @@ export const drawLegendaryGround = (ctx: Ctx, g: Game, t: number) => {
   }
 }
 
-/** Palkia's player move: a dimensional incision with a dark interior and
- * asymmetrical pink-white edges. The invisible overlapping hitboxes deliver
- * its damage; this one visual renders the whole cut once. */
+/** Air layer (over the Pokémon). */
 const drawSpatialSlash = (ctx: Ctx, a: Attack) => {
   const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
   const open = Math.max(0, Math.min(1, a.age / 0.07))

@@ -39,6 +39,14 @@ if (current === null) throw new Error(`no RULES_VERSION in ${REPLAY}`)
 const target = current - 1
 
 const findCommit = () => {
+  // A fork migrating from a different upstream history can name the exact
+  // production parent whose replays require backward compatibility.
+  const explicit = process.env.RULES_FREEZE_COMMIT
+  if (explicit) {
+    const selected = git('rev-parse', '--verify', `${explicit}^{commit}`)
+    if (versionAt(selected) !== target) throw new Error(`RULES_FREEZE_COMMIT ${selected} has rules ${versionAt(selected)}, expected ${target}`)
+    return selected
+  }
   if (versionAt('HEAD') === target) return git('rev-parse', 'HEAD')
   const main = tryGit('rev-parse', '--verify', '-q', 'origin/main')
   if (main && tryGit('merge-base', '--is-ancestor', main, 'HEAD') !== null && versionAt(main) === target) return main

@@ -1,5 +1,4 @@
 import { accountHandle, accountState } from '../account'
-import { currentTrainer } from '../trainerAccounts'
 import { track } from '../analytics'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -59,9 +58,8 @@ const wornStyle = (): CardStyle => {
 
 /** Who shares: the handle and title, and the game's link crediting the handle (shown without the scheme). */
 const trainerLine = (title: TitleId | null): CardTrainer & { url: string } => {
-  const cloud = currentTrainer()
-  const handle = cloud?.handle ?? accountHandle()
-  const url = cloud ? `${location.origin}${location.pathname}?ref=${encodeURIComponent(handle ?? '')}` : gameUrl(handle)
+  const handle = accountHandle()
+  const url = gameUrl(handle)
   return { handle, title: title ? t().achievements.titles[title] : null, link: url.replace(/^https?:\/\/(www\.)?/, ''), url }
 }
 
@@ -137,7 +135,6 @@ export const trainerShare = (partner: PlayableId): ShareCard => {
   const save = loadSave()
   const s = accountState()
   const trainer = trainerLine(save.title)
-  const cloud = currentTrainer()
   const { species, counts, shinies, medals } = trainerTotals(save)
   const showcase = shinies
     .map((e) => ({ dex: e.dex, legendary: e.role === 'legendary' }))
@@ -146,7 +143,7 @@ export const trainerShare = (partner: PlayableId): ShareCard => {
   const first = PLAYABLE[partner].line[0]
   const card: TrainerCardData = {
     date: new Date(),
-    name: cloud?.name ?? (s.kind === 'signedIn' && s.name ? s.name : null),
+    name: s.kind === 'signedIn' && s.name ? s.name : null,
     partner: { dex: first.dex, name: first.name, shiny: playsShiny(save, partner) },
     medals,
     shinies: shinies.length,

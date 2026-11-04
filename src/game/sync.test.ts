@@ -35,6 +35,13 @@ const account = save({
 })
 
 describe('mergeSaves', () => {
+  it('keeps an explicit No companion choice during private cloud-save merge', () => {
+    const equipped = save({ companion: { id: 'charmander', shiny: false } })
+    const unequipped = save({ companion: null })
+    expect(mergeSaves(equipped, unequipped).companion).toBeNull()
+    expect(mergeSaves(unequipped, equipped).companion).toEqual(equipped.companion)
+  })
+
   it("never pays back what one side spent on the Vitrine or on styles", () => {
     const before = save({ wallet: 20_000 })
     const v = vitrineOf('2026-10-21')
@@ -67,13 +74,6 @@ describe('mergeSaves', () => {
     expect(m.wallet).toBe(200_000 - 30_000 - 5_000)
     expect(mergeSaves(m, invested).wallet).toBe(m.wallet)
     expect(mergeSaves(before, invested)).toMatchObject({ wallet: 170_000, shop: { level: 2 } })
-  })
-
-  it('allows No companion to unequip an existing companion during save merge', () => {
-    const equipped = save({ companion: { id: 'charmander', shiny: false } })
-    const unequipped = save({ companion: null })
-    expect(mergeSaves(equipped, unequipped).companion).toBeNull()
-    expect(mergeSaves(unequipped, equipped).companion).toEqual(equipped.companion)
   })
 
   it("takes the incoming side's partner and difficulty: the device that played last picked them", () => {

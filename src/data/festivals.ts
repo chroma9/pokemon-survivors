@@ -35,16 +35,14 @@ export const FESTIVALS = [
     id: 'lanternas',
     start: '2026-11-03',
     days: 14,
-    // Private four-player community: original targets scaled to 5%, with the
-    // final Cresselia milestone reachable inside the 14-day donation window.
     milestones: [
-      { pot: 500_000, reward: { kind: 'egg', tier: 'rare' }, stage: 1 },
-      { pot: 1_500_000, reward: { kind: 'style', style: { slot: 'frame', id: 'lantern' } }, stage: 2 },
-      { pot: 3_000_000, reward: { kind: 'bag', item: 'lure', count: 3 }, stage: 2 },
-      { pot: 5_000_000, reward: { kind: 'egg', tier: 'kecleon' }, stage: 3 },
-      { pot: 7_500_000, reward: { kind: 'shinyHatch', family: 'togepi' }, stage: 4 },
+      { pot: 10_000_000, reward: { kind: 'egg', tier: 'rare' }, stage: 1 },
+      { pot: 30_000_000, reward: { kind: 'style', style: { slot: 'frame', id: 'lantern' } }, stage: 2 },
+      { pot: 60_000_000, reward: { kind: 'bag', item: 'lure', count: 3 }, stage: 2 },
+      { pot: 100_000_000, reward: { kind: 'egg', tier: 'kecleon' }, stage: 3 },
+      { pot: 150_000_000, reward: { kind: 'shinyHatch', family: 'togepi' }, stage: 4 },
       // The last prize: Cresselia, the moon over the lanterns, for the Legend mode (`FESTIVAL_LEGENDS`).
-      { pot: 10_000_000, reward: { kind: 'legend', legend: 'cresselia' }, stage: 4 },
+      { pot: 200_000_000, reward: { kind: 'legend', legend: 'cresselia' }, stage: 4 },
     ],
   },
 ] as const satisfies readonly FestivalDef[]

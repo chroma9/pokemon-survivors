@@ -1,0 +1,150 @@
+# Private feature port — 2026-11-03
+
+## Ground rules
+
+- Foundation: pedrobarretto/pokemon-survivors main at commit `0079e657811ff8a0fa4ae9969135fbd4e0c28a4a` (upstream RULES 44 and subsequent TM UI fix).
+- Target integration branch: `Updated-11-3-2026`.
+- Reference implementation: this repository's `main` branch (working production), not the prior rebuild branches.
+- Do not overwrite newer upstream mechanics with older fork files wholesale; adapt integration points and preserve RULES 44, map biomes, co-op changes, Dojo and new UI.
+- Never merge or deploy to production `main` until tests pass and the owner approves.
+- Admin authority must be enforced server-side through relay verification, not usernames or client localStorage alone.
+- Protect user profiles, gifts, balances and saved progress during migration.
+
+## Requested features
+
+| Feature | Reference on production main | Port checklist |
+| --- | --- | --- |
+| Trainer Account system | `relay/src/trainerAccounts.ts`, `src/trainerAccounts.ts`, `src/ui/privateTrainer.ts`, `relay/src/index.ts` | Authentication, registration, sync/revisions, profile management, account UI, Worker bindings, persistence tests |
+| Production admin commands | `src/privateAdmin.ts`, `relay/src/index.ts`, private relay modules | Relay-authorized access, command guards, token lifecycle, spawn/money/gifts/broadcast and all currently supported commands, rejection tests |
+| Onix / Steelix | `src/data/hatchlings.ts`, sprites and generated sprite metadata | Character definition, evolution, shiny sprites, tier ordering, unlock/saves |
+| Meowth / Persian | `src/data/hatchlings.ts`, sprite assets | Character definition, evolution, portraits, playable moves and eggs |
+| Chroma9 Shadow Mewtwo | Private Mewtwo modules and legend definitions | Preserve exact private form, restrictions and visuals; authorization should be server-backed where security matters |
+| Palkia | `src/data/domains/palkia.ts`, `src/data/legends.ts`, Rift and boss code | Rift domain, boss phases, sprites, unlock and public availability, Pokédex, translations |
+| Dark Pulse | Fork move declarations/attack code | Recipients, animation, upgrades and damage |
+| Shadow Ball | Fork move declarations/attack code | Orb art, collision, upgrades and recipients |
+| Spacial Rend | `src/game/legendaryMoves.ts`, `src/data/legendaryMoves.ts` | Attack, visual fissure, audio, upgrade and Palkia integration |
+| Dark Nova | Fork boss/hazard rendering code | Shadow orb, explosion, hazard and screenshake; verify exact current implementation |
+
+## Acceptance gates
+
+1. Check feature parity against the working production `main`; record missing and intentionally excluded features.
+2. Integrate account storage and secured relay first, with tests for authorization and save persistence.
+3. Port Pokémon and their sprites/data one family at a time.
+4. Port moves with tests and visual checks.
+5. Validate single-player, co-op, save migration, gifts, Rift battles, mobile layouts and production builds.
+6. Deploy only after explicit approval.
+
+## Status
+
+2026-11-03: clean upstream branch created. Porting work not yet validated. This checklist is an inventory, not a claim that any feature is implemented.
+
+## Phase 1 checkpoint — backend and staged browser modules
+
+- Added `relay/src/trainerAccounts.ts` from working production `main`.
+- Ported Trainer Account and authenticated administration HTTP handlers into the newer upstream `relay/src/index.ts`, retaining the upstream room and Arena routes.
+- Extended `relay/src/env.ts` with `TRAINER_ACCOUNTS`, `TRAINER_AUTH_LIMIT` and `GAME_ADMIN_TOKEN`.
+- Added `relay/wrangler.private.jsonc` (private Durable Object namespace + v5 migration). Secrets are **not** stored in Git.
+- Staged `src/trainerAccounts.ts`, `src/privateAdmin.ts` and `src/ui/privateTrainer.ts` from production for adaptation.
+
+### Not yet complete
+
+- **No build or runtime tests have run.** New upstream interfaces may require TypeScript adaptations.
+- Client UI, startup cloud synchronization and privileged console entry points are not yet wired into upstream `src/main.ts` and `src/ui/title.ts`.
+- Live-room spawn and observatory endpoints are **intentionally excluded** from the first backend port because newer upstream room/shard interfaces require review.
+- Private Trainer Account tokens must be integrated with the new co-op client and relay handshake before private sign-in can replace Clerk in our production flow.
+- Do not deploy until the Wrangler Durable Object binding and secrets are checked for the target environment.
+
+
+## Phase 1 follow-up checkpoint — UI, co-op and automated checks
+
+- Added a **Private Trainer Account** row in upstream's Trainer Card; native Clerk profile UI remains available.
+- Wired cloud-save event syncing and session resume from `src/main.ts`.
+- Exposed server-verified production admin console commands, excluding unported live-room spawn and observatory.
+- Adapted the private Trainer Account page to the new UI API. The old gift redemption and companion/shiny picker screens cannot be reused directly; their UI port is still pending. A read-only account gift count is available.
+- Extended shared room protocol, client, relay identity, and Arena queue to recognize private Trainer Account auth. Existing Clerk and guest protocols remain supported.
+- Updated co-op and Arena entry gates to accept an authenticated Trainer Account.
+- Added regression tests for private auth tokens and co-op client token selection.
+- Added `.github/workflows/private-port.yml` for branch-only unit tests, TypeScript and relay checks (no deploy step).
+
+**Validation:** Changes committed only to `Updated-11-3-2026`. Successful GitHub Actions checks have not yet been confirmed. End-to-end UI, co-op, token revocation, saved data, and relay deployment tests remain required.
+
+## Phase 1 follow-up — private reward UI parity
+
+- Adapted upstream `src/ui/gifts.ts` with an optional gift source, preserving the original Clerk inbox as the default. The private Trainer Account may now supply its own inbox and gift application callback.
+- Exposed `shinyPicker` and `companionPicker` from upstream `src/ui/supporters.ts`, with optional sync callbacks. Standard upstream callers continue using the existing `syncSave` behavior.
+- Restored the complete working private Trainer Account screen with Mystery Gift opening, shiny ticket selection and companion selection; these now call the adapted upstream components.
+- Backported the explicit `No companion` cloud-save merge fix from production `main` and a dedicated regression test.
+- Kept the new upstream map, game mechanics, and public support UI otherwise unchanged.
+
+**Testing still required:** TypeScript build, GitHub Actions results, end-to-end gift redemption and cloud-save persistence, UI navigation, co-op + Arena, and Cloudflare Worker deployment. None of these are claimed verified yet.
+
+## Phase 1 — production admin parity and security checkpoints
+
+- Ported the read-only Developer Observatory to `relay/src/shardObject.ts` and the authenticated Worker route `GET /admin/observatory`. Results contain displayed names and safe room status, not identities or seat secrets.
+- Ported authenticated `POST /admin/spawn` via a private Worker-to-shard RPC; the WebSocket client path explicitly rejects forged `adminSpawn` events.
+- Adapted the deterministic lockstep simulation and stamped entry decoder to apply the authorized spawn to all clients, with enemy/count/slot validation tests.
+- Restored production `ps.spawn()` for co-op (server-authorized) and solo (requires successful relay admin verification).
+- Restored production `ps.money()`, `ps.unlockFamily()`, `ps.revokeFamily()`, `ps.unlockShiny()`, and `ps.restoreBackup()`, all gated by live relay admin verification.
+- Restored `deploy:private` and `typecheck:private` scripts for the Cloudflare Worker. The private-branch CI workflow now generates types for `wrangler.private.jsonc`.
+- **Deferred:** authenticated production Rift omen command until its current upstream API is mapped.
+
+**Still not verified:** no successful build/test status can be confirmed from available GitHub status endpoints. Running the new test suite and functional smoke tests is a release gate. Private relay secrets and Durable Object continuity must be verified before any deployment.
+
+## Phase 2 started — Onix and Meowth families
+
+- Ported the complete playable definitions for **Onix → Steelix** (Rare egg) and **Meowth → Persian** (Common egg) from production `main` into the upstream `src/data/hatchlings.ts`.
+- Preserved the upstream egg system, evolution data model, gameplay map, and roster. Both families use their original stats, movesets and evolution bonuses.
+- Verified that upstream already has the normal sprite manifest and Idle images for species 95, 208, 52 and 53. Steelix (208) and Persian (53) have shiny manifest entries.
+- **Asset gap:** the upstream sprite manifest does not include shiny Onix (95) or shiny Meowth (52), whereas production `main` does. These assets have **not** been copied. Do not mark either family fully done until binaries, portraits and metadata are in place.
+- **Phase 1 ongoing:** upstream CI now targets the port branch; code and unit tests were added, but a passing result is not yet verified. Live Cloudflare configuration and account migration require a smoke test before release.
+
+
+## Validation handoff
+
+- Production admin parity is now present in source for: verify/login/logout, announce, password resets, gift Pokémon, titles, shiny tickets, supporter tiers, Observatory, deterministic co-op spawning, solo spawning, money, hatchling unlock/revoke, shiny unlock, pre-cheat save restore and solo Rift omen.
+- Added game unit tests covering private token parsing, co-op auth preference, admin-spawn validation and Onix/Meowth family evolution/tier definitions; carried forward the No Companion merge regression.
+- Enabled `.github/workflows/ci.yml` on `Updated-11-3-2026` in addition to the dedicated private-port workflow. **No passing status was available through the connected status queries.**
+- Added the new branch's anticipated Cloudflare Pages preview origin to the private relay's allowed origins.
+- **Next release gate:** inspect GitHub Actions outputs, resolve any TypeScript/test failures and validate Cloudflare with correct secrets. Do not deploy or merge into production until that happens.
+- **Remaining game content:** shiny Onix/Meowth sprite binaries, Shadow Mewtwo, Palkia and move ports.
+
+
+## Bulk feature migration checkpoint — 2026-11-04
+
+Following owner direction, **finish transfer before debugging/compilation triage**. All changes are isolated to `Updated-11-3-2026`; do not merge to production `main` or deploy during migration.
+
+### Source and assets added/adapted
+- Palkia: legendary and enemy registrations, Rift domain, Spear Pillar arena, signature Spacial Rend logic and icon, dimensional-slash art, spatial beam/palette/omen sky, and normal/shiny assets.
+- Shadow Mewtwo: private playable legendary, Shadow type and matchup logic, playable Shadow sprite form, custom Shadow sprites, Mewtwo Clone cosmetic selector, Dark Nova special/orb/impact/field and effects.
+- Spiritomb: Ultra Rare egg entry, Shadow Ball + Dark Pulse learnset and recipient distribution, one-stage Strengthening (stats, milestones, evolution visual, events and stat preview).
+- Onix/Steelix and Meowth/Persian: upstream already has playable families; imported shiny Onix and shiny Meowth sprites, and restored Meowth Pay Day knockout payouts.
+- Updated sprite manifest for Palkia/shiny, Shadow Mewtwo, shiny Onix and shiny Meowth.
+- Ported custom text and move descriptions in en/pt/es/fr/zh without replacing upstream locale files.
+- Restored account UI CSS, and Shadow Ball/Dark Pulse icons.
+
+### Still to transfer or reconcile before the combined debugging phase
+- Remaining integration/UI differences between production `main` and new upstream: Rift/legend presentations, on-screen notices, special music/SFX and announcements, save and gift edge cases, supporter UI, and other custom game logic.
+- Inspect every fork-specific gameplay/relay difference in the outstanding compare list, avoiding reversion of newer upstream mechanics.
+- Confirm hardcoded client display checks are not treated as server-side security.
+- After all feature ports, run game/relay TypeScript checks, tests, visual smoke tests, co-op sync and cloud-save migration checks; only then diagnose/fix failures.
+
+This is a migration checkpoint, **not** a build/test pass or production deployment.
+
+### Additional migrated dependencies
+- Mystery Gift content supports normal/shiny `pokemonGift` families, preserves legacy legendary gifts, and displays the awarded Pokémon portrait.
+- Meowth's signature Pay Day awards coins on enemy defeat while ordinary TM Pay Day retains its separate hit behavior.
+- Shadow Ball/Dark Pulse icons and responsive private Trainer Account styling have been carried over.
+- The five game locale files have Palkia, Shadow Mewtwo, Spiritomb and move descriptions.
+
+**Do not claim completion.** Remaining custom UI, progression, presentation and relay integration differences still need review before whole-branch test/debug.
+
+## Private lobby and referrals checkpoint — 2026-11-04
+
+- Wired relay-backed admin announcements into the updated title lobby. Fetches when entering the lobby, polls every 30 seconds, and clears the interval on disposal. Broadcast remains dismissible and tracks the seen ID locally.
+- Re-enabled private Trainer Account referral list and shareable private referral URL in the Invite Friends UI.
+- Shows referral card to users authenticated with private Trainer Accounts, even without Clerk.
+- Displays private Trainer Account name, handle, and supporter avatar/ring on the Trainer Card without replacing Clerk integration.
+- Restored the private fork's focused lobby layout: hides promotional Hall/social cards while leaving their implementation available; retains the referral/gameplay tiles.
+- Restored single-player eligible run and completed co-op run referral reporting, deduplicated per in-memory run. Excludes unfinished co-op rooms and Arena sessions.
+
+**Validation:** Confirmed changes in branch source via repository reads; no end-to-end UI run, Cloudflare deployment, or full build verification yet. Remaining migration continues before integrated debugging.

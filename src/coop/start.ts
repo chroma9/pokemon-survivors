@@ -1,4 +1,5 @@
-import { PLAYABLE, type PlayableId } from '../data/hatchlings'
+import { PLAYABLE_IDS, type PlayableId } from '../data/hatchlings'
+import { LEGEND_IDS } from '../data/legends'
 import { COOP } from '../data/coop'
 import { parseDifficulty, type Difficulty } from '../game/difficulty'
 import { createCoopGame, type CoopLoadout } from '../game/game'
@@ -10,6 +11,8 @@ import { isVersusPick, VERSUS_PICKS, type Team } from '../data/versus'
 import { parseArenaFormat, type ArenaFormat } from '../data/arenaFormats'
 import { createVersusGame } from '../game/versus'
 import { MAPS, type MapId } from '../data/versusMaps'
+import { dailyCoopChallenge } from '../game/coopBoard'
+import { isDayKey, type DayKey } from '../game/day'
 
 /**
  * A co-op run's tick 0 from what the relay sends (`RunStart`): the seed, the
@@ -34,8 +37,10 @@ export type RoomMode = 'run' | 'versus'
  * The room's settings as the host sets them; `format` and `map` only matter
  * in a Versus room (`data/arenaFormats.ts`, the standard 4v4 when left out;
  * the map one of the format's, drawn from the seed when left out: Random).
+ * `challenge` only in a run room: it plays that day's Desafio co-op do dia
+ * (`dailyCoopChallenge`), whose difficulty replaces `difficulty`.
  */
-export type CoopSettings = { difficulty: Difficulty; mode?: RoomMode; format?: ArenaFormat; map?: MapId }
+export type CoopSettings = { difficulty: Difficulty; mode?: RoomMode; format?: ArenaFormat; map?: MapId; challenge?: DayKey }
 
 export const loadoutOf = (pick: CoopPick): Loadout => ({ starter: pick.starter, ranks: { ...pick.ranks }, shiny: pick.shiny, ...(pick.team !== undefined && { team: pick.team }) })
 
@@ -45,15 +50,14 @@ export const settingsOf = (s: CoopSettings): Settings => ({
   ...(s.mode === 'versus' && { mode: 'versus' }),
   ...(s.mode === 'versus' && s.format !== undefined && s.format !== 'standard' && { format: s.format }),
   ...(s.mode === 'versus' && s.map !== undefined && { map: s.map }),
+  ...(s.mode !== 'versus' && s.challenge !== undefined && { challenge: s.challenge }),
 })
 
 const rankOf = (raw: unknown, max: number) => (typeof raw === 'number' && Number.isInteger(raw) && raw >= 0 ? Math.min(raw, max) : 0)
 
 /** A loadout from the wire: an unknown Pokémon (or a legend) falls back to the first starter, ranks are clamped to the Poké Mart's. */
 export const parseLoadout = (raw: Loadout): CoopPick => {
-  const starter: PlayableId = typeof raw.starter === 'string' && Object.prototype.hasOwnProperty.call(PLAYABLE, raw.starter)
-    ? raw.starter as PlayableId
-    : 'charmander'
+  const starter = [...PLAYABLE_IDS, ...LEGEND_IDS].find((id) => id === raw.starter) ?? PLAYABLE_IDS[0]!
   const r = raw.ranks
   const ranks: Record<UpgradeId, number> = { ...NO_RANKS }
   if (isRecord(r)) for (const id of UPGRADE_IDS) ranks[id] = rankOf(r[id], UPGRADES[id].maxRank)
@@ -61,10 +65,12 @@ export const parseLoadout = (raw: Loadout): CoopPick => {
   return { starter, ranks, shiny: raw.shiny === true, ...(team !== undefined && { team }) }
 }
 
-/** Settings from the wire: an unknown map is Random (left out). */
+/** Settings from the wire: an unknown map is Random (left out), a challenge that isn't a day is none. */
 export const parseSettings = (raw: Settings): CoopSettings => {
   const map = (Object.keys(MAPS) as MapId[]).find((id) => id === raw.map)
-  return { difficulty: parseDifficulty(raw.difficulty), mode: raw.mode === 'versus' ? 'versus' : 'run', format: parseArenaFormat(raw.format), ...(map && { map }) }
+  const mode = raw.mode === 'versus' ? 'versus' : 'run'
+  const challenge = mode === 'run' && isDayKey(raw.challenge) ? raw.challenge : undefined
+  return { difficulty: parseDifficulty(raw.difficulty), mode, format: parseArenaFormat(raw.format), ...(map && { map }), ...(challenge && { challenge }) }
 }
 
 /** The loadouts of a run, by slot (`RunStart.players` order), with each player's name. */
@@ -85,6 +91,12 @@ export const startGame = (start: RunStart): Game => {
       return { starter: isVersusPick(pick.starter) ? pick.starter : VERSUS_PICKS[0]!, name: p.name, ...(pick.team !== undefined && { team: pick.team }) }
     })
     return createVersusGame(start.seed, humans, settings.format, settings.map)
+  }
+  if (settings.challenge) {
+    // The Desafio co-op do dia: the day's seed and difficulty, whatever the relay dealt, and every upgrade off.
+    const c = dailyCoopChallenge(settings.challenge)
+    const loadouts = runLoadouts(start).map((l) => ({ ...l, ranks: { ...NO_RANKS } }))
+    return createCoopGame(c.seed, loadouts, { difficulty: c.difficulty, view: { ...COOP.view }, challenge: c.day })
   }
   return createCoopGame(start.seed, runLoadouts(start), { difficulty: settings.difficulty, view: { ...COOP.view } })
 }

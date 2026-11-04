@@ -6,14 +6,14 @@ import { REGIONS, STARTER_IDS, type Region, type StarterId } from '../data/start
 import type { PokeType } from '../data/types'
 import { isRiftLegend, RIFT, type RiftLegend } from '../data/rifts'
 import { DOMAINS } from '../data/domains'
-import { GRAVEYARD, PLACE, PLACE_IDS, PLACES, type PlaceId } from '../data/places'
+import { GRAVEYARD, HIDDEN, hiddenOf, PLACE, PLACE_IDS, PLACES, type PlaceId } from '../data/places'
 import { SUMMONS } from '../data/traits'
 import { bossCandidates, EVENTS, nightCandidates, RUN_LENGTH, STAGES, TRIO_IDS, TRIOS, type TrioId } from '../data/waves'
 import { NIGHT_BOSSES } from '../data/halloween'
 import { ENDLESS, REAPER } from '../game/endless'
 import { MEOWTH_DEX } from '../game/mapEventRules'
 import { SPECIAL_COMPANION_IDS, SPECIAL_COMPANIONS, type SpecialCompanionId } from '../data/companions'
-import { EVENT_LEGENDS, LEGEND_IDS, legendFestival, type LegendId } from '../data/legends'
+import { EVENT_LEGENDS, LEGEND_IDS, PRIVATE_LEGENDS, legendFestival, type LegendId } from '../data/legends'
 
 /**
  * The site's Pokédex model: every species the game uses, derived from
@@ -155,7 +155,9 @@ export const gameDex = (): DexEntry[] => {
   const playable = [...STARTER_IDS.flatMap((id) => playableEntries(id, 'starter')), ...HATCHLING_IDS.flatMap((id) => playableEntries(id, 'egg'))]
   const listed = new Set(playable.map((e) => e.dex))
   const wild = [...wildByDex].filter(([dex]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
-  return [...playable, ...wild, eventEntry()].sort(byDex)
+  // Playable Meowth and the map-event Meowth are the same National Dex species.
+  // Avoid inserting its event-only card a second time after making it hatchable.
+  return [...playable, ...wild, ...(listed.has(MEOWTH_DEX) ? [] : [eventEntry()])].sort(byDex)
 }
 
 /** The site's Pokédex: every species the game loads, `gameDex()` plus the gift-only companions and the domains' cameos (never met in a run, so never counted in game). */
@@ -183,6 +185,8 @@ export type Appearance =
   | { kind: 'reaper'; at: number }
   /** Lives in a place (`data/places.ts`), coming out from `from`; `boss` for the place's own boss. */
   | { kind: 'place'; place: PlaceId; from: number; boss: boolean }
+  /** Pops out of a hidden zone's spots (its lucky ones), from `from`. */
+  | { kind: 'hidden'; place: PlaceId; from: number }
   /** Called in by a summoner (Nidoqueen's Nidoran). */
   | { kind: 'summoned'; by: EnemyId }
   /** Comes at the player in a legendary's domain (`by`'s rift): its crossing's retinue, adds it calls in or keepers of its barrier. */
@@ -221,13 +225,16 @@ export const appearances = (id: EnemyId): Appearance[] => {
   const event = EVENT_LEGENDS.some((l) => l === id)
   const rift: Appearance[] = event ? [{ kind: 'eventRift', from: RIFT.slots[0] }] : isRiftLegend(id) ? [{ kind: 'rift', from: RIFT.slots[0] }] : []
   const reaper: Appearance[] = id === REAPER ? [{ kind: 'reaper', at: ENDLESS.reaperAt }] : []
-  // A place's dwellers come out once the run's stage has their tier (never before the first entrance).
+  // A place's dwellers come out once the run's stage has their tier (never before the first entrance; a hidden zone's, never before it can open).
   const placed = PLACE_IDS.flatMap((place): Appearance[] => {
     if (place === 'graveyard' && id === GRAVEYARD.boss) return [{ kind: 'place', place, from: PLACE.firstAt, boss: true }]
+    const hidden = hiddenOf(place)
+    const first = hidden ? HIDDEN.from : PLACE.firstAt
+    const own: Appearance[] = hidden?.lucky.some(([e]) => e === id) ? [{ kind: 'hidden', place, from: first }] : []
     const species: readonly EnemyId[] = PLACES[place].species
-    if (!species.includes(id)) return []
+    if (!species.includes(id)) return own
     const stage = STAGES.findIndex((s) => s.cast.includes(def.tier ?? 1))
-    return [{ kind: 'place', place, from: Math.max(PLACE.firstAt, STAGES[stage - 1]?.until ?? 0), boss: false }]
+    return [...own, { kind: 'place', place, from: Math.max(first, STAGES[stage - 1]?.until ?? 0), boss: false }]
   })
   const summoned = (Object.keys(SUMMONS) as Array<keyof typeof SUMMONS>)
     .filter((by) => SUMMONS[by].includes(id))
@@ -276,8 +283,9 @@ export const dexPages = (): readonly DexPage[] => {
     const stage = (e: DexEntry) => (e.source.kind === 'starter' ? e.source.stage : 0)
     return { kind: 'family', id, slug: slugOf(PLAYABLE[id].line[0].name), entries: own.sort((a, b) => stage(a) - stage(b) || a.dex - b.dex) }
   })
-  // A festival legend (Cresselia) is a surprise for now: its page comes with its festival's announcement.
-  const legends = LEGEND_IDS.filter((id) => id !== 'shadowMewtwo' && !legendFestival(id)).map((id): DexPage => {
+  // Festival surprises and private-only playable forms do not get public legendary pages.
+  // Shadow Mewtwo shares dex 150 with regular Mewtwo; it is not a wild species.
+  const legends = LEGEND_IDS.filter((id) => !legendFestival(id) && !PRIVATE_LEGENDS.some((privateId) => privateId === id)).map((id): DexPage => {
     const entry = entries.find((e) => e.source.kind === 'wild' && e.source.id === id)
     if (!entry) throw new Error(`No Pokédex entry for legend ${id}`)
     return { kind: 'legend', id, slug: entry.slug, entries: [entry] }

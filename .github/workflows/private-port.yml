@@ -1,0 +1,36 @@
+name: Private upstream port checks
+
+on:
+  push:
+    branches:
+      - Updated-11-3-2026
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            relay/package-lock.json
+      - name: Install game dependencies
+        run: npm ci
+      - name: Check game TypeScript
+        run: npm run typecheck
+      - name: Run game unit tests
+        run: npm test
+      - name: Install relay dependencies
+        run: npm ci --prefix relay
+      - name: Typecheck private relay
+        run: npm run typecheck:private --prefix relay
+      - name: Run relay tests
+        run: npm test --prefix relay

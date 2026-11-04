@@ -1,6 +1,5 @@
 import { accountState, accountsEnabled, onAccountChange, signIn, signOut, syncSave, type AccountState } from '../account'
 import { currentTrainer } from '../trainerAccounts'
-import { openTrainerProfiles } from './privateTrainer'
 import { isAdmin } from '../admin'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -8,6 +7,8 @@ import { MEDALS } from '../data/achievements'
 import { RIBBON_TIERS, ribbonCounts } from '../game/ribbons'
 import type { SupporterTier } from '../game/supporters'
 import { trainerAvatar } from '../game/trainer'
+import { canWalkWith } from '../game/supporters'
+import { playablePortrait } from '../playableForms'
 import { formatNumber, LOCALES, locale, t } from '../i18n'
 import { discordIcon, medalIcon, ogIcon, pokeballIcon, ribbonIcon, supporterIcon } from '../render/art'
 import { portraitUrl } from '../render/sprites'
@@ -23,6 +24,12 @@ import { sharePreview, trainerShare, trainerTotals } from './share'
 import { hint, menu, type Screen } from './screens'
 import { backButton, gearButton, shellBody, topBar } from './shell'
 
+/** The private network's supporter tier, when a private Trainer Account is active. */
+const displayedTier = (save: ReturnType<typeof loadSave>): SupporterTier | null => {
+  const privateTrainer = currentTrainer()
+  return privateTrainer ? privateTrainer.supporterTier ?? null : knownTier(save)
+}
+
 /**
  * The trainer's avatar: their Pokémon (`trainerAvatar`) once signed in, a
  * Poké Ball for guests; a gold ring for supporters.
@@ -30,22 +37,24 @@ import { backButton, gearButton, shellBody, topBar } from './shell'
 const avatar = (s: AccountState, size: 'small' | 'big') => {
   const save = loadSave()
   const signedIn = s.kind === 'signedIn'
-  const tier = knownTier(save)
+  const tier = displayedTier(save)
   const face = trainerAvatar(save, tier)
+  const walking = save.companion && canWalkWith(save, save.companion, tier) ? save.companion.id : save.partner
+  const facePortrait = walking === 'shadowMewtwo' ? playablePortrait(walking, face.dex, face.shiny) : portraitUrl(face.dex, face.shiny)
   const ring = (signedIn || Boolean(currentTrainer())) && tier ? ' supporter' : ''
-  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
+  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn || currentTrainer() ? h('img', { src: facePortrait, alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
 }
 
 /** The equipped title, with the supporter's heart (and an OG's plate) before it, or null. */
 const titleLine = (cls: string) => {
   const save = loadSave()
   if (!save.title) return null
-  const tier = knownTier(save)
+  const tier = displayedTier(save)
   return h(
     'span',
     { class: cls },
     tier && h('img', { src: supporterIcon(tier), alt: '' }),
-    tier && knownOg() && h('img', { class: 'og', src: ogIcon(), alt: t().supporters.og.badge }),
+    tier && !currentTrainer() && knownOg() && h('img', { class: 'og', src: ogIcon(), alt: t().supporters.og.badge }),
     h('span', {}, t().achievements.titles[save.title]),
   )
 }
@@ -61,9 +70,8 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   const el = h('button', { class: 'shell-chip trainer-chip box', type: 'button', onclick: open })
   const draw = (s: AccountState) => {
     const m = t().trainer
-    const cloud = currentTrainer()
-    const name = cloud ? cloud.name : s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest
-    const sub = !cloud && s.kind === 'guest' && accountsEnabled ? h('span', { class: 'trainer-chip-sub join' }, m.signIn) : titleLine('trainer-chip-sub')
+    const name = currentTrainer()?.name ?? (s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest)
+    const sub = s.kind === 'guest' && accountsEnabled ? h('span', { class: 'trainer-chip-sub join' }, m.signIn) : titleLine('trainer-chip-sub')
     el.replaceChildren(
       avatar(s, 'small'),
       h('span', { class: 'trainer-chip-who' }, h('b', {}, name), sub),
@@ -74,10 +82,10 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   }
   draw(accountState())
   const offState = onAccountChange(draw)
-  const cloudChanged = () => draw(accountState())
-  window.addEventListener('ps:trainer-changed', cloudChanged)
+  const onPrivateTrainerChanged = () => draw(accountState())
+  window.addEventListener('ps:trainer-changed', onPrivateTrainerChanged)
   const offKey = input.onKey((key) => key === 'KeyC' && open())
-  return { el, dispose: () => (offState(), offKey(), window.removeEventListener('ps:trainer-changed', cloudChanged)) }
+  return { el, dispose: () => (offState(), window.removeEventListener('ps:trainer-changed', onPrivateTrainerChanged), offKey()) }
 }
 
 /** Month and year of a date, in the current language (`10/2026`). */
@@ -103,7 +111,7 @@ type Row = { label: string; run: () => void; icon?: string; wide?: boolean; tone
 export const trainerCardScreen = (
   root: HTMLElement,
   input: Input,
-  opts: { supporters: (back: () => void) => Screen },
+  opts: { supporters: (back: () => void) => Screen; privateAccount?: (back: () => void) => Screen },
   onClose: () => void,
 ): Screen => {
   const el = h('div', { class: 'screen shell dim trainer-screen' })
@@ -145,11 +153,11 @@ export const trainerCardScreen = (
       wide: true,
       run: () => openSub((back) => discordScreen(root, input, back)),
     }
-    const cloudProfile: Row = { label: currentTrainer() ? 'Cloud Trainer Profile' : 'Create / Sign in to Cloud Trainer Profile', run: () => openSub((back) => openTrainerProfiles(root, input, back)) }
-    if (s.kind !== 'signedIn') return [cloudProfile, ...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
+    const privateAccount: Row[] = opts.privateAccount ? [{ label: 'Private Trainer Account', run: () => openSub(opts.privateAccount!) }] : []
+    if (s.kind !== 'signedIn') return [...privateAccount, ...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
     const handle = s.handle
     return [
-      cloudProfile,
+      ...privateAccount,
       { label: handle === null ? m.createProfile : m.editProfile, run: () => openSub((back) => profileEditor(root, input, back)) },
       ...(handle ? [{ label: m.viewProfile, run: () => openSub((back) => profileScreen(root, input, handle, back)) }] : []),
       share,
@@ -239,7 +247,7 @@ export const trainerCardScreen = (
   const build = (opening: boolean) => {
     if (sub || closed) return
     const s = accountState()
-    const tier = s.kind === 'signedIn' || currentTrainer() ? knownTier(loadSave()) : null
+    const tier = s.kind === 'signedIn' || currentTrainer() ? displayedTier(loadSave()) : null
     askApi(s, tier)
     const a = t().account
     const sync = syncLine(s)
@@ -269,8 +277,6 @@ export const trainerCardScreen = (
   }
 
   const offState = onAccountChange(() => build(false))
-  const cloudChanged = () => build(false)
-  window.addEventListener('ps:trainer-changed', cloudChanged)
   const offKeys = input.onKey((key) => !sub && (key === 'Escape' || key === 'Backspace') && close())
 
   const dispose = () => {
@@ -278,7 +284,6 @@ export const trainerCardScreen = (
     sub?.dispose()
     nav?.off()
     offState()
-    window.removeEventListener('ps:trainer-changed', cloudChanged)
     offKeys()
     el.remove()
   }

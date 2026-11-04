@@ -44,11 +44,17 @@ export type Challenge = { day: DayKey; seed: number; starter: PlayableId; diffic
  * day's Pokémon where it was).
  */
 const POOL = PLAYABLE_IDS.filter((id) => !isExclusiveFamily(id))
+// Keep old daily-challenge dates stable after custom families join the fork.
+// Changing the length of the cycle rewrites every historic day's starter,
+// invalidating already-recorded ranked challenges and their replays.
+const CUSTOM_FAMILIES: readonly PlayableId[] = ['meowth', 'onix', 'spiritomb']
+const HISTORIC_POOL = POOL.filter((id) => !CUSTOM_FAMILIES.includes(id))
+const CUSTOM_POOL_START = '2026-11-04'
 
 /** A seeded shuffle of the pool: one cycle of days gives each one its day. */
-const cycleOrder = (cycle: number) => {
+const cycleOrder = (cycle: number, pool: readonly PlayableId[]) => {
   const rng = createRng(seedFrom(`challenge:${cycle}`))
-  const order = [...POOL]
+  const order = [...pool]
   for (let i = order.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1))
     ;[order[i], order[j]] = [order[j]!, order[i]!]
@@ -59,13 +65,14 @@ const cycleOrder = (cycle: number) => {
 /** The challenge of a Brasília day. The Pokémon walk through seeded cycles, so none repeats within one; no Nightmare after `CHALLENGE.nightmareUntil`. */
 export const dailyChallenge = (day: DayKey): Challenge => {
   const n = dayNumber(day)
-  const size = POOL.length
+  const pool = day < CUSTOM_POOL_START ? HISTORIC_POOL : POOL
+  const size = pool.length
   const rng = createRng(seedFrom(`challenge-day:${day}`))
   const drawn = weightedPick(rng, CHALLENGE.difficulty)
   return {
     day,
     seed: seedFrom(`challenge-seed:${day}`),
-    starter: cycleOrder(Math.floor(n / size))[((n % size) + size) % size]!,
+    starter: cycleOrder(Math.floor(n / size), pool)[((n % size) + size) % size]!,
     difficulty: drawn === 'nightmare' && day > CHALLENGE.nightmareUntil ? 'hard' : drawn,
     outbreak: outbreakOf(day),
     halloween: isHalloweenDay(day),

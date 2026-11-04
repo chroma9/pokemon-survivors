@@ -22,6 +22,7 @@ export const LEGENDARY_MOVE_OF = {
   rayquaza: 'dragonAscent',
   dialga: 'roarOfTime',
   palkia: 'spacialRend',
+  shadowMewtwo: 'telekinesis',
   latias: 'mistBall',
   latios: 'lusterPurge',
   deoxys: 'psychoBoost',
@@ -38,7 +39,6 @@ export const LEGENDARY_MOVE_OF = {
   regice: 'glaciate',
   registeel: 'metalBurst',
   mewtwo: 'telekinesis',
-  shadowMewtwo: 'telekinesis',
   arceus: 'judgment',
   darkrai: 'darkVoid',
   cresselia: 'lunarBlessing',
@@ -48,7 +48,7 @@ export type LegendaryId = keyof typeof LEGENDARY_MOVE_OF
 
 /**
  * Multitype: the plate Arceus's Judgment takes in each biome, so its type
- * follows the land (the Meadow, Insect, Stone, Icicle and Spooky Plates).
+ * follows the land (the Meadow, Insect, Stone, Icicle and Spooky Plates; the Splash, Zap, Earth and Flame Plates on the beach, in the Power Plant, the desert and Mt. Chimney).
  */
 export const JUDGMENT_PLATES = {
   meadow: 'grass',
@@ -56,4 +56,8 @@ export const JUDGMENT_PLATES = {
   cave: 'rock',
   snow: 'ice',
   tower: 'ghost',
+  beach: 'water',
+  plant: 'electric',
+  desert: 'ground',
+  volcano: 'fire',
 } as const satisfies Record<BiomeId, PokeType>

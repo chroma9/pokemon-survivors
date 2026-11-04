@@ -73,11 +73,21 @@ const local: Store = {
  * (co-op is for signed-in players); dev builds keep it, as guests on the dev relay.
  */
 export const coopUrl = (): string | null => {
-  // A private deployment may use a guest-enabled relay without the official accounts API.
-  // Never fall back to upstream servers in a production build.
-  // This fork has its own guest-enabled Worker; a missing Pages build variable must not hide co-op.
-  const privateRelay = 'https://chroma9-survivors-coop.officialchroma9.workers.dev'
-  return import.meta.env.VITE_COOP_URL || (import.meta.env.DEV ? local.get(URL_KEY) : null) || privateRelay
+  // Private Trainer Accounts do not require the upstream Clerk account API.
+  // An explicitly configured Worker is usable in a production Pages preview.
+  const configured = import.meta.env.VITE_COOP_URL
+  const devOverride = import.meta.env.DEV ? local.get(URL_KEY) : null
+  if (devOverride) return devOverride
+  // Cloudflare Pages creates a different <deployment>.chroma9-survivors.pages.dev
+  // hostname for every preview build. Those one-label preview hosts must never
+  // depend on an accidentally absent Preview-only Vite environment variable.
+  // Production's root Pages hostname and custom domains do NOT match this.
+  if (typeof location !== 'undefined' && /^[a-z0-9-]+\.chroma9-survivors\.pages\.dev$/.test(location.hostname)) {
+    return 'https://chroma9-survivors-coop-preview.officialchroma9.workers.dev'
+  }
+  if (configured) return configured
+  if (!accountsEnabled && !import.meta.env.DEV) return null
+  return import.meta.env.DEV ? DEV_RELAY : null
 }
 
 export const setCoopUrl = (url: string | null) => (url ? local.set(URL_KEY, url) : local.remove(URL_KEY))
@@ -111,7 +121,7 @@ export const coopName = () => {
   const handle = accountHandle()
   if (handle) return `@${handle}`
   // No handle yet (the shell asks for one before co-op): never shown in practice.
-  if (!coopUrl()) return '?'
+  if (!import.meta.env.DEV) return '?'
   const kept = local.get(NAME_KEY)
   if (kept) return kept
   const name = `Dev ${Math.floor(1000 + Math.random() * 9000)}`
@@ -124,7 +134,7 @@ export const coopName = () => {
  * (`ps:devToken`, for a local API) isn't a Clerk token and the relay would
  * refuse it, so co-op plays as a guest there.
  */
-const coopToken = async () => (!accountsEnabled || (import.meta.env.DEV && local.get('ps:devToken')) ? null : sessionToken())
+const coopToken = async () => (import.meta.env.DEV && local.get('ps:devToken') ? null : sessionToken())
 
 const browserDeps = (url: string, store: Store, token: () => Promise<string | null>, name: () => string): CoopDeps => ({
   url,
@@ -157,6 +167,8 @@ export const arenaQueueDeps = (): QueueDeps | null => {
     relay: url,
     build: __SIM_BUILD__,
     auth: async () => {
+      const privateToken = trainerToken()
+      if (privateToken) return { kind: 'trainer', token: privateToken }
       const token = await coopToken().catch(() => null)
       return token ? { kind: 'clerk', token } : { kind: 'guest', id: coopGuestId(local, Math.random) }
     },
@@ -364,7 +376,7 @@ const PERSONAL: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>([
   'cast', 'moveSound', 'heal', 'hurt', 'special', 'stance', 'megaChoice', 'megaStone', 'megaStart', 'mega', 'megaEnd', 'megaReady',
   'shinyPlayer', 'evolve', 'branchChoice', 'ability', 'evolved', 'moveEvolved', 'duoFused', 'curse', 'pokeball', 'shinyOffer',
   'tm', 'tmLearned', 'tmMastered', 'banish', 'consumable', 'revive', 'riftFall', 'guard',
-  'evoItem', 'evoHeld', 'maxRevive', 'stolen', 'awaken', 'awakened',
+  'evoItem', 'evoHeld', 'maxRevive', 'stolen', 'awaken', 'awakened', 'biome',
 ])
 
 /**
@@ -372,11 +384,11 @@ const PERSONAL: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>([
  * legendary's defeat counting toward its capture, a night boss ticking the
  * Caça aos Fantasmas off (the Noite das Bruxas is off in co-op anyway).
  */
-const SOLO_ONLY: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>(['nightBoss'])
+const SOLO_ONLY: ReadonlySet<GameEvent['kind']> = new Set<GameEvent['kind']>(['legendBeaten', 'nightBoss'])
 
 /**
  * Whether an event of the simulation is this client's to see and hear: the
- * world's (a boss, the biome, the level-up the team shares) are everyone's;
+ * world's (a boss, the weather, the level-up the team shares) are everyone's;
  * a player's own (`PERSONAL`) only theirs, by `actor`, the slot acting when
  * the game pushed it.
  */

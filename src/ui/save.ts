@@ -36,6 +36,8 @@ export const writeSave = (save: Save) => {
     const data = JSON.stringify(save)
     if (localStorage.getItem(KEY) === data) return
     localStorage.setItem(KEY, data)
+    // Private Trainer Accounts debounce cloud sync from this event.
+    // Emitting only on a changed save avoids redundant synchronization loops.
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('ps:save-written'))
   } catch {
     // Storage full or blocked: progress just won't persist this session.

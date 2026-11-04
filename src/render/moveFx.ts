@@ -121,19 +121,6 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
       ctx.globalAlpha = 1
       return
     }
-    case 'payDay': {
-      if (a.shape.kind !== 'circle') return
-      const r = Math.max(3, Math.round(a.shape.r))
-      const pulse = Math.floor(t * 14 + a.id) % 2
-      ctx.save()
-      ctx.globalAlpha = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.15))
-      blitEllipse(ctx, r, r, '#98620c', a.x, a.y)
-      blitEllipse(ctx, r - 1, r - 1, '#f4c443', a.x, a.y)
-      ctx.fillStyle = '#fff0a4'
-      ctx.fillRect(Math.round(a.x - (pulse ? 1 : 0)), Math.round(a.y - 2), pulse ? 2 : 1, 4)
-      ctx.restore()
-      return
-    }
     case 'shadowBall': {
       if (a.shape.kind !== 'circle') return
       // Compact void projectile: its gameplay radius is unchanged, but its

@@ -26,7 +26,7 @@ import { parseShinyPicks, type ShinyPick } from './shinyPicks'
 import { isPlayable } from './ranking'
 import type { SpecialCompanionId } from '../data/companions'
 import { parseCompanion, parseCompanions, type Companion } from './supporters'
-import { NO_CAPTURES, parseCaptures, type Captures } from './capture'
+import { parseCaptures, type Captures } from './capture'
 import { BRANCHES, isBranch, type BranchId } from '../data/branches'
 import type { PlayableId } from '../data/hatchlings'
 import type { StatDelta } from './stats'
@@ -220,7 +220,9 @@ export const EMPTY_SAVE: Save = {
   branches: {},
   clears: {},
   halloween: NO_HALLOWEEN,
-  legends: NO_CAPTURES,
+  // Initialize directly: importing the capture module's singleton here can
+  // observe an incomplete module during the meta ↔ gifts ↔ capture cycle.
+  legends: {},
   tms: NO_TMS,
   evo: [],
   caps: {},

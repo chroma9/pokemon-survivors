@@ -11,6 +11,8 @@ const KEY = 'ps:trainerSession'
 const PROFILE = 'ps:trainerProfile'
 const SAVE_OWNER = 'ps:trainerSaveOwner'
 const SAVE_KEY = 'ps:save'
+const REV = 'ps:trainerSaveRevision'
+const BASELINE = 'ps:trainerSaveBaseline'
 const bindLocalSaveTo = (id: string) => {
   const previous = localStorage.getItem(SAVE_OWNER)
   if (previous && previous !== id) {
@@ -18,6 +20,9 @@ const bindLocalSaveTo = (id: string) => {
     const current = localStorage.getItem(SAVE_KEY)
     if (current !== null) localStorage.setItem('ps:trainerSaveBackup:' + previous, current)
     localStorage.removeItem(SAVE_KEY)
+    // A different account must not inherit the previous trainer's cloud-merge baseline.
+    localStorage.removeItem(REV)
+    localStorage.removeItem(BASELINE)
   }
   localStorage.setItem(SAVE_OWNER, id)
 }
@@ -43,33 +48,47 @@ export const registerTrainer = async (relay: string, handle: string, password: s
 }
 export const loginTrainer = async (relay: string, handle: string, password: string) => {
   const result = await request(relay, 'login', 'POST', { handle, password })
+  bindLocalSaveTo(result.profile.id)
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
+  queueMicrotask(() => void syncTrainerSave(relay).catch(console.warn))
   return result.profile as TrainerProfile
 }
 export const trainerLookup = async (relay: string, handle: string) => (await request(relay, 'profile/' + encodeURIComponent(handle.toLowerCase()))).profile as TrainerProfile
 export const refreshTrainer = async (relay: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const profile = (await request(relay, 'me')).profile as TrainerProfile
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || profile.id !== owner) throw Error('Account changed during refresh')
   localStorage.setItem(PROFILE, JSON.stringify(profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
 }
 export const changeTrainerPassword = async (relay: string, current: string, next: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const result = await request(relay, 'password', 'POST', { current, next })
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || result.profile?.id !== owner) throw Error('Account changed during password update')
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return result.profile as TrainerProfile
 }
 export const renameTrainer = async (relay: string, name: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const profile = (await request(relay, 'name', 'POST', { name })).profile as TrainerProfile
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || profile.id !== owner) throw Error('Account changed during rename')
   localStorage.setItem(PROFILE, JSON.stringify(profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
 }
 export const logoutTrainer = async (relay: string) => {
   // Do not discard pending debounced changes when a trainer signs out.
   if (syncTimer !== null) { clearTimeout(syncTimer); syncTimer = null }
-  await syncTrainerSave(relay)
+  const saved = await syncTrainerSave(relay)
+  if (!saved.synced) throw Error('Cloud save is still synchronizing. Please retry sign-out after it completes.')
   try { await request(relay, 'logout', 'POST') } finally {
     localStorage.removeItem(KEY)
     localStorage.removeItem(PROFILE)
@@ -82,15 +101,26 @@ export const trainerReferrals = async (relay: string) => await request(relay, 'r
 export const submitTrainerReferralRun = async (relay: string, runId: string) => await request(relay, 'run', 'POST', { runId })
 /** Gift IDs remain stable across devices; save.gifts makes applying an already claimed gift idempotent. */
 export const fetchTrainerGifts = async (relay: string): Promise<Gift[]> => {
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return []
   const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  if (trainerToken() !== token || currentTrainer()?.id !== owner) return []
   return result.gifts
 }
 
 export const collectTrainerGifts = async (relay: string) => {
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return { applied: [] as string[], blocked: [] as string[] }
   const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  const sameTrainer = () => trainerToken() === token && currentTrainer()?.id === owner
   const applied: string[] = []
   const blocked: string[] = []
+  if (!sameTrainer()) return { applied, blocked }
   for (const gift of result.gifts) {
+    // Never apply a gift returned for an account that has since signed out.
+    if (!sameTrainer()) return { applied, blocked }
     const outcome = applyGift(loadSave(), gift)
     if (outcome.status === 'applied') {
       writeSave(outcome.save)
@@ -100,8 +130,6 @@ export const collectTrainerGifts = async (relay: string) => {
   return { applied, blocked }
 }
 
-const REV = 'ps:trainerSaveRevision'
-const BASELINE = 'ps:trainerSaveBaseline'
 let syncBusy = false
 let syncPending = false
 
@@ -143,17 +171,26 @@ const mergeTrainerSave = (cloud: ReturnType<typeof loadSave>, local: ReturnType<
 
 /** Merge server and device progress, then CAS upload. A fresh local edit reruns syncing. */
 export const syncTrainerSave = async (relay: string) => {
-  if (!trainerToken()) return { synced: false, reason: 'signedOut' }
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!session || !owner) return { synced: false, reason: 'signedOut' }
+  // A login/logout can happen while a fetch is outstanding. Never write an old
+  // trainer's cloud data into the next trainer's local save or revision.
+  const sameSession = () => trainerToken() === session && currentTrainer()?.id === owner
   if (syncBusy) { syncPending = true; return { synced: false, reason: 'busy' } }
   syncBusy = true
   try {
     for (let attempt = 0; attempt < 4; attempt++) {
       const cloud = await request(relay, 'save') as { revision: number; data: unknown; updated: number }
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       const local = loadSave()
       const merged = cloud.data === null ? local : mergeTrainerSave(parseSaveData(cloud.data), local, cloud.revision)
-      const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
+      const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       if (result.status === 409) continue
       const body = await result.json() as { error?: string; revision: number }
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       if (!result.ok) throw Error(body.error ?? 'Cloud save failed')
       localStorage.setItem(REV, String(body.revision))
       // Keep changes made during the HTTP request and schedule another sync.
@@ -163,6 +200,7 @@ export const syncTrainerSave = async (relay: string) => {
         syncPending = true
       } else writeSave(merged)
       localStorage.setItem(BASELINE, JSON.stringify(merged))
+      window.dispatchEvent(new Event('ps:trainer-save-synced'))
       return { synced: true, revision: body.revision }
     }
     throw Error('Save changed on another device; please retry synchronization')
@@ -177,22 +215,31 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null
  * Never spend locally until the server confirms it.
  */
 export const donateTrainerFestival = async (relay: string, amount: number) => {
-  if (!trainerToken()) return { ok: false as const, error: 'guest' }
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return { ok: false as const, error: 'guest' }
+  const sameTrainer = () => trainerToken() === token && currentTrainer()?.id === owner
   try {
-    await syncTrainerSave(relay)
+    const firstSync = await syncTrainerSave(relay)
+    if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
+    if (!firstSync.synced) return { ok: false as const, error: 'syncPending' }
     for (let attempt = 0; attempt < 2; attempt++) {
       const cloud = await request(relay, 'save') as { revision: number; data: unknown }
+      if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
       const response = await fetch(relay + '/trainers/festival/donate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ amount, revision: cloud.revision }),
       })
       const result = await response.json() as {
         ok?: boolean; error?: string; save?: unknown; revision?: number; held?: boolean; today?: number
       }
+      if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
       if (!response.ok || result.ok !== true) {
         if (result.error === 'stale' && attempt === 0) {
-          await syncTrainerSave(relay)
+          const retrySync = await syncTrainerSave(relay)
+          if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
+          if (!retrySync.synced) return { ok: false as const, error: 'syncPending' }
           continue
         }
         return { ok: false as const, error: result.error ?? 'offline' }

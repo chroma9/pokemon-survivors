@@ -1,4 +1,5 @@
 import { COOP } from '../data/coop'
+import * as dm from '../engine/dmath'
 import { ENEMIES, type EnemyId } from '../data/enemies'
 import { spawnEnemy } from './enemies'
 import { VERSUS } from '../data/versus'
@@ -32,7 +33,7 @@ export type PickScreen = Exclude<PlayerPhase, 'playing' | 'evolving'>
 export type TickEntry =
   /** The stick changed: `moveCode` (0 stands still, 1..224 are 32 directions × 7 speeds). It holds until the next one. */
   | { slot: number; kind: 'move'; code: number }
-  /** Authenticated, relay-generated admin event; never accepted from player input. */
+  /** Admin-only event injected by the relay; never accepted as an unverified player input. */
   | { slot: number; kind: 'adminSpawn'; enemy: EnemyId; count: number }
   /** The special attack, the Mega button and the manual moves (Quick Attack), pressed this tick. */
   | { slot: number; kind: 'special' | 'mega' | 'lunge' }
@@ -225,10 +226,10 @@ const applyEntry = (g: Game, e: TickEntry, inputs: StepInput[]) => {
   switch (e.kind) {
     case 'adminSpawn': {
       if (g.versus) return
-      const base = Math.atan2(p.facing.y, p.facing.x)
+      const base = dm.atan2(p.facing.y, p.facing.x)
       for (let i = 0; i < e.count; i++) {
         const angle = base + (i - (e.count - 1) / 2) * 0.35
-        spawnEnemy(g, e.enemy, p.x + Math.cos(angle) * 90, p.y + Math.sin(angle) * 90)
+        spawnEnemy(g, e.enemy, p.x + dm.cos(angle) * 90, p.y + dm.sin(angle) * 90)
       }
       return
     }

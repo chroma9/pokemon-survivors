@@ -1,5 +1,5 @@
-import { PROTOCOL, parseRoomCode, type CreateResponse, type Region } from '../../src/net/protocol'
 import { ENEMIES } from '../../src/data/enemies'
+import { PROTOCOL, parseRoomCode, type CreateResponse, type Region } from '../../src/net/protocol'
 import { parseCreate } from './codes'
 import type { Env } from './env'
 import { allowedOrigin } from './origins'
@@ -98,7 +98,7 @@ const isAdmin = async (request: Request, env: Env) => {
   const given = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
   if (!token || !given) return false
   const digest = async (s: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))
-  return equalDigest(await digest(token), await digest(given))
+  return crypto.subtle.timingSafeEqual(await digest(token), await digest(given))
 }
 
 const admin = async (request: Request, env: Env, path: string): Promise<Response> => {
@@ -128,6 +128,7 @@ export default {
     const headers = cors(origin)
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
     // The Worker answering is the check: no Durable Object is touched, so a flood of these costs nothing past the edge.
+    if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
     if (path === '/candy-goal' && request.method === 'GET') {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'candy-goal:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
       const total = await env.TRAINER_ACCOUNTS.getByName('global').communityCandyGoal()

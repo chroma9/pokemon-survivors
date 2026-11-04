@@ -21,7 +21,9 @@ describe('dailyChallenge', () => {
 
   it('gives every playable Pokémon its day once per cycle, egg families included and the exclusive eggs’ families aside', () => {
     const pool = PLAYABLE_IDS.filter((id) => !isExclusiveFamily(id))
-    let day = '2026-01-01'
+    // After the custom-family rollout, the expanded pool should still cycle evenly.
+    // Pre-rollout dates are pinned separately below to preserve recorded runs.
+    let day = '2028-01-01'
     const days: string[] = []
     // A whole cycle starts at a multiple of its length in days since 1970.
     while (days.length < pool.length * 2) days.push((day = previousDay(day)))

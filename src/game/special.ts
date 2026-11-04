@@ -427,7 +427,7 @@ const BY_TYPE = {
   electric: 'boltStrike', poison: 'malignantChain', flying: 'aeroblast', bug: 'attackOrder',
   rock: 'diamondStorm', ground: 'precipiceBlades', ghost: 'astralBarrage', fighting: 'auraSphere',
   psychic: 'expandingForce', ice: 'blizzard', steel: 'doomDesire', dark: 'nightDaze',
-  fairy: 'lightOfRuin', dragon: 'dracoMeteor', shadow: 'nightDaze',
+  fairy: 'lightOfRuin', dragon: 'dracoMeteor', shadow: 'darkNova',
 } as const satisfies Record<PokeType, SpecialId>
 
 /**
@@ -615,6 +615,19 @@ export const rechargeSpecial = (s: RechargeTimers, cut: number) => {
  * (the dash or lunge moves the player) and a little faster while laying a trail.
  */
 export const specialSpeedFactor = (g: Game) => {
+  // Dark Nova's delayed impact uses the same full-screen flash and screen shake
+  // as existing major attacks. Trigger once when its burst actually arrives.
+  for (const a of g.attacks) {
+    if (a.visual !== 'darkNovaBurst' || a.owner !== g.player.slot || a.age < 0 || a.memo !== 0) continue
+    a.memo = 1
+    g.flash = Math.max(g.flash, 0.4)
+    shakeScreen(g, 8, { x: a.x, y: a.y })
+    // The existing special release sound is a layered low-frequency blast.
+    // Fire it at landing, not just when the projectile is launched.
+    g.events.push({ kind: 'special', phase: 'release', name: 'Dark Nova Impact' })
+    g.hitstop = Math.max(g.hitstop, BLAST_HITSTOP)
+    burst(g, a.x, a.y, { colors: ['#f7e5ff', '#d28fea', '#b2384d', '#f6d45a'], count: 45, speed: 260, ttl: 0.55 })
+  }
   const s = g.player.special
   if (s.charge > 0) return 0.45
   if (s.active <= 0) return 1
@@ -1166,19 +1179,6 @@ const swapStance = (g: Game) => {
 
 /** Runs the special each tick: trigger → charge → release → active phase. */
 export const updateSpecial = (g: Game, pressed: boolean, dt: number) => {
-  // Dark Nova's delayed impact uses the same full-screen flash and screen shake
-  // as existing major attacks. Trigger once when its burst actually arrives.
-  for (const a of g.attacks) {
-    if (a.visual !== 'darkNovaBurst' || a.owner !== g.player.slot || a.age < 0 || a.memo !== 0) continue
-    a.memo = 1
-    g.flash = Math.max(g.flash, 0.4)
-    shakeScreen(g, 8, { x: a.x, y: a.y })
-    // The existing special release sound is a layered low-frequency blast.
-    // Fire it at landing, not just when the projectile is launched.
-    g.events.push({ kind: 'special', phase: 'release', name: 'Dark Nova Impact' })
-    g.hitstop = Math.max(g.hitstop, BLAST_HITSTOP)
-    burst(g, a.x, a.y, { colors: ['#f7e5ff', '#d28fea', '#b2384d', '#f6d45a'], count: 45, speed: 260, ttl: 0.55 })
-  }
   const s = g.player.special
   const r = gameSpecial(g)
   syncStance(g, r)

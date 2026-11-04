@@ -48,7 +48,7 @@ export const SKETCH_COPY = {
   dark: 'crunch',
   steel: 'flashCannon',
   fairy: 'disarmingVoice',
-  // Temporary fallback until Shadow moves are implemented.
+  // Fallback when Sketch copies a Shadow Pokémon's type.
   shadow: 'crunch',
 } as const satisfies Record<PokeType, MoveId>
 

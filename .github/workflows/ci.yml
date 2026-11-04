@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, Updated-11-3-2026]
   pull_request:
 
 permissions:
@@ -76,7 +76,7 @@ jobs:
       - run: npm ci
       - run: npm run determinism -- --shard=${{ matrix.shard }}/4
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: determinism-out-${{ matrix.shard }}
           path: determinism-out/

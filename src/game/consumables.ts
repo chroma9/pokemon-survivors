@@ -1,4 +1,3 @@
-import type { Sfx } from '../engine/audio'
 import { dirTo } from '../engine/math'
 import { chance, range } from '../engine/rng'
 import { query } from '../engine/spatial'
@@ -20,10 +19,14 @@ import * as dm from '../engine/dmath'
  * clock, rosary…). Each definition is data plus an `apply` effect that runs
  * when the player picks it up.
  */
+// Keep the deterministic consumable table independent of browser-only WebAudio types.
+// The client verifies these literal names against playSfx when rendering effects.
+type ConsumableSfx = 'heal' | 'levelUp' | 'item' | 'flute' | 'explosion'
+
 export type ConsumableDef = {
   /** Official English name; the pickup toast line lives in `i18n`. */
   name: string
-  sfx: Sfx
+  sfx: ConsumableSfx
   apply: (g: Game) => void
 }
 
@@ -39,6 +42,14 @@ const buff = (id: BuffId) => (g: Game) => {
   recomputeStats(g)
   const colors = id === 'xAttack' ? ['#f85838', '#ffd0a0'] : id === 'xSpeed' ? ['#58a0f8', '#d0e8ff'] : ['#58d878', '#e0ffe0']
   burst(g, g.player.x, g.player.y - 10, { colors, count: 20, speed: 90, ttl: 0.6, gravity: -60 })
+}
+
+/**
+ * The vacuums (Exp. Share, Coin Case, Berry Pouch, Super Rod): every pickup of
+ * one kind on the map flies to the player, as if their magnet had caught it.
+ */
+const pullAll = (kind: 'xp' | 'coin' | 'berry' | 'consumable') => (g: Game) => {
+  for (const k of g.pickups) if (k.kind === kind) k.attracted = true
 }
 
 const FLUTE: StatusSpec = { kind: 'sleep', chance: 1, duration: FLUTE_SLEEP, power: 0 }
@@ -88,13 +99,10 @@ export const CONSUMABLES = {
       g.player = actor
     },
   },
-  expShare: {
-    name: 'Exp. Share',
-    sfx: 'item',
-    apply: (g) => {
-      for (const k of g.pickups) if (k.kind === 'xp') k.attracted = true
-    },
-  },
+  expShare: { name: 'Exp. Share', sfx: 'item', apply: pullAll('xp') },
+  coinCase: { name: 'Coin Case', sfx: 'item', apply: pullAll('coin') },
+  berryPouch: { name: 'Berry Pouch', sfx: 'item', apply: pullAll('berry') },
+  superRod: { name: 'Super Rod', sfx: 'item', apply: pullAll('consumable') },
   pokeFlute: { name: 'Poké Flute', sfx: 'flute', apply: sleepOnScreen },
   maxRepel: { name: 'Max Repel', sfx: 'item', apply: buff('maxRepel') },
   explosion: { name: 'Voltorb', sfx: 'explosion', apply: explode },

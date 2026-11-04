@@ -232,8 +232,6 @@ const overlaps = (a: Attack, e: Enemy) => {
   const ey = e.y - e.radius // enemy body center sits above its feet
   if (a.shape.kind === 'circle') {
     if (a.visual === 'darkNovaField') {
-      // The lingering shadow is drawn as a ground-plane oval, not a full circle.
-      // Match its damaging footprint to that visible oval (including enemy size).
       const rx = a.shape.r + e.radius
       const ry = a.shape.r * 0.5 + e.radius
       return dm.sq((e.x - a.x) / rx) + dm.sq((ey - a.y) / ry) < 1

@@ -41,7 +41,11 @@ describe('moveStats with forks', () => {
   it('puts the forks at Lv 4 and 7 of every base move', () => {
     const base = MOVE_IDS.filter((id) => maxMoveLevel(id) === 8)
     expect(base.length).toBeGreaterThan(70)
-    for (const id of base) expect([id, [2, 3, 4, 5, 6, 7, 8].filter((l) => forkAt(id, l))]).toEqual([id, [4, 7]])
+    for (const id of base) {
+      // These two bespoke attacks use their seven direct upgrades rather than fork branches.
+      const forks = id === 'shadowBall' || id === 'darkPulse' ? [] : [4, 7]
+      expect([id, [2, 3, 4, 5, 6, 7, 8].filter((l) => forkAt(id, l))]).toEqual([id, forks])
+    }
   })
 
   it('makes every branch change how the move plays: a mod, or a branch the move reads itself', () => {

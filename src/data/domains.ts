@@ -71,7 +71,7 @@ import { DARKRAI_DOMAIN } from './domains/darkrai'
  */
 
 /** How a legendary's sky looks over the map in its omen and over its domain (`render/legendSky.ts`). */
-export type LegendSky = 'downpour' | 'harshSun' | 'gale' | 'timeWarp' | 'storm' | 'embers' | 'mist' | 'meteors' | 'newMoon' | 'spatialShimmer'
+export type LegendSky = 'downpour' | 'harshSun' | 'gale' | 'timeWarp' | 'spatialShimmer' | 'storm' | 'embers' | 'mist' | 'meteors' | 'newMoon'
 
 /** How the threat behind the crossing looks (`render/domain.ts`); its rules are the same for every kind. `magma`: lava chasing up a collapsing tunnel; `crumble`: a floor falling away into the sky. */
 export type ThreatKind = 'tide' | 'collapse' | 'fire' | 'void' | 'magma' | 'crumble' | 'storm' | 'time' | 'mist'

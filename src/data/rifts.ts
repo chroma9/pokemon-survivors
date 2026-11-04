@@ -30,10 +30,7 @@ export type RiftLegend = (typeof RIFT_LEGENDS)[number] | EventRift
 export const EVENT_RIFT = { odds: 0.35 } as const
 
 /** The legendaries a rift draws: Latios never comes alone, he fights beside Latias in her domain (`partner`, `data/domains/latis.ts`). */
-/** Public Rift pool: Latios joins Latias rather than appearing alone. */
 export const RIFT_DRAWS = RIFT_LEGENDS.filter((l): l is Exclude<(typeof RIFT_LEGENDS)[number], 'latios'> => l !== 'latios')
-/** Legendaries counted toward the public Rift-completion achievement. */
-export const RIFT_PUBLIC_LEGENDS = RIFT_LEGENDS
 
 /** How an arena looks: floor tiles (base, alternate, grout), the wall ring (light, dark), the void past it and its floating motes. */
 export type ArenaTheme = {
@@ -56,7 +53,7 @@ export const ARENAS: Record<RiftLegend, ArenaTheme> = {
   rayquaza: { floor: ['#3c6848', '#467654', '#1c3424'], wall: ['#f8e070', '#589860'], void: '#040818', motes: '#f8f0a0' },
   /** Spear Pillar: pale marble in frozen time. */
   dialga: { floor: ['#8890a8', '#949cb4', '#485070'], wall: ['#a8f0f8', '#4868a8'], void: '#080c20', motes: '#78e0f8' },
-  /** Spear Pillar: the same marble beneath Palkia's spatial shimmer. */
+  /** Spear Pillar: Palkia's spatial shimmer. */
   palkia: { floor: ['#8890a8', '#949cb4', '#485070'], wall: ['#f0a0da', '#9b599d'], void: '#13081e', motes: '#ed94d2' },
   /** Southern Island: warm sand ringed by palms over the open sea, with Latias's red glints. */
   latias: { floor: ['#d0b880', '#dcc490', '#907450'], wall: ['#88d868', '#2c7838'], void: '#0c3850', motes: '#f88898' },

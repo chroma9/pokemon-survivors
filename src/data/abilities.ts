@@ -29,8 +29,10 @@ export type HitKind = 'body' | 'hazard' | 'shot' | 'blast' | 'beam' | 'lava' | '
  * wards allies put on wild Pokémon (`wards`, which hits go through).
  */
 export type Immunity = 'lava' | 'trap' | 'blast' | 'zone' | 'chip' | 'drain' | 'terrain' | 'wards'
-  /** The weather's boost to foes' hits and the world's attacks (`game/hazards.ts`): Air Lock. */
+  /** The weather's boost to foes' hits (Cloud Nine, Air Lock). */
   | 'weather'
+  /** The world's attacks, the weather's and the biome's (`game/hazards.ts`): Air Lock. */
+  | 'world'
 
 export type AbilityEffect =
   /** Always on. */
@@ -151,6 +153,7 @@ export const ABILITIES = {
   sandVeil: { name: 'Sand Veil', effects: veil('sand') },
   snowCloak: { name: 'Snow Cloak', effects: veil('snow') },
   leafGuard: { name: 'Leaf Guard', effects: [{ kind: 'weather', weather: 'sun', stats: { damageTaken: -0.3, regen: 0.5 } }] },
+  cloudNine: { name: 'Cloud Nine', effects: [{ kind: 'immune', to: ['chip', 'weather'] }] },
   drought: { name: 'Drought', effects: [{ kind: 'summon', weather: 'sun' }] },
   sandStream: { name: 'Sand Stream', effects: [{ kind: 'summon', weather: 'sand' }, { kind: 'immune', to: ['chip'] }] },
 
@@ -250,7 +253,7 @@ export const ABILITIES = {
   pressure: { name: 'Pressure', effects: [{ kind: 'aura', radius: 64, every: 1, status: { kind: 'slow', chance: 1, duration: 1.2, power: 0.2 } }] },
   regenerator: { name: 'Regenerator', effects: [{ kind: 'heal', every: 8, heal: 0.05 }] },
   drizzle: { name: 'Drizzle', effects: [{ kind: 'summon', weather: 'rain' }] },
-  airLock: { name: 'Air Lock', effects: [{ kind: 'immune', to: ['chip', 'weather'] }] },
+  airLock: { name: 'Air Lock', effects: [{ kind: 'immune', to: ['chip', 'weather', 'world'] }] },
   /** Arceus's type follows the biome (`game/legend.ts`), and its moves of that type hit harder. */
   multitype: { name: 'Multitype', effects: [{ kind: 'ownType', bonus: 0.2 }] },
   /** Darkrai's: the foes its Dark Void put to sleep (or anything else did) suffer in their dreams. */
@@ -301,7 +304,6 @@ export const FAMILY_ABILITIES = {
   quaxly: ['torrent', 'steadfast', 'moxie'],
   /* Common eggs */
   pichu: ['static', 'vitalSpirit', 'lightningRod'],
-  meowth: ['pickup', 'technician', 'unnerve'],
   machop: ['guts', 'noGuard', 'steadfast'],
   eevee: ['adaptability', 'synchronize', 'pickup'],
   togepi: ['sereneGrace', 'hustle', 'naturalCure'],
@@ -313,7 +315,6 @@ export const FAMILY_ABILITIES = {
   pidgey: ['keenEye', 'steadfast', 'longReach'],
   zubat: ['innerFocus', 'unnerve', 'infiltrator'],
   poliwag: ['waterAbsorb', 'damp', 'swiftSwim'],
-  onix: ['rockHead', 'sturdy', 'sheerForce'],
   geodude: ['rockHead', 'sturdy', 'sandVeil'],
   roggenrola: ['sturdy', 'sandStream', 'rockHead'],
   mareep: ['static', 'voltAbsorb', 'lightningRod'],
@@ -322,8 +323,6 @@ export const FAMILY_ABILITIES = {
   shroomish: ['effectSpore', 'ironFist', 'technician'],
   swinub: ['snowCloak', 'slushRush', 'thickFat'],
   snorunt: ['innerFocus', 'iceBody', 'moody'],
-  /* Ultra rare Spiritomb */
-  spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
   /* Rare eggs */
   gastly: ['levitate', 'unnerve', 'cursedBody'],
   abra: ['synchronize', 'innerFocus', 'magicGuard'],
@@ -347,7 +346,7 @@ export const FAMILY_ABILITIES = {
   teddiursa: ['pickup', 'guts', 'quickFeet'],
   aron: ['sturdy', 'rockHead', 'heavyMetal'],
   trapinch: ['levitate', 'sandVeil', 'sheerForce'],
-  swablu: ['naturalCure', 'cuteCharm', 'pixilate'],
+  swablu: ['naturalCure', 'cloudNine', 'pixilate'],
   electrike: ['static', 'lightningRod', 'intimidate'],
   shuppet: ['insomnia', 'frisk', 'cursedBody'],
   /* Ultra rare eggs */
@@ -386,18 +385,23 @@ export const FAMILY_ABILITIES = {
   celebi: ['leafGuard', 'grassySurge', 'magicBounce'],
   jirachi: ['frisk', 'technician', 'magicGuard'],
   mewtwo: ['magicGuard', 'moldBreaker', 'adaptability'],
-  shadowMewtwo: ['magicGuard', 'shedSkin', 'protean'],
   lugia: ['magicBounce', 'keenEye', 'damp'],
   hoOh: ['flashFire', 'solarPower', 'magicGuard'],
   kyogre: ['swiftSwim', 'rainDish', 'liquidVoice'],
   groudon: ['solarPower', 'leafGuard', 'roughSkin'],
   rayquaza: ['moxie', 'infiltrator', 'speedBoost'],
   dialga: ['heavyMetal', 'sniper', 'unaware'],
-  palkia: ['pressure', 'sniper', 'adaptability'],
   latias: ['magicBounce', 'naturalCure', 'competitive'],
   latios: ['sniper', 'infiltrator', 'adaptability'],
   deoxys: ['sniper', 'moxie', 'adaptability'],
   arceus: ['moldBreaker', 'magicGuard', 'sturdy'],
+  meowth: ['pickup', 'technician', 'unnerve'],
+  onix: ['rockHead', 'sturdy', 'weakArmor'],
+  spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
+  // Its innate is already Magic Guard; do not offer that stateful ability twice.
+  shadowMewtwo: ['moldBreaker', 'shedSkin', 'protean'],
+  // Pressure is innate; Swift Swim gives the Water/Dragon legend a distinct pick.
+  palkia: ['swiftSwim', 'sniper', 'adaptability'],
   darkrai: ['insomnia', 'unnerve', 'infiltrator'],
   cresselia: ['naturalCure', 'magicGuard', 'synchronize'],
 } as const satisfies Record<PlayableId, AbilitySet>

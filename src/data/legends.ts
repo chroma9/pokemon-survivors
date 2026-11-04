@@ -17,7 +17,7 @@ import type { PokeType } from './types'
  * legendary as a boss `wins` times.
  */
 
-/** The 24 regular legendaries, by their `EnemyId`: the ones Arceus waits for and the "every legend" counts. */
+/** The 23 regular legendaries, by their `EnemyId`: the ones Arceus waits for and the "every legend" counts. */
 export const REGULAR_LEGENDS = [
   'articuno', 'zapdos', 'moltres', 'raikou', 'entei', 'suicune', 'regirock', 'regice', 'registeel',
   'mew', 'celebi', 'jirachi', 'mewtwo', 'lugia', 'hoOh', 'kyogre', 'groudon', 'rayquaza', 'dialga', 'palkia',
@@ -372,7 +372,6 @@ export const LEGENDS = {
     unlock: { wins: 1, endless: true, last: true },
   },
 
-  /* ---------- Spear Pillar's spatial legendary ---------- */
   palkia: {
     name: 'Palkia',
     color: '#e28bc8',

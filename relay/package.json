@@ -6,17 +6,19 @@
   "scripts": {
     "dev": "wrangler dev --port 8791",
     "deploy": "wrangler deploy",
-    "deploy:private": "wrangler deploy --config wrangler.private.jsonc",
     "deploy:prod": "wrangler deploy --env production",
     "types": "wrangler types",
     "typecheck": "npm run types && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:private": "wrangler deploy --config wrangler.private.jsonc",
+    "deploy:preview": "wrangler deploy --config wrangler.preview.jsonc",
+    "typecheck:private": "wrangler types --config wrangler.private.jsonc && tsc --noEmit"
   },
   "license": "MIT",
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "^1.4.5",
+    "@cloudflare/vitest-plugin": "^1.4.9",
     "typescript": "^7.0.2",
     "vitest": "^5.0.4",
-    "wrangler": "^4.151.2"
+    "wrangler": "^4.154.0"
   }
 }

@@ -47,10 +47,10 @@ export const HALLOWEEN = {
   } as const satisfies Partial<Record<EnemyId, readonly EnemyId[]>>,
   /**
    * Meta da comunidade: every account's jar summed by the API, each counting
-   * without a per-trainer contribution limit, toward `goal`.
+   * up to `cap` (a jar far past the rest is a script's), toward `goal`.
    * Reaching it opens Mega Darkrai for everyone (`game/communityGoal.ts`).
    */
-  community: { goal: 15_000, cap: Number.MAX_SAFE_INTEGER },
+  community: { goal: 15_000_000, cap: 20_000 },
   /** Caça aos Fantasmas: candies each night boss's first defeat pays into the jar (`recordHunt`); beating them all pays `HUNT_REWARDS`. */
   hunt: { candies: 25 },
   candy: {

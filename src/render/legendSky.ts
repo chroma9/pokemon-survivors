@@ -429,12 +429,12 @@ const TINTS: Record<LegendSky, string> = {
   harshSun: 'rgba(248,152,40,0.18)',
   gale: 'rgba(200,232,216,0.16)',
   timeWarp: 'rgba(80,120,200,0.22)',
+  spatialShimmer: 'rgba(225,95,170,0.15)',
   storm: 'rgba(24,32,64,0.3)',
   embers: 'rgba(200,64,24,0.18)',
   mist: 'rgba(232,224,248,0.22)',
   meteors: 'rgba(16,8,40,0.3)',
   newMoon: 'rgba(6,2,16,0.5)',
-  spatialShimmer: 'rgba(225,95,170,0.15)',
 }
 
 /** The skies painted so far; the others get their tint until theirs are written. */

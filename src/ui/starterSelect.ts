@@ -28,7 +28,7 @@ import { armedTms, armTm, tmLimit, type ShelfTm } from '../game/tmShelf'
 import { ownsShiny, pickShinyForm, playsShiny } from '../game/shinyPicks'
 import { dieIcon, eggIcon, moveIcon, PICKUPS, sparkleIcon, trophyIcon } from '../render/art'
 import { capPips, shopIcon } from './shopIcons'
-import { cryUrl, drawPokemon, loadedSprites, loadSpecies, portraitUrl, walkSheet } from '../render/sprites'
+import { cryUrl, drawPokemon, loadedSprites, loadSpecies, sprites, walkSheet } from '../render/sprites'
 import { formatDay, formatPokeDollarsShort, t } from '../i18n'
 import { h, later, rich } from './dom'
 import { loadSave, today, updateSave } from './save'
@@ -92,24 +92,24 @@ type SelectActions = {
  * bar is just "Escolher". `dojo`: picking who trains at the Dojo, the same plain bar ("Treinar"),
  * the captured legends included (they train with their awakenings).
  */
-export const starterSelect = (root: HTMLElement, input: Input, actions: SelectActions, initial: PlayableId = 'charmander', opts: { coop?: boolean; dojo?: boolean } = {}): Screen & { selected: () => PlayableId } => {
+export const starterSelect = (root: HTMLElement, input: Input, actions: SelectActions, initial: PlayableId = 'charmander', opts: { coop?: boolean; dojo?: boolean; allowCoopLegends?: boolean } = {}): Screen & { selected: () => PlayableId } => {
   const m = t()
   /** Co-op and the Dojo only pick a Pokémon: no Legend mode, Bag, difficulty or Poké Mart, and the partner stays. */
   const plain = opts.coop === true || opts.dojo === true
   const pickLabel = opts.dojo ? m.training.pickGo : m.coop.lobby.pick
   const save = loadSave()
-  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id)
+  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id, canUseMewtwoClone())
   /** The save with the Normal/Shiny picks made on this screen; any shiny owned (rolled once, a ticket, a shiny hatch) can be picked. */
   let forms = save
   const canPick = (id: PlayableId) => ownsShiny(save, id)
   const shinyOf = (id: PlayableId) => playsShiny(forms, id)
 
-  /** Co-op leaves the Legend mode home: no Lendários tab, and a legend partner opens on the starters. */
-  const tabs: readonly Tab[] = TABS
+  /** Private co-op can restore the captured Legendary roster; ordinary co-op keeps upstream restrictions. */
+  const showCoopLegends = opts.coop === true && opts.allowCoopLegends === true
+  const tabs: readonly Tab[] = opts.coop && !showCoopLegends ? TABS.filter((k) => k !== 'legends') : TABS
   let tab: Tab = tabs.includes(tabOf(initial)) ? tabOf(initial) : 'starters'
   /** Each tab remembers its own cursor, so switching back lands where it was. */
-  const visibleHatchlings = HATCHLING_IDS.filter(onixTesterAllowed)
-  const firstHatched = visibleHatchlings.find((id) => save.hatched[id]) ?? visibleHatchlings[0]!
+  const firstHatched = HATCHLING_IDS.find((id) => save.hatched[id]) ?? HATCHLING_IDS[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
   const legendIds = [...shownLegends(brasiliaDay(today())).filter((id) => id !== 'shadowMewtwo' || canUseMewtwoClone())]
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
@@ -255,10 +255,10 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     return el
   }
 
-  const owned = visibleHatchlings.filter((id) => save.hatched[id])
+  const owned = HATCHLING_IDS.filter((id) => save.hatched[id])
   const tabButtons = {
     starters: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('starters') }, m.partner.starters, h('small', {}, `${STARTER_IDS.length}`)),
-    eggs: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('eggs') }, m.eggs.tab, h('small', {}, `${owned.length}/${visibleHatchlings.length}`)),
+    eggs: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('eggs') }, m.eggs.tab, h('small', {}, `${owned.length}/${HATCHLING_IDS.length}`)),
     legends: h('button', { class: 'partner-tab', type: 'button', role: 'tab', onclick: () => setTab('legends') }, m.legend.tab, h('small', {}, `${capturedCount(save.legends, legendIds)}/${legendIds.length}`)),
   } satisfies Record<Tab, HTMLElement>
 
@@ -274,7 +274,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /** The teaser's portraits, so a Normal/Shiny pick repaints them too. */
   const teaserPortraits = new Map<PlayableId, HTMLImageElement>()
   const teaserPortrait = (id: PlayableId) => {
-    const img = h('img', { src: portraitUrl(PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
+    const img = h('img', { src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
     teaserPortraits.set(id, img)
     return img
   }
@@ -291,7 +291,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     h('button', { class: 'partner-teaser-more', type: 'button', onclick: () => setTab('eggs') }, owned.length > TEASER ? `+${owned.length - TEASER} ▸` : '▸'),
   )
 
-  const eggGrid = h('div', { class: 'partner-egg-grid' }, ...visibleHatchlings.map(eggCell))
+  const eggGrid = h('div', { class: 'partner-egg-grid' }, ...HATCHLING_IDS.map(eggCell))
   const ready = save.eggs.filter(isReady).length
   const openIncubator = () => (playSfx('select'), later(actions.incubator))
   const eggsPane = h(
@@ -326,7 +326,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     h('div', { class: 'partner-tabs', role: 'tablist' }, ...tabs.map((k) => tabButtons[k]), h('span', { class: 'key-hint' }, 'TAB'), randomButton),
     h('div', { class: 'partner-pane starters' }, starterGrid, teaser),
     eggsPane,
-    legendsPane,
+    (!opts.coop || showCoopLegends) && legendsPane,
   )
 
   /* ---------- Partner panel ---------- */
@@ -597,7 +597,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
 
   /** The unlocked Pokémon of the shown tab, but the selected one: what Random draws from. */
   const randomPool = (): readonly PlayableId[] => {
-    const shown: readonly PlayableId[] = tab === 'eggs' ? visibleHatchlings : tab === 'legends' ? legendIds : STARTER_IDS
+    const shown: readonly PlayableId[] = tab === 'eggs' ? HATCHLING_IDS : tab === 'legends' ? legendIds : STARTER_IDS
     return shown.filter((id) => id !== current() && unlocked(id))
   }
 
@@ -621,7 +621,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     updateSave((s) => pickShinyForm(s, id, shiny))
     playSfx(shiny ? 'shiny' : 'move')
     const cell = cells.get(id)!
-    const portrait = portraitUrl(PLAYABLE[id].line[0].dex, shiny)
+    const portrait = playablePortrait(id, PLAYABLE[id].line[0].dex, shiny)
     cell.querySelector<HTMLImageElement>('.partner-cell-portrait')!.src = portrait
     const teased = teaserPortraits.get(id)
     if (teased) teased.src = portrait
@@ -634,10 +634,10 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const step = (dir: Step) => {
     if (tab === 'eggs') {
       const cols = getComputedStyle(eggGrid).gridTemplateColumns.split(' ').length || 1
-      const next = stepGrid(visibleHatchlings.indexOf(cursor.eggs), dir, cols, visibleHatchlings.length)
+      const next = stepGrid(HATCHLING_IDS.indexOf(cursor.eggs), dir, cols, HATCHLING_IDS.length)
       if (next === 'above') return setTab('starters')
       if (next === 'below') return tabs.includes('legends') ? setTab('legends') : undefined
-      return select(visibleHatchlings[next]!)
+      return select(HATCHLING_IDS[next]!)
     }
     if (tab === 'legends') {
       const cols = getComputedStyle(legendGrid).gridTemplateColumns.split(' ').length || 1
@@ -743,7 +743,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const locked = !unlocked(id)
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
-    const s = playableForm(id) ? loadedSprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
+    const s = playableForm(id) ? sprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
     if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6 - (id === 'palkia' ? 8 : 0), {
       tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
       outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
