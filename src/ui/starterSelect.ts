@@ -98,7 +98,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const plain = opts.coop === true || opts.dojo === true
   const pickLabel = opts.dojo ? m.training.pickGo : m.coop.lobby.pick
   const save = loadSave()
-  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id)
+  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id, canUseMewtwoClone())
   /** The save with the Normal/Shiny picks made on this screen; any shiny owned (rolled once, a ticket, a shiny hatch) can be picked. */
   let forms = save
   const canPick = (id: PlayableId) => ownsShiny(save, id)
