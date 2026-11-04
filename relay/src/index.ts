@@ -222,6 +222,34 @@ export default {
       const result = await env.TRAINER_ACCOUNTS.getByName('global').grantSupporter(data?.handle, data?.tier)
       return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
     }
+    if (path === '/admin/observatory' && request.method === 'GET') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-observe:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      let code = parseRoomCode(url.searchParams.get('room'))
+      if (!code) {
+        const name = url.searchParams.get('player')?.trim()
+        if (!name || name.length > 32 || !/^[\p{L}\p{N}_ .-]+$/u.test(name)) return json({ error: 'invalid_player' }, 400, headers)
+        const found: string[] = []
+        // No global room directory yet. Scan regional shards for an exact live display-name match.
+        // Small batches bound concurrency; never return unrelated rooms to the caller.
+        const shards = SHARD_REGIONS.flatMap((region) => Array.from({ length: SHARD_INDEXES }, (_, index) => ({ region, index })))
+        for (let i = 0; i < shards.length; i += 16) {
+          const batch = await Promise.all(shards.slice(i, i + 16).map((shard) => shardStub(env, shard).findObservatoryPlayer(name).catch(() => [] as string[])))
+          found.push(...batch.flat())
+          if (found.length > 1) break
+        }
+        if (!found.length) return json({ error: 'player_not_found' }, 404, headers)
+        if (found.length > 1) return json({ error: 'ambiguous_player' }, 409, headers)
+        code = found[0] ?? null
+      }
+      const shard = code ? shardOf(code) : null
+      if (!shard || !code) return json({ error: 'not_found' }, 404, headers)
+      const observation = await shardStub(env, shard).observeAdminRoom(code)
+      return json(observation ?? { error: 'not_found' }, observation ? 200 : 404, headers)
+    }
     if (path.startsWith('/trainers/') ) {
       try {
       if (!(await env.CONNECT_LIMIT.limit({ key: 'trainer:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
