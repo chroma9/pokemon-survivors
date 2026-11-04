@@ -2425,7 +2425,7 @@ export const en: Messages = {
   types: {
     normal: 'Normal', fire: 'Fire', water: 'Water', grass: 'Grass', electric: 'Electric', poison: 'Poison',
     flying: 'Flying', bug: 'Bug', rock: 'Rock', ground: 'Ground', ghost: 'Ghost', fighting: 'Fighting',
-    psychic: 'Psychic', ice: 'Ice', steel: 'Steel', dark: 'Dark', fairy: 'Fairy', dragon: 'Dragon',
+    psychic: 'Psychic', ice: 'Ice', steel: 'Steel', dark: 'Dark', fairy: 'Fairy', dragon: 'Dragon', shadow: 'Shadow',
   },
 
   missions: {
@@ -5239,6 +5239,11 @@ export const en: Messages = {
     arceus: 'The god. Its type changes with every biome.',
     darkrai: 'Nightmare. Puts crowds to sleep and hurts them in their dreams.',
     cresselia: 'Crescent moon. Returning blades and a healing full moon.',
+    meowth: 'Quick and crafty. Pay Day turns knockouts into extra coins.',
+    onix: 'A durable rock serpent. Evolves into Steelix.',
+    spiritomb: 'Bound spirits. Shadow attacks and strengthening compensate for no evolution.',
+    palkia: 'Lord of space. Dimensional slashes cut through enemy hordes.',
+    shadowMewtwo: 'A hidden Shadow Mewtwo with devastating dark powers.',
   },
 
   specials: {
