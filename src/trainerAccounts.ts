@@ -11,6 +11,8 @@ const KEY = 'ps:trainerSession'
 const PROFILE = 'ps:trainerProfile'
 const SAVE_OWNER = 'ps:trainerSaveOwner'
 const SAVE_KEY = 'ps:save'
+const REV = 'ps:trainerSaveRevision'
+const BASELINE = 'ps:trainerSaveBaseline'
 const bindLocalSaveTo = (id: string) => {
   const previous = localStorage.getItem(SAVE_OWNER)
   if (previous && previous !== id) {
@@ -18,6 +20,9 @@ const bindLocalSaveTo = (id: string) => {
     const current = localStorage.getItem(SAVE_KEY)
     if (current !== null) localStorage.setItem('ps:trainerSaveBackup:' + previous, current)
     localStorage.removeItem(SAVE_KEY)
+    // A different account must not inherit the previous trainer's cloud-merge baseline.
+    localStorage.removeItem(REV)
+    localStorage.removeItem(BASELINE)
   }
   localStorage.setItem(SAVE_OWNER, id)
 }
@@ -43,9 +48,11 @@ export const registerTrainer = async (relay: string, handle: string, password: s
 }
 export const loginTrainer = async (relay: string, handle: string, password: string) => {
   const result = await request(relay, 'login', 'POST', { handle, password })
+  bindLocalSaveTo(result.profile.id)
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
+  queueMicrotask(() => void syncTrainerSave(relay).catch(console.warn))
   return result.profile as TrainerProfile
 }
 export const trainerLookup = async (relay: string, handle: string) => (await request(relay, 'profile/' + encodeURIComponent(handle.toLowerCase()))).profile as TrainerProfile
@@ -102,8 +109,6 @@ export const collectTrainerGifts = async (relay: string) => {
   return { applied, blocked }
 }
 
-const REV = 'ps:trainerSaveRevision'
-const BASELINE = 'ps:trainerSaveBaseline'
 let syncBusy = false
 let syncPending = false
 
