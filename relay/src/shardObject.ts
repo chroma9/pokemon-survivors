@@ -234,6 +234,28 @@ export class ShardObject extends DurableObject<Env> {
     return null
   }
 
+  /** Sanitized room telemetry for the private Developer Observatory. No seat secrets or identities. */
+  /** Only active seats; matching the displayed in-game name, not account credentials. */
+  async findObservatoryPlayer(name: string) {
+    const found: string[] = []
+    for (const shell of this.rooms.values()) {
+      const room = shell.state.room
+      if (!room?.run || room.phase !== 'playing') continue
+      if (room.seats.some((seat) => seat.offlineSince === null && seat.name.toLowerCase() === name.toLowerCase())) found.push(room.code)
+    }
+    return found
+  }
+
+  async observeAdminRoom(code: string) {
+    const room = this.rooms.get(code)?.state.room
+    if (!room) return null
+    return {
+      code: room.code, phase: room.phase,
+      run: room.run ? { tick: room.run.next, paused: room.run.paused, players: room.run.start.players.length } : null,
+      players: room.seats.map((s) => ({ seat: s.seat, name: s.name, connected: s.offlineSince === null, away: s.away, ready: s.ready })),
+    }
+  }
+
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') return new Response('Expected a WebSocket', { status: 426 })
     const code = parseRoomCode(/^\/rooms\/([^/]+)\/ws$/.exec(new URL(request.url).pathname)?.[1])
