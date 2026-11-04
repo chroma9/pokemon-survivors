@@ -116,6 +116,39 @@ const drawBlades = (ctx: Ctx, h: Hazard, g: Game) => {
 export const drawBeamAir = (ctx: Ctx, h: Hazard, t: number, g: Game) => {
   if (h.age < h.armAt || h.damage <= 0) return
   if (h.visual === 'rock') return drawBlades(ctx, h, g)
+  if (h.visual === 'spatial') {
+    const fade = h.age > h.disarmAt ? Math.max(0, 1 - (h.age - h.disarmAt) / 0.25) : 1
+    // A sharp fracture rather than a circular beam: dark interior with two
+    // irregular white-pink cutting edges, opening briefly then snapping shut.
+    const width = Math.max(1, h.r * 1.7 * fade)
+    const nx = -Math.sin(h.angle), ny = Math.cos(h.angle)
+    ctx.save()
+    ctx.globalAlpha = fade
+    ctx.lineCap = 'butt'
+    for (const [offset, stroke, thick] of [
+      [0, '#f16bc6', width + 5],
+      [0, '#fff0fa', width + 2],
+      [0, '#211027', width],
+      [-width * 0.48, '#fffaff', 1.5],
+      [width * 0.48, '#e66aba', 1.5],
+    ] as const) {
+      ctx.strokeStyle = stroke
+      ctx.lineWidth = thick
+      ctx.beginPath()
+      for (let i = 0; i <= 28; i++) {
+        const u = i / 28
+        const d = h.len * u
+        const jag = Math.sin(u * 55 + h.id * 1.7) * 1.1 + Math.sin(u * 121 + h.id) * 0.6
+        const x = h.x + Math.cos(h.angle) * d + nx * (offset + jag)
+        const y = h.y - 6 + Math.sin(h.angle) * d + ny * (offset + jag)
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+    ctx.restore()
+    return
+  }
   const [line] = HAZARD_COLORS[h.visual]
   const fade = h.age > h.disarmAt ? Math.max(0, 1 - (h.age - h.disarmAt) / 0.25) : 1
   if (fade <= 0) return
