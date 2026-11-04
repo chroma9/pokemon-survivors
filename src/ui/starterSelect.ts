@@ -1,3 +1,6 @@
+import { playableForm, playablePortrait, playableShiny } from '../playableForms'
+import { canUseMewtwoClone, mewtwoAppearance, setMewtwoAppearance } from '../privateMewtwo'
+import { onixTesterAllowed } from '../privateOnix'
 import { blitCentered, context2d } from '../engine/pixelart'
 import { playCry, playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -95,7 +98,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const plain = opts.coop === true || opts.dojo === true
   const pickLabel = opts.dojo ? m.training.pickGo : m.coop.lobby.pick
   const save = loadSave()
-  const unlocked = (id: PlayableId) => canPlay(save, id)
+  const unlocked = (id: PlayableId) => onixTesterAllowed(id) && canPlay(save, id)
   /** The save with the Normal/Shiny picks made on this screen; any shiny owned (rolled once, a ticket, a shiny hatch) can be picked. */
   let forms = save
   const canPick = (id: PlayableId) => ownsShiny(save, id)
@@ -107,7 +110,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /** Each tab remembers its own cursor, so switching back lands where it was. */
   const firstHatched = HATCHLING_IDS.find((id) => save.hatched[id]) ?? HATCHLING_IDS[0]!
   // A festival legend stays out of the tab until its festival is announced (`legendShown`).
-  const legendIds = shownLegends(brasiliaDay(today()))
+  const legendIds = [...shownLegends(brasiliaDay(today())).filter((id) => id !== 'shadowMewtwo' || canUseMewtwoClone())]
   const firstCaptured = legendIds.find((id) => isCaptured(save.legends, id)) ?? REGULAR_LEGENDS[0]
   const cursor: { starters: StarterId; eggs: HatchlingId; legends: LegendId } = {
     starters: isStarter(initial) ? initial : 'charmander',
@@ -334,7 +337,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const id = current()
     const open = unlocked(id)
     const form = PLAYABLE[id].line[stage]!
-    void loadSpecies(form.dex, shinyOf(id)).catch(() => {})
+    void loadSpecies(form.dex, playableShiny(id, shinyOf(id)), playableForm(id)).catch(() => {})
     hero.style.setProperty('--accent', open ? PLAYABLE[id].color : '#8890b0')
     const level = save.clears[id]
     const pedestal = h('div', { class: 'partner-pedestal' }, sprite)
@@ -414,7 +417,13 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
           isLegend(id) && h('p', { class: 'partner-legend-mode' }, m.legend.mode, ' · ', `${m.legend.innate}: ${ABILITIES[LEGENDS[id].innate.ability].name}`),
           isLegend(id) && eventLine(id, false),
           h('p', { class: 'partner-blurb' }, m.blurbs[id]),
-          h('div', { class: 'partner-hero-actions' }, canPick(id) && shinyPicker(shinyOf(id), setShiny), more(true)),
+          h('div', { class: 'partner-hero-actions' }, canPick(id) && shinyPicker(shinyOf(id), setShiny),
+            !plain && id === 'mewtwo' && canUseMewtwoClone() && h('button', {
+              type: 'button', class: 'partner-more',
+              'aria-label': 'Toggle Mewtwo appearance',
+              onclick: () => { setMewtwoAppearance(mewtwoAppearance() === 'normal' ? 'clone' : 'normal'); renderHero() },
+            }, mewtwoAppearance() === 'clone' ? 'Form: Clone' : 'Form: Normal'),
+            more(true)),
         ),
       ),
       h('div', { class: 'partner-stats' }, statBars(id, 4)),
@@ -733,8 +742,11 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const locked = !unlocked(id)
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
-    const s = (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
-    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, { tint: locked ? { color: '#283048', amount: 1 } : undefined })
+    const s = playableForm(id) ? loadedSprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
+    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
+      tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
+      outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
+    })
     else blitCentered(ctx, PICKUPS.pokeball(), sprite.width / 2, sprite.height / 2 + Math.round(Math.sin(time * 6) * 2))
   }
 
