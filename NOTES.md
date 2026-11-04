@@ -76,3 +76,17 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - **Ported in source, not yet runtime-verified.** In `src/ui/title.ts`, the updated lobby's partner stage loaded and displayed only the base dex sprite, ignoring `playableForm(save.partner)`. This could show regular Mewtwo in the lobby for the custom Shadow Mewtwo playable identity.
 - Commit `cf7bd20ad7e489e59e170a4d541a3451be3b2b41` restores `playableForm` and `playableShiny` selection, loads the correct form sheet, and uses the current upstream form-aware `sprites()` render lookup only when a custom form exists; ordinary Pokémon keep the original loaded sprite path.
 - Next verification after the full port: Shadow Mewtwo appears in custom form on the lobby stage, ordinary partners/shinies remain unchanged, and both form preloading and rendering work after reload.
+
+### Feature-parity audit and integration fixes — 2026-11-04
+
+**Completed in source (not yet built or run):**
+- `44309880c506625b6c00c4960cc48dffc05844fd`: the partner-selection hero now retrieves custom playable-form sprites through the form-aware renderer, instead of passing an ignored third argument to `loadedSprites`. Egg teaser and shiny selection portraits also use `playablePortrait`, preserving custom forms.
+- `bda96d59c3f9bccd6bd6fcf9879a2ffacf531f37`: private Trainer login and rename now dispatch the same `ps:trainer-changed` notification as registration and refresh.
+- `4ee62076e15257ca1faee406ac12f13ca9e4a5a8`: the lobby Trainer chip listens for the private Trainer change event and unsubscribes when disposed.
+- `170915ce836d255a77c1786897710e690e747bbc`: private Trainer login now binds local save ownership to the authenticated account, preserving a backup if switching accounts, clearing the previous owner's merge revision/baseline, and starting cloud save sync after login. This closes a data-isolation/synchronization gap compared to account registration.
+
+**Source confirmed during audit:** the private companion picker saves an explicit null for "No companion" and calls its supplied private sync callback; private gift UI uses the adapted upstream gift screen and calls cloud save sync; solo referral reports only rankable runs and co-op referral reports completed games, excluding Arena/abandoned rooms. These are source observations, not end-to-end validation.
+
+**Still to audit or validate:** save switching while a sync is already in flight; account recovery, Cloudflare Worker session revocation and profile continuity, supporter status across Clerk/private accounts, full Palkia/Spiritomb/Shadow Mewtwo content gameplay, save/gift edge cases, and multiplayer determinism. The private Mewtwo variant's client-side visibility check is not server authorization; do not portray it as secure.
+
+**Next actions:** finish source parity reconciliation, then integrated TypeScript/build/test debugging and hands-on two-client/co-op/cloud profile tests in a non-production deployment. Do not deploy or merge to main without approval.
