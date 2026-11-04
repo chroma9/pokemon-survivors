@@ -2256,13 +2256,22 @@ export const fr: Messages = {
         crossing: 'La tour est en feu ! Grimpe-la étage par étage !',
         phases: ['Ho-Oh prend son envol ! Esquive ses traînées brûlantes et Brave Bird.', 'Ho-Oh *renaît de ses cendres* ! Le bord du toit est en flammes.'],
       },
-      dialga: {
+      palkia: "Seigneur de l’espace. Ses failles dimensionnelles traversent les hordes.",
+    shadowMewtwo: 'Mewtwo Obscur. Un légendaire secret aux attaques dévastatrices de plusieurs types.',
+    dialga: {
         place: 'Colonnes Lances',
         epithet: 'Seigneur du Temps',
         omen: 'Le temps commence à trébucher…',
         crossing: 'Le temps se disloque ! Fonce à travers les Colonnes Lances !',
         phases: ['Le temps se déforme ! Pendant Roar of Time, tes attaques se figent en l’air.', 'Le temps s’accélère ! Dialga va de plus en plus vite.'],
         cues: { stop: 'Le temps s’est arrêté !', forward: 'Le temps a fait un bond !', rewind: 'Le temps est revenu en arrière !' },
+      },
+      palkia: {
+        place: 'Colonnes Lances',
+        epithet: 'Seigneur de l’Espace',
+        omen: 'L’air ondule sous une étrange lueur rose…',
+        crossing: 'L’espace se déforme ! Traverse les Colonnes Lances avant que le vide ne te rattrape !',
+        phases: ['L’espace se tord autour de Palkia ! Esquive les attaques convergentes.', 'Palkia déchire l’arène ! Évite les entailles croisées de Spacial Rend.'],
       },
       latias: {
         place: 'Île du Sud',
@@ -3418,6 +3427,14 @@ export const fr: Messages = {
         { fork: [{ name: 'Champ statique', desc: 'Chaque saut laisse des étincelles ; +10% de paralysie' }, { name: 'Ramification', desc: 'Chaque saut se divise vers 2 ennemis de plus ; -2 dégâts' }] },
         '+2 sauts',
       ],
+    },
+    shadowBall: {
+      description: "Lance des orbes obscurs qui traversent les ennemis.",
+      upgrades: ["+5 dégâts", "+1 projectile", "+20 vitesse", "+6 dégâts", "+1 perforation", "Recharge -0.2s", "+2 projectiles, +20% zone"],
+    },
+    darkPulse: {
+      description: "Une onde de ténèbres frappe les ennemis proches.",
+      upgrades: ["+5 dégâts", "+15% zone", "Recharge -0.25s", "+6 dégâts", "+20% zone", "Recharge -0.3s", "+8 dégâts, +20% zone"],
     },
     hex: {
       description: 'Une malédiction saute d’ennemi en ennemi. Inflige ×1.7 dégâts aux ennemis qui ont une altération d’état.',
@@ -4854,6 +4871,15 @@ export const fr: Messages = {
         'Recharge −0.6s et +25 dégâts',
       ],
     },
+    spacialRend: {
+      description: "Palkia déchire l’espace d’une entaille dimensionnelle qui blesse les ennemis sur son passage.",
+      upgrades: [
+        "+18 dégâts",
+        "+20 % de zone",
+        { fork: [{ name: "Failles parallèles", desc: "+1 entaille par utilisation" }, { name: "Fracture profonde", desc: "+25 dégâts et recharge accélérée de 0,4 s" }] },
+        "Recharge accélérée de 0,5 s et +18 dégâts",
+      ],
+    },
     mistBall: {
       description: 'Les orbes de brume de Latias dérivent vers différents ennemis et éclatent en une brume persistante qui blesse et affaiblit ceux qui sont dedans (ils infligent moins de dégâts de contact).',
       upgrades: [
@@ -5226,6 +5252,7 @@ export const fr: Messages = {
     dracoMeteor: 'Une pluie de météores autour de toi qui peut brûler.',
     diamondStorm: 'Un éboulement autour de toi qui frappe fort et repousse.',
     blizzard: 'Des stalactites de glace pleuvent autour de toi et ralentissent les ennemis.',
+    darkNova: 'Une sphère d\'ombre colossale explose et laisse un vaste champ d\'Ombre qui inflige des dégâts.',
     astralBarrage: 'Un anneau de boules d’ombre tirées dans tous les sens qui peut paralyser.',
     auraSphere: 'Un anneau de sphères d’énergie tirées dans tous les sens.',
     attackOrder: 'Un anneau de dards tirés dans tous les sens qui peut empoisonner.',
