@@ -73,6 +73,15 @@ describe('the co-op client', () => {
     expect(h.hellos.map((m) => m.name)).toEqual(['@ash', '@ash'])
   })
 
+  it('prefers the authenticated private Trainer Account over Clerk for co-op', async () => {
+    const privateToken = 'a'.repeat(64)
+    const h = harness({ trainerToken: () => privateToken })
+    void h.client.join('ABCDE')
+    await flush()
+    h.sockets[0]?.open()
+    expect(h.hellos[0]?.auth).toEqual({ kind: 'trainer', token: privateToken })
+  })
+
   it('sends the inputs of a frame and the ping due as one batch, and one by one to a relay without batches', async () => {
     for (const batch of [true, false]) {
       const h = await seated(batch)
