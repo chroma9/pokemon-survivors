@@ -4,6 +4,13 @@ import { h, later } from './dom'
 import { backButton, shellBody, topBar } from './shell'
 import { coopUrl } from '../coopShell'
 import { pokeballIcon } from '../render/art'
+import { pendingPicks } from '../game/shinyPicks'
+import { applyGift, parseGift, type Gift } from '../game/gifts'
+import { giftScreen } from './gifts'
+import { writeSave, saveHatch } from './save'
+import { hatchScene } from './incubator'
+import { loadSave } from './save'
+import { companionPicker, shinyPicker } from './supporters'
 import { changeTrainerPassword, fetchTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
@@ -20,11 +27,12 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
       if (key === 'Backspace') return
       document.activeElement.blur()
     }
-    close()
+    if (!shinyScreen) close()
   })
-  const dispose = () => { if (disposed) return; disposed = true; offKeys(); el.remove() }
+  const dispose = () => { if (disposed) return; disposed = true; shinyScreen?.dispose(); shinyScreen = null; offKeys(); el.remove() }
   let mode: 'signin' | 'register' = 'signin'
   let passwordPanel = false
+  let shinyScreen: Screen | null = null
   let message = ''
   let busy = false
   const line = (tag: keyof HTMLElementTagNameMap, value: string, cls = '') => h(tag, { class: cls }, value)
@@ -91,14 +99,49 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
         status.textContent = message
       }, false)
       button('Refresh Trainer Card', async () => { await refreshTrainer(relay) })
-      // The upstream 2026-11-03 game refactored its Gift and Supporter screens.
-      // Keep the server-backed inbox visible without calling incompatible
-      // legacy screen APIs. Gift redemption and companion picking follow in
-      // the dedicated UI adaptation phase.
-      button('Check Mystery Gift inbox', async () => {
-        const gifts = await fetchTrainerGifts(relay)
-        message = gifts.length + ' account gift(s) available. Redemption UI is being adapted to the updated game.'
-        status.textContent = message
+      button('Open Mystery Gifts', async () => {
+        let waiting: Gift[] = (await fetchTrainerGifts(relay)).flatMap((g) => parseGift(g) ?? [])
+          .filter((g) => !loadSave().gifts.includes(g.id))
+        if (!waiting.length) { message = 'No unopened Mystery Gifts.'; status.textContent = message; return }
+        el.classList.add('hidden')
+        const finish = () => { shinyScreen = null; el.classList.remove('hidden'); render(); void syncTrainerSave(relay).catch(console.warn) }
+        const show = () => {
+          shinyScreen = giftScreen(root, input, {
+            close: finish,
+            pick: () => {
+              shinyScreen = shinyPicker(root, input, { play: () => { shinyScreen?.dispose(); show() } }, () => show(), () => syncTrainerSave(relay))
+            },
+            hatch: (hatch) => {
+              saveHatch(loadSave(), hatch.shiny)
+              void syncTrainerSave(relay).catch(console.warn)
+              const backToGifts = () => { shinyScreen?.dispose(); show() }
+              shinyScreen = hatchScene(root, input, hatch, { play: backToGifts, done: backToGifts })
+            },
+          }, {
+            inbox: () => waiting,
+            open: (id) => {
+              const gift = waiting.find((g) => g.id === id)
+              if (!gift) return null
+              const out = applyGift(loadSave(), gift)
+              if (out.status !== 'wait') waiting = waiting.filter((g) => g.id !== id)
+              if (out.status === 'applied') {
+                writeSave(out.save)
+                void syncTrainerSave(relay).catch(console.warn)
+              }
+              return out
+            },
+          })
+        }
+        show()
+      }, false)
+      const tickets = pendingPicks(loadSave()).length
+      if (tickets) button('Choose shiny Pokémon (' + tickets + ' ticket' + (tickets === 1 ? '' : 's') + ')', async () => {
+        el.classList.add('hidden')
+        shinyScreen = shinyPicker(root, input, { play: () => { shinyScreen?.dispose(); shinyScreen = null; el.classList.remove('hidden'); render() } }, () => { shinyScreen = null; el.classList.remove('hidden'); render() }, () => syncTrainerSave(relay))
+      }, false)
+      if (user.supporterTier) button('Choose companion', async () => {
+        el.classList.add('hidden')
+        shinyScreen = companionPicker(root, input, user.supporterTier ?? null, () => { shinyScreen = null; el.classList.remove('hidden'); render() }, () => syncTrainerSave(relay))
       }, false)
       const name = field('Display name', 'New trainer name', 'text', 'nickname')
       button('Change display name', async () => { await renameTrainer(relay, name.value) })
@@ -139,5 +182,5 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     }, false)
   }
   render()
-  return { el, tick: () => {}, dispose }
+  return { el, tick: (time) => shinyScreen?.tick?.(time), dispose }
 }
