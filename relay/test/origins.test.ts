@@ -24,7 +24,7 @@ describe('isolated Cloudflare Pages preview origin policy', () => {
   it('preserves local development and ensures wildcard matching exactly one hostname label', () => {
     expect(allowedOrigin(preview, 'http://localhost:5173')).toBe(true)
     expect(allowedOrigin(preview, 'http://127.0.0.1:8791')).toBe(true)
-    const [pattern] = originPatterns('https://*.chroma9-survivors.pages.dev')
+    const pattern = originPatterns('https://*.chroma9-survivors.pages.dev')[0]!
     expect(pattern.test('https://build-1.chroma9-survivors.pages.dev')).toBe(true)
     expect(pattern.test('https://x.y.chroma9-survivors.pages.dev')).toBe(false)
   })
