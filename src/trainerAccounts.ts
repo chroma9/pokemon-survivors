@@ -45,6 +45,7 @@ export const loginTrainer = async (relay: string, handle: string, password: stri
   const result = await request(relay, 'login', 'POST', { handle, password })
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
   return result.profile as TrainerProfile
 }
 export const trainerLookup = async (relay: string, handle: string) => (await request(relay, 'profile/' + encodeURIComponent(handle.toLowerCase()))).profile as TrainerProfile
@@ -64,6 +65,7 @@ export const changeTrainerPassword = async (relay: string, current: string, next
 export const renameTrainer = async (relay: string, name: string) => {
   const profile = (await request(relay, 'name', 'POST', { name })).profile as TrainerProfile
   localStorage.setItem(PROFILE, JSON.stringify(profile))
+  window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
 }
 export const logoutTrainer = async (relay: string) => {
