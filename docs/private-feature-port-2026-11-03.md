@@ -137,3 +137,14 @@ This is a migration checkpoint, **not** a build/test pass or production deployme
 - The five game locale files have Palkia, Shadow Mewtwo, Spiritomb and move descriptions.
 
 **Do not claim completion.** Remaining custom UI, progression, presentation and relay integration differences still need review before whole-branch test/debug.
+
+## Private lobby and referrals checkpoint — 2026-11-04
+
+- Wired relay-backed admin announcements into the updated title lobby. Fetches when entering the lobby, polls every 30 seconds, and clears the interval on disposal. Broadcast remains dismissible and tracks the seen ID locally.
+- Re-enabled private Trainer Account referral list and shareable private referral URL in the Invite Friends UI.
+- Shows referral card to users authenticated with private Trainer Accounts, even without Clerk.
+- Displays private Trainer Account name, handle, and supporter avatar/ring on the Trainer Card without replacing Clerk integration.
+- Restored the private fork's focused lobby layout: hides promotional Hall/social cards while leaving their implementation available; retains the referral/gameplay tiles.
+- Restored single-player eligible run and completed co-op run referral reporting, deduplicated per in-memory run. Excludes unfinished co-op rooms and Arena sessions.
+
+**Validation:** Confirmed changes in branch source via repository reads; no end-to-end UI run, Cloudflare deployment, or full build verification yet. Remaining migration continues before integrated debugging.
