@@ -28,7 +28,7 @@ import { armedTms, armTm, tmLimit, type ShelfTm } from '../game/tmShelf'
 import { ownsShiny, pickShinyForm, playsShiny } from '../game/shinyPicks'
 import { dieIcon, eggIcon, moveIcon, PICKUPS, sparkleIcon, trophyIcon } from '../render/art'
 import { capPips, shopIcon } from './shopIcons'
-import { cryUrl, drawPokemon, loadedSprites, loadSpecies, portraitUrl, walkSheet } from '../render/sprites'
+import { cryUrl, drawPokemon, loadedSprites, loadSpecies, portraitUrl, sprites, walkSheet } from '../render/sprites'
 import { formatDay, formatPokeDollarsShort, t } from '../i18n'
 import { h, later, rich } from './dom'
 import { loadSave, today, updateSave } from './save'
@@ -273,7 +273,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   /** The teaser's portraits, so a Normal/Shiny pick repaints them too. */
   const teaserPortraits = new Map<PlayableId, HTMLImageElement>()
   const teaserPortrait = (id: PlayableId) => {
-    const img = h('img', { src: portraitUrl(PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
+    const img = h('img', { src: playablePortrait(id, PLAYABLE[id].line[0].dex, shinyOf(id)), alt: '' })
     teaserPortraits.set(id, img)
     return img
   }
@@ -620,7 +620,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     updateSave((s) => pickShinyForm(s, id, shiny))
     playSfx(shiny ? 'shiny' : 'move')
     const cell = cells.get(id)!
-    const portrait = portraitUrl(PLAYABLE[id].line[0].dex, shiny)
+    const portrait = playablePortrait(id, PLAYABLE[id].line[0].dex, shiny)
     cell.querySelector<HTMLImageElement>('.partner-cell-portrait')!.src = portrait
     const teased = teaserPortraits.get(id)
     if (teased) teased.src = portrait
@@ -742,7 +742,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const locked = !unlocked(id)
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
-    const s = playableForm(id) ? loadedSprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
+    const s = playableForm(id) ? sprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
     if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
       tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
       outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
