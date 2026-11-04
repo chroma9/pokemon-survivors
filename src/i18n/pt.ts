@@ -2570,8 +2570,6 @@ export const pt = {
         crossing: 'A torre está em chamas! Suba andar por andar!',
         phases: ['Ho-Oh levanta voo! Desvie dos rastros de fogo e do Brave Bird.', 'Ho-Oh *renasce das cinzas*! A beirada do telhado arde.'],
       },
-      palkia: 'Senhor do espaço. Seus cortes dimensionais atravessam hordas.',
-    shadowMewtwo: 'Mewtwo Sombrio. Uma força lendária oculta com ataques de vários tipos.',
     dialga: {
         place: 'Pilar Lança',
         epithet: 'Senhor do Tempo',
