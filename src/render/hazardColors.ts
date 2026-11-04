@@ -16,6 +16,7 @@ export const HAZARD_COLORS: Record<HazardVisual, readonly [string, string]> = {
   shadow: ['#a890e8', 'rgba(56,32,88,0.42)'],
   judgment: ['#fff0a0', 'rgba(248,224,112,0.32)'],
   poison: ['#c060d8', 'rgba(160,64,192,0.3)'],
+  spatial: ['#f0a0d8', 'rgba(160,50,146,0.26)'],
   fireball: ['#f08030', 'rgba(240,128,48,0.25)'],
   bubble: ['#58a8f8', 'rgba(88,168,248,0.28)'],
   sludge: ['#602070', 'rgba(160,64,176,0.85)'],
