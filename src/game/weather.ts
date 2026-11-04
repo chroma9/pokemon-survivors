@@ -58,6 +58,7 @@ export const HAZARD_TYPES: Record<HazardVisual, readonly PokeType[]> = {
   aero: ['flying'],
   grass: ['grass'],
   shadow: ['ghost'],
+  spatial: ['dragon'],
   judgment: ['normal'],
   poison: ['poison'],
   // The horde's spit (`spitters.ts`).
