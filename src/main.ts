@@ -712,11 +712,17 @@ const showMenu = (initial: PlayableId = loadSave().partner) => {
   setScreen(select)
 }
 
-/** The save's companion for a run starting now, if the account's tier still allows it (`knownTier`; its sprites start loading). */
+/** Private Trainer Accounts have independent supporter status, separate from upstream Clerk. */
+const companionTier = (save: ReturnType<typeof loadSave>) => {
+  const privateAccount = currentTrainer()
+  return privateAccount && trainerToken() ? privateAccount.supporterTier ?? null : knownTier(save)
+}
+
+/** The save's companion for a run starting now, if the account's tier still allows it. */
 const runCompanion = (at: Vec): CompanionView | null => {
   const save = loadSave()
   const c = save.companion
-  if (!c || !canWalkWith(save, c, knownTier(save))) return null
+  if (!c || !canWalkWith(save, c, companionTier(save))) return null
   const { dex, sparkles } = companionForm(c.id)
   void (c.shiny ? preloadShinies([dex]) : loadSpecies(dex)).catch(() => {})
   return createCompanion(dex, c.shiny, at, sparkles ?? null)
@@ -1063,7 +1069,7 @@ const lobbySprites = (): Variant[] => {
   const outbreak = ENEMIES[outbreakToday()].dex
   return [
     { dex: PLAYABLE[save.partner].line[0].dex, shiny: playsShiny(save, save.partner) },
-    ...(c && canWalkWith(save, c, knownTier(save)) ? [{ dex: companionForm(c.id).dex, shiny: c.shiny }] : []),
+    ...(c && canWalkWith(save, c, companionTier(save)) ? [{ dex: companionForm(c.id).dex, shiny: c.shiny }] : []),
     { dex: outbreak, shiny: false },
     { dex: outbreak, shiny: true },
   ]
