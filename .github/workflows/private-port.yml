@@ -30,6 +30,9 @@ jobs:
         run: npm test
       - name: Install relay dependencies
         run: npm ci --prefix relay
+      - name: Trace unexpected browser-audio dependency
+        run: |
+          (cd relay && npx tsc --noEmit --explainFiles --pretty false 2>&1 | grep -A 14 -B 2 'src/engine/audio.ts') || true
       - name: Typecheck private relay
         run: npm run typecheck:private --prefix relay
       - name: Run relay tests
