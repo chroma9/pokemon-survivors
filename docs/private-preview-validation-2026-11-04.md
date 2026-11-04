@@ -15,7 +15,7 @@
 1. Deploy **`chroma9-survivors-coop-preview`**, not `chroma9-survivors-coop` (live) or upstream's `ps-coop-dev`.
 2. Ensure preview Worker has **new Durable Objects** for `SHARDS`, `VAULT`, `MATCHMAKER` and `TRAINER_ACCOUNTS`. Do not connect to production Trainer Account storage. Preview registrations and grants must use dummy identities and disposable progress.
 3. Set **`VITE_COOP_URL` in the Cloudflare Pages branch preview build environment** to the exact Worker URL printed by Wrangler. It is a Vite build-time variable, so a Pages rebuild is required after changing it.
-4. The preview Worker presently allows only `https://updated-11-3-2026.chroma9-survivors.pages.dev` in `ALLOWED_ORIGINS`. Check the *actual* page origin in the browser before testing; do not enable an indiscriminate CORS wildcard.
+4. The preview Worker permits the Cloudflare Pages project origin and any **single-label preview subdomain** under `chroma9-survivors.pages.dev` (`https://*.chroma9-survivors.pages.dev`). Each immutable deployment can have a new hostname; do not pin checks to a particular deployment hash. The relay still rejects unrelated sites and does not use global `*` CORS.
 5. Never copy live Worker secrets, production Durable Object state, or authentic player passwords into preview. A separate, test-only signing secret should be used wherever an endpoint requires one.
 6. A successful Pages build alone does **not** deploy the Worker. A responding Worker alone does **not** prove that authentication or gameplay works.
 
@@ -43,7 +43,7 @@ In Cloudflare Pages for the migration preview, set `VITE_COOP_URL` to that URL. 
 
 ## Smoke tests before release
 
-- [ ] Pages preview's co-op button and Trainer Account panel appear, and the browser reports no CORS error.
+- [ ] Any branch-specific or immutable Cloudflare Pages preview URL under the project's domain can reach the preview relay; co-op button and Trainer Account panel appear, and the browser reports no CORS error.
 - [ ] Worker responds; create/join a private room from two separate browser sessions. Disconnect/reconnect each and check that lobby names are server-verified, not spoofed.
 - [ ] Start a two-player run; verify deterministic movement, guest joining, room completion and referral run accounting. Test playable Palkia and other captured Legendary selections.
 - [ ] Register **two new disposable Trainer Accounts**. Earn or hatch progress on one; refresh and log into another browser to confirm save portability without cross-account leakage.
