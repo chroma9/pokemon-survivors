@@ -49,7 +49,7 @@ export type LegendId = (typeof LEGEND_IDS)[number]
 export const AWAKEN_AT = [12, 28] as const
 
 /** Asset folder of a legend's alternate form (`<dex>/<form>/`), like the Megas'. Deoxys's formes come with its stance. */
-export type LegendForm = 'primal' | 'mega' | 'attack' | 'defense' | 'speed'
+export type LegendForm = 'primal' | 'mega' | 'attack' | 'defense' | 'speed' | 'shadow'
 
 /**
  * The innate: an ability in play from Lv 1, on top of the one picked at the
