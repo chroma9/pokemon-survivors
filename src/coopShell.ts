@@ -154,6 +154,8 @@ export const arenaQueueDeps = (): QueueDeps | null => {
     relay: url,
     build: __SIM_BUILD__,
     auth: async () => {
+      const privateToken = trainerToken()
+      if (privateToken) return { kind: 'trainer', token: privateToken }
       const token = await coopToken().catch(() => null)
       return token ? { kind: 'clerk', token } : { kind: 'guest', id: coopGuestId(local, Math.random) }
     },
