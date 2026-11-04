@@ -60,7 +60,7 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   const el = h('button', { class: 'shell-chip trainer-chip box', type: 'button', onclick: open })
   const draw = (s: AccountState) => {
     const m = t().trainer
-    const name = s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest
+    const name = currentTrainer()?.name ?? (s.kind === 'signedIn' ? s.name || (s.handle ? `@${s.handle}` : m.guest) : s.kind === 'busy' ? '…' : m.guest)
     const sub = s.kind === 'guest' && accountsEnabled ? h('span', { class: 'trainer-chip-sub join' }, m.signIn) : titleLine('trainer-chip-sub')
     el.replaceChildren(
       avatar(s, 'small'),
