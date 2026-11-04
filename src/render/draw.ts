@@ -459,7 +459,7 @@ const inSky = (g: Game) => g.place.inside?.id === 'sky'
 const airborne = (s: SpeciesSprites, aloft: boolean, walk: AnimName): AnimName => (aloft && s.anims.Fly ? 'Fly' : walk)
 
 const enemyAnim = (e: Enemy, s: SpeciesSprites, aloft: boolean): AnimName =>
-  e.dying >= 0 || e.flash > 0 ? 'Hurt' : airborne(s, aloft, isHeld(e.status) || traitPace(e) === 0 ? 'Idle' : 'Walk')
+  e.dying >= 0 || e.flash > 0 ? 'Hurt' : airborne(s, aloft, (e.kind === 'palkia' && (!e.fight || e.fight.phase === 0)) || isHeld(e.status) || traitPace(e) === 0 ? 'Idle' : 'Walk')
 
 /**
  * `time` is game time (shiny entrance), `t` wall time (status tint). `calm`
@@ -611,6 +611,7 @@ const drawPlayer = (ctx: Ctx, g: Game, calm: boolean) => {
   const anim: AnimName = p.hurt > 0 ? 'Hurt' : airborne(s, inSky(g) || flying !== null, p.moving ? 'Walk' : 'Idle')
   const charging = p.special.charge > 0 && Math.floor(p.animTime * 16) % 2 === 0
   const blink = p.iframes > 0 && p.special.active <= 0 && Math.floor(p.iframes * 20) % 2 === 0
+  const spriteLift = p.legend?.id === 'palkia' ? 6 : 0
   // Aegislash flashes white for a moment as it swaps stance.
   const swapped = localPlayer(g).special.stance !== null && localPlayer(g).special.total - localPlayer(g).special.cooldown < 0.12
   const flash = Math.max(mega.flash, calm ? 0 : p.hurt > 0.2 ? 0.7 : charging || swapped ? 0.6 : 0)
