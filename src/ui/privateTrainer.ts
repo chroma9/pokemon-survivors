@@ -11,7 +11,8 @@ import { writeSave, saveHatch } from './save'
 import { hatchScene } from './incubator'
 import { loadSave } from './save'
 import { companionPicker, shinyPicker } from './supporters'
-import { changeTrainerPassword, fetchTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, trainerLookup, syncTrainerSave } from '../trainerAccounts'
+import { changeTrainerPassword, fetchTrainerGifts, currentTrainer, loginTrainer, logoutTrainer, refreshTrainer, registerTrainer, renameTrainer, lookupTrainerCard, syncTrainerSave } from '../trainerAccounts'
+import { publicTrainerCard } from './share'
 
 /** Cloud account management, using the same card and button vocabulary as the game. */
 export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: () => void): Screen => {
@@ -175,10 +176,22 @@ export const openTrainerProfiles = (root: HTMLElement, input: Input, onClose: ()
     }
     append(h('hr', { class: 'trainer-account-divider' }), line('h3', 'Find a Trainer'))
     const lookup = field('Trainer username', 'Search by username')
-    button('View Trainer Profile', async () => {
-      const profile = await trainerLookup(relay, lookup.value)
-      message = profile.name + ' (@' + profile.handle + ') — Trainer ID: ' + profile.id
-      status.textContent = message
+    button('View Trainer Card', async () => {
+      const { profile, card } = await lookupTrainerCard(relay, lookup.value)
+      if (!card) {
+        message = 'This Trainer has no cloud save to display yet.'
+        status.textContent = message
+        return
+      }
+      const canvas = await publicTrainerCard(profile, card)
+      if (disposed) { canvas.width = canvas.height = 0; return }
+      // Only display the public image. Do not merge or load the searched account's save.
+      const image = h('img', { alt: profile.name + ' Trainer Card', class: 'share-image', style: 'display:block;width:100%;max-width:520px;height:auto;margin:12px auto;image-rendering:pixelated' })
+      image.src = canvas.toDataURL('image/png')
+      canvas.width = canvas.height = 0
+      panel.querySelector('.trainer-lookup-card')?.remove()
+      append(h('div', { class: 'trainer-lookup-card' }, image))
+      status.textContent = profile.name + ' (@' + profile.handle + ')'
     }, false)
   }
   render()
