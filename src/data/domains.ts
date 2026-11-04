@@ -12,6 +12,7 @@ import { RAYQUAZA_DOMAIN } from './domains/rayquaza'
 import { LUGIA_DOMAIN } from './domains/lugia'
 import { HO_OH_DOMAIN } from './domains/hoOh'
 import { DIALGA_DOMAIN } from './domains/dialga'
+import { PALKIA_DOMAIN } from './domains/palkia'
 import { LATIS_DOMAIN } from './domains/latis'
 import { DEOXYS_DOMAIN } from './domains/deoxys'
 import { DARKRAI_DOMAIN } from './domains/darkrai'
@@ -231,6 +232,7 @@ export const DOMAINS: Partial<Record<RiftLegend, LegendDomain>> = {
   lugia: LUGIA_DOMAIN,
   hoOh: HO_OH_DOMAIN,
   dialga: DIALGA_DOMAIN,
+  palkia: PALKIA_DOMAIN,
   latias: LATIS_DOMAIN,
   deoxys: DEOXYS_DOMAIN,
   darkrai: DARKRAI_DOMAIN,
