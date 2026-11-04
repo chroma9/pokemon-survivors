@@ -32,6 +32,18 @@ import { EMPTY_SAVE, parseSave, type Save } from './meta'
 const ready = (tier: Egg['tier']): Egg => ({ tier, steps: EGG_TIERS[tier].steps })
 const withEggs = (eggs: Egg[], extra: Partial<Save> = {}): Save => ({ ...EMPTY_SAVE, eggs, ...extra })
 
+describe('private playable family ports', () => {
+  it('makes Meowth and Persian a Common egg evolution family', () => {
+    expect(HATCHLINGS.meowth.egg).toBe('common')
+    expect(HATCHLINGS.meowth.line.map((stage) => stage.dex)).toEqual([52, 53])
+  })
+
+  it('makes Onix and Steelix a Rare egg evolution family', () => {
+    expect(HATCHLINGS.onix.egg).toBe('rare')
+    expect(HATCHLINGS.onix.line.map((stage) => stage.dex)).toEqual([95, 208])
+  })
+})
+
 describe('egg drops', () => {
   it('stop at the per-run cap, even for a sure source', () => {
     const rng = createRng(1)
