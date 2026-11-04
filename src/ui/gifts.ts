@@ -5,7 +5,8 @@ import { giftInbox, nextGift, openGift } from '../account'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
 import type { Hatch } from '../game/eggs'
-import type { Gift, StyleRef } from '../game/gifts'
+import { giftToOpen, type Gift, type GiftOutcome, type StyleRef } from '../game/gifts'
+import { loadSave } from './save'
 import { companionForm } from '../game/supporters'
 import { formatDay, formatPokeDollars, formatPokeDollarsShort, t } from '../i18n'
 import { bagIcon, coinIcon, eggIcon, giftIcon, medalIcon, ribbonIcon, sparkleIcon } from '../render/art'
@@ -122,7 +123,12 @@ export type GiftScreenActions = {
  * picker, and Próximo opens the next. An egg with the incubator full waits
  * in the box. Esc or Backspace go back to the lobby, except while it opens.
  */
-export const giftScreen = (root: HTMLElement, input: Input, actions: GiftScreenActions): Screen => {
+export type GiftScreenSource = { inbox: () => readonly Gift[]; open: (id: string) => GiftOutcome | null }
+
+export const giftScreen = (root: HTMLElement, input: Input, actions: GiftScreenActions, source?: GiftScreenSource): Screen => {
+  const inbox = source?.inbox ?? giftInbox
+  const getNext = source ? () => giftToOpen(loadSave(), inbox()) : nextGift
+  const claim = source?.open ?? openGift
   const el = h('div', { class: 'screen dim' })
   let nav: ReturnType<typeof menu> | null = null
   let timer = 0
@@ -151,9 +157,9 @@ export const giftScreen = (root: HTMLElement, input: Input, actions: GiftScreenA
   /** The next gift's closed box, or the lobby when none waits. */
   const closedBox = () => {
     const m = t().gifts
-    const next = nextGift()
+    const next = getNext()
     if (!next) return close()
-    const more = giftInbox().length - 1
+    const more = inbox().length - 1
     const box = h('button', { class: 'gift-big', type: 'button', 'aria-label': m.open }, h('img', { src: giftIcon(), alt: '' }))
     if (next.blocked) return show(next.gift, [box, h('p', { class: 'gift-note' }, m.full)], [{ label: m.ok, run: close }])
     box.addEventListener('click', () => open(next.gift, box))
@@ -178,7 +184,7 @@ export const giftScreen = (root: HTMLElement, input: Input, actions: GiftScreenA
 
   const reveal = (gift: Gift) => {
     const m = t().gifts
-    const out = openGift(gift.id)
+    const out = claim(gift.id)
     if (!out || out.status === 'claimed') return closedBox()
     if (out.status === 'wait') return closedBox()
     if (out.hatch) {
@@ -188,7 +194,7 @@ export const giftScreen = (root: HTMLElement, input: Input, actions: GiftScreenA
     }
     playSfx('unlock')
     const line = contentLine(gift)
-    const left = giftInbox().length
+    const left = inbox().length
     const prize = h('div', { class: 'gift-prize' }, h('span', { class: 'gift-burst', 'aria-hidden': 'true' }), h('img', { src: line.src, alt: '' }))
     const buttons: Action[] = [
       ...(gift.content.kind === 'shinyPick' ? [{ label: m.pickNow, run: () => (dispose(), later(actions.pick)) }] : []),
