@@ -344,6 +344,11 @@ export default {
         await store.logout(token)
         return json({ ok: true }, 200, headers)
       }
+      const cardHandle = /^\/trainers\/card\/([a-z0-9_]{3,20})$/.exec(path)
+      if (cardHandle && request.method === 'GET') {
+        const card = await store.trainerCard(cardHandle[1])
+        return json(card ?? { error: 'missing' }, card ? 200 : 404, headers)
+      }
       const found = /^\/trainers\/profile\/([a-z0-9_]{3,20})$/.exec(path)
       if (found && request.method === 'GET') {
         const profile = await store.profile(found[1])
