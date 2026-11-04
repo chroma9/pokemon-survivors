@@ -57,20 +57,29 @@ export const loginTrainer = async (relay: string, handle: string, password: stri
 }
 export const trainerLookup = async (relay: string, handle: string) => (await request(relay, 'profile/' + encodeURIComponent(handle.toLowerCase()))).profile as TrainerProfile
 export const refreshTrainer = async (relay: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const profile = (await request(relay, 'me')).profile as TrainerProfile
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || profile.id !== owner) throw Error('Account changed during refresh')
   localStorage.setItem(PROFILE, JSON.stringify(profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
 }
 export const changeTrainerPassword = async (relay: string, current: string, next: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const result = await request(relay, 'password', 'POST', { current, next })
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || result.profile?.id !== owner) throw Error('Account changed during password update')
   localStorage.setItem(KEY, result.token)
   localStorage.setItem(PROFILE, JSON.stringify(result.profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return result.profile as TrainerProfile
 }
 export const renameTrainer = async (relay: string, name: string) => {
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
   const profile = (await request(relay, 'name', 'POST', { name })).profile as TrainerProfile
+  if (!session || trainerToken() !== session || currentTrainer()?.id !== owner || profile.id !== owner) throw Error('Account changed during rename')
   localStorage.setItem(PROFILE, JSON.stringify(profile))
   window.dispatchEvent(new Event('ps:trainer-changed'))
   return profile
