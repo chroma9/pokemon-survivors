@@ -344,7 +344,7 @@ export const createGame = (
  * family: the Legend mode stays solo), Poké Mart ranks, whether it plays shiny,
  * and the name the team sees. Nothing else from the save comes along (`createCoopGame`).
  */
-export type CoopLoadout = { starter: (typeof PLAYABLE_IDS)[number]; ranks: Ranks; shiny: boolean; name: string }
+export type CoopLoadout = { starter: PlayableId; ranks: Ranks; shiny: boolean; name: string }
 
 /**
  * A co-op run's settings, the same on every client: the difficulty, the opening draft (on by default), the simulated
