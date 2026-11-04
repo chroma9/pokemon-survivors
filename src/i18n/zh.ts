@@ -2256,13 +2256,22 @@ export const zh: Messages = {
         crossing: '塔燒起來了！一層一層往上爬！',
         phases: ['Ho-Oh 飛上天空！閃避牠燃燒的軌跡與 Brave Bird。', 'Ho-Oh *浴火重生*了！屋頂邊緣燃起了火焰。'],
       },
-      dialga: {
+      palkia: "空間之主。以空間裂斬穿透敵群。",
+    shadowMewtwo: '暗影超夢。隱藏的傳說寶可夢，擅長多種屬性的強力攻擊。',
+    dialga: {
         place: '槍之柱',
         epithet: '時間之主',
         omen: '時間開始錯亂…',
         crossing: '時間正在崩解！快穿過槍之柱！',
         phases: ['時間扭曲了！Roar of Time 期間，你的攻擊會凍結在半空中。', '時間加速了！Dialga 越來越快。'],
         cues: { stop: '時間停止了！', forward: '時間快轉了！', rewind: '時間倒流了！' },
+      },
+      palkia: {
+        place: '槍之柱',
+        epithet: '空間之主',
+        omen: '空氣泛起粉紅色的微光，空間開始波動…',
+        crossing: '空間正在扭曲！在虛空追上你之前穿越槍之柱！',
+        phases: ['帕路奇亞周圍的空間開始扭曲！小心交錯的攻擊。', '帕路奇亞撕裂了競技場！避開亞空裂斬的交叉斬擊。'],
       },
       latias: {
         place: '南方孤島',
@@ -3418,6 +3427,14 @@ export const zh: Messages = {
         { fork: [{ name: '靜電場', desc: '每次跳躍都會留下火花；麻痺+10%' }, { name: '分岔', desc: '每次跳躍都會分岔到另外2個敵人；傷害−2' }] },
         '跳躍+2',
       ],
+    },
+    shadowBall: {
+      description: "向前發射可穿透敵人的暗影球。",
+      upgrades: ["+5傷害", "+1飛彈", "+20速度", "+6傷害", "+1穿透", "冷卻−0.2秒", "+2飛彈，範圍+20%"],
+    },
+    darkPulse: {
+      description: "向周圍釋放惡之波動，打擊附近敵人。",
+      upgrades: ["+5傷害", "範圍+15%", "冷卻−0.25秒", "+6傷害", "範圍+20%", "冷卻−0.3秒", "+8傷害，範圍+20%"],
     },
     hex: {
       description: '詛咒在敵人之間跳躍。對處於異常狀態的敵人造成×1.7傷害。',
@@ -4854,6 +4871,15 @@ export const zh: Messages = {
         '冷卻縮短0.6秒，傷害+25',
       ],
     },
+    spacialRend: {
+      description: "帕路奇亞撕裂空間，沿裂縫對敵人造成傷害。",
+      upgrades: [
+        "傷害 +18",
+        "範圍 +20%",
+        { fork: [{ name: "平行裂縫", desc: "每次施放增加 1 道斬擊" }, { name: "深層裂痕", desc: "傷害 +25，冷卻縮短 0.4 秒" }] },
+        "冷卻縮短 0.5 秒，傷害 +18",
+      ],
+    },
     mistBall: {
       description: 'Latias的霧球飄向不同的敵人，爆發成久久不散的霧氣，傷害並削弱裡面的敵人（接觸傷害降低）。',
       upgrades: [
@@ -5226,6 +5252,7 @@ export const zh: Messages = {
     dracoMeteor: '在你周圍降下流星雨，可能造成灼傷。',
     diamondStorm: '在你周圍降下落石，威力強大並擊退敵人。',
     blizzard: '冰柱在你周圍落下，減緩敵人。',
+    darkNova: '巨大的暗影能量球爆炸後，留下持續造成傷害的廣闊暗影領域。',
     astralBarrage: '向四面八方發射一圈暗影球，可能造成麻痺。',
     auraSphere: '向四面八方發射一圈能量球。',
     attackOrder: '向四面八方發射一圈毒針，可能造成中毒。',
