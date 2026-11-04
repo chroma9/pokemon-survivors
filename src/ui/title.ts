@@ -13,12 +13,13 @@ import { DISCORD_GIFT } from '../game/gifts'
 import { nextMilestone } from '../game/referral'
 import { dayKey, missionStatus } from '../game/missions'
 import { pendingPicks, playsShiny } from '../game/shinyPicks'
+import { playableForm, playableShiny } from '../playableForms'
 import type { ArenaHubTab } from './arenaHub'
 import { pollToVote, supporterCount, tierRank, type WallEntry } from '../game/supporters'
 import { formatNumber, locale, t } from '../i18n'
 import { arenaIcon, bulbIcon, coinIcon, coopIcon, discordIcon, eggIcon, giftIcon, heartIcon, itemIcon, medalIcon, newsIcon, pawIcon, pokeballIcon, ribbonIcon, socialIcon, sparkleIcon, supporterIcon, surveyIcon } from '../render/art'
 import { logoScale, titleLogo } from '../render/logo'
-import { drawPokemon, loadedSprites, loadSpecies, type Dex } from '../render/sprites'
+import { drawPokemon, loadedSprites, loadSpecies, sprites, type Dex } from '../render/sprites'
 import type { LobbyNpc, Place } from '../render/titleScene'
 import { isBoard, type BoardId } from '../render/stadium'
 import { stallGoods } from '../game/stalls'
@@ -642,8 +643,9 @@ const strollHint = () => {
 const partnerStage = (onPlay: () => void) => {
   const save = loadSave()
   const form = PLAYABLE[save.partner].line[0]
-  const shiny = playsShiny(save, save.partner)
-  void loadSpecies(form.dex, shiny).catch(() => {})
+  const spriteForm = playableForm(save.partner)
+  const shiny = playableShiny(save.partner, playsShiny(save, save.partner))
+  void loadSpecies(form.dex, shiny, spriteForm).catch(() => {})
   const canvas = h('canvas', { class: 'lobby-partner-sprite', width: STAGE.w, height: STAGE.h, 'aria-hidden': 'true' })
   const plate = h('span', { class: 'lobby-plate' }, h('b', {}, form.name), h('small', {}, `${t().home.change} ▸`))
   const hit = h('span', { class: 'lobby-partner-hit' })
@@ -653,7 +655,7 @@ const partnerStage = (onPlay: () => void) => {
   const el = h('div', { class: 'lobby-stage' }, partner)
   const tick = (time: number) => {
     const dpr = uiDpr()
-    const s = loadedSprites(form.dex, shiny)
+    const s = spriteForm ? sprites(form.dex, shiny, spriteForm) : loadedSprites(form.dex, shiny)
     // A big legend (Lugia's wings) gets a wider stage, so it shows whole at a smaller scale instead of cropped and huge.
     const sw = Math.max(STAGE.w, (s?.bodyW ?? 0) + 16)
     const sh = Math.max(STAGE.h, (s?.bodyH ?? 0) + 14)
