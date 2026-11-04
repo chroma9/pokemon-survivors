@@ -38,6 +38,10 @@ let jwks: ReturnType<typeof jwksKeys> | null = null
 /** Who a `hello`'s auth is: a guest as it says, a Clerk session token once verified, else null. */
 export const identify = async (env: Env, auth: Auth): Promise<Identity | null> => {
   if (auth.kind === 'guest') return { id: `g:${auth.id}`, account: false }
+  if (auth.kind === 'trainer') {
+    const user = await env.TRAINER_ACCOUNTS.getByName('global').identify(auth.token)
+    return user ? { id: `t:${user.id}`, account: true, name: user.name } : null
+  }
   jwks ??= jwksKeys(`${env.CLERK_ISSUER}/.well-known/jwks.json`)
   const sub = await verifyClerkToken(auth.token, {
     keys: jwks,
