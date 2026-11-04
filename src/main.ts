@@ -1,4 +1,4 @@
-import { privateAdminConsole } from './privateAdmin'
+import { privateAdminConsole, verifyPrivateAdmin } from './privateAdmin'
 import { currentTrainer, trainerToken, scheduleTrainerSave, syncTrainerSave } from './trainerAccounts'
 import { openTrainerProfiles } from './ui/privateTrainer'
 import '@fontsource/press-start-2p'
@@ -4497,10 +4497,20 @@ if (trainerToken()) queueMicrotask(() => {
   if (relay) void syncTrainerSave(relay).catch((err) => console.warn('Trainer cloud sync unavailable', err))
 })
 
-// Production console commands remain behind server-side admin verification.
-// Live-room spawn and observatory controls are not enabled until the updated
-// upstream room protocol has been verified.
+// No privileged action is available until the private relay verifies the
+// administrator's token. Co-op enemies are stamped by the relay into all
+// clients' deterministic simulation ticks; local spawns are solo-only.
 if (!import.meta.env.DEV) {
-  const { spawn: _spawn, ...verifiedCommands } = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
-  Object.assign(window, { ps: { ...verifiedCommands } })
+  const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
+  Object.assign(window, { ps: {
+    ...commands,
+    spawn: async (kind: EnemyId, count = 1, target?: string) => {
+      if (run?.coop) return commands.spawn(kind, count, target)
+      if (!await verifyPrivateAdmin(coopUrl())) return 'ps: unauthorized'
+      if (!Object.hasOwn(ENEMIES, kind) || !Number.isInteger(count) || count < 1 || count > 20) return 'ps.spawn: invalid enemy/count'
+      if (!run) return 'ps.spawn: start a run first'
+      devSpawn(kind, count)
+      return 'ps: local enemies spawned'
+    },
+  } })
 }
