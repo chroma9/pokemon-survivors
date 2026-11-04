@@ -48,6 +48,8 @@ export const SKETCH_COPY = {
   dark: 'crunch',
   steel: 'flashCannon',
   fairy: 'disarmingVoice',
+  // Fallback when Sketch copies a Shadow Pokémon's type.
+  shadow: 'crunch',
 } as const satisfies Record<PokeType, MoveId>
 
 /** What a boss of a type lends instead: an evolved move, where its type has one Metronome calls too. */
