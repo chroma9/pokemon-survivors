@@ -1,3 +1,4 @@
+import { ENEMIES } from '../../src/data/enemies'
 import { PROTOCOL, parseRoomCode, type CreateResponse, type Region } from '../../src/net/protocol'
 import { parseCreate } from './codes'
 import type { Env } from './env'
@@ -249,6 +250,26 @@ export default {
       if (!shard || !code) return json({ error: 'not_found' }, 404, headers)
       const observation = await shardStub(env, shard).observeAdminRoom(code)
       return json(observation ?? { error: 'not_found' }, observation ? 200 : 404, headers)
+    }
+    if (path === '/admin/spawn' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-spawn:' + ipOf(request) })).success) return json({ ok: false }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ ok: false }, 401, headers)
+      const raw: unknown = await request.json().catch(() => null)
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return json({ ok: false }, 400, headers)
+      const data = raw as Record<string, unknown>
+      const code = parseRoomCode(data.room)
+      const enemy = data.enemy
+      const count = data.count
+      const target = data.target
+      if (!code || typeof enemy !== 'string' || !Object.hasOwn(ENEMIES, enemy) || !Number.isInteger(count) || (count as number) < 1 || (count as number) > 20) return json({ ok: false }, 400, headers)
+      if (target !== undefined && (typeof target !== 'string' || target.length > 32 || target.length < 1)) return json({ ok: false }, 400, headers)
+      const shard = shardOf(code)
+      if (!shard) return json({ ok: false }, 404, headers)
+      const ok = await shardStub(env, shard).spawnAdminEnemy(code, enemy, count as number, target as string | undefined)
+      return json({ ok }, ok ? 200 : 409, headers)
     }
     if (path.startsWith('/trainers/') ) {
       try {
