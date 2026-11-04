@@ -36,13 +36,13 @@ export const FESTIVALS = [
     start: '2026-11-03',
     days: 14,
     milestones: [
-      { pot: 10_000_000, reward: { kind: 'egg', tier: 'rare' }, stage: 1 },
-      { pot: 30_000_000, reward: { kind: 'style', style: { slot: 'frame', id: 'lantern' } }, stage: 2 },
-      { pot: 60_000_000, reward: { kind: 'bag', item: 'lure', count: 3 }, stage: 2 },
-      { pot: 100_000_000, reward: { kind: 'egg', tier: 'kecleon' }, stage: 3 },
-      { pot: 150_000_000, reward: { kind: 'shinyHatch', family: 'togepi' }, stage: 4 },
+      { pot: 100_000, reward: { kind: 'egg', tier: 'rare' }, stage: 1 },
+      { pot: 300_000, reward: { kind: 'style', style: { slot: 'frame', id: 'lantern' } }, stage: 2 },
+      { pot: 600_000, reward: { kind: 'bag', item: 'lure', count: 3 }, stage: 2 },
+      { pot: 1_000_000, reward: { kind: 'egg', tier: 'kecleon' }, stage: 3 },
+      { pot: 1_500_000, reward: { kind: 'shinyHatch', family: 'togepi' }, stage: 4 },
       // The last prize: Cresselia, the moon over the lanterns, for the Legend mode (`FESTIVAL_LEGENDS`).
-      { pot: 200_000_000, reward: { kind: 'legend', legend: 'cresselia' }, stage: 4 },
+      { pot: 2_000_000, reward: { kind: 'legend', legend: 'cresselia' }, stage: 4 },
     ],
   },
 ] as const satisfies readonly FestivalDef[]
