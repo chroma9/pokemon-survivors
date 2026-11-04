@@ -35,6 +35,8 @@ npm run deploy:preview
 
 Confirm the Wrangler output shows the **preview Worker name** and a preview `workers.dev` URL, not the live private Worker.
 
+For admin-only preview tests, set a **unique disposable** `GAME_ADMIN_TOKEN` Worker secret with `npx wrangler secret put GAME_ADMIN_TOKEN --config wrangler.preview.jsonc` from `relay/`. Do not reuse or paste the live administrator credential into the preview environment. Without this secret, the preview Worker intentionally refuses admin grant and spawn commands; basic rooms and Trainer registration can still be tested. Keep the secret out of git, build variables, and documentation.
+
 In Cloudflare Pages for the migration preview, set `VITE_COOP_URL` to that URL. Rebuild only the **preview branch**. Verify that the displayed preview build SHA matches the expected branch head.
 
 **Deployment is intentionally not automated from GitHub pushes.** First deploy requires explicit owner approval.
