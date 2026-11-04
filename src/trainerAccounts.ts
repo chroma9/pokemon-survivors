@@ -180,6 +180,7 @@ export const syncTrainerSave = async (relay: string) => {
         syncPending = true
       } else writeSave(merged)
       localStorage.setItem(BASELINE, JSON.stringify(merged))
+      window.dispatchEvent(new Event('ps:trainer-save-synced'))
       return { synced: true, revision: body.revision }
     }
     throw Error('Save changed on another device; please retry synchronization')
