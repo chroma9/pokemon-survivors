@@ -67,7 +67,7 @@ export type LegendaryVisual =
   | 'whirlwind' | 'whirlBurst' | 'phoenix' | 'sacredFlame' | 'originRing' | 'originBeam' | 'sandWave' | 'hotSand'
   | 'ascentRise' | 'ascentComet' | 'ascentImpact' | 'timeClock' | 'timeRing' | 'timeSnap' | 'mistBall' | 'mistCloud'
   | 'lusterBeam' | 'boostCore' | 'boostComet' | 'boostBurst' | 'wishStar' | 'wishFall' | 'wishBurst'
-  | 'ancientRock' | 'magicalLeaf' | 'voidOrb' | 'voidBurst' | 'voidPool' | 'lunarMoon' | 'lunarCrescent' | 'lunarBurst'
+  | 'ancientRock' | 'magicalLeaf' | 'voidOrb' | 'voidBurst' | 'voidPool' | 'lunarMoon' | 'lunarCrescent' | 'lunarBurst' | 'spatialSlash'
 
 /** Whirlwind: the cyclone's pull (px/s) and the gust it ends with (× damage, × area). */
 export const WHIRL = { pull: 150, burst: 2.2, burstR: 46 } as const
