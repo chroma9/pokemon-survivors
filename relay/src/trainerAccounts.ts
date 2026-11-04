@@ -208,6 +208,25 @@ export class TrainerAccounts extends DurableObject<Env> {
     const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
     return user ? publicProfile(user) : null
   }
+  /** Public Trainer Card projection. Never expose the stored save, credentials or wallet. */
+  async trainerCard(handleInput: unknown) {
+    const profile = await this.profile(handleInput)
+    if (!profile) return null
+    const record = await this.ctx.storage.get<{ data?: unknown }>('save:' + profile.id)
+    const save = record?.data ? parseSaveData(record.data) : null
+    if (!save) return { profile, card: null }
+    // The public card needs only progress, not the full private cloud save.
+    const dexFlags = Object.entries(save.dex).map(([dex, mark]) => [Number(dex), mark[1]] as const)
+    return { profile, card: {
+      partner: save.partner,
+      partnerShiny: (save.shinyStarters[save.partner] === true || (save.shinyStarters[save.partner] !== false && save.hatched[save.partner as keyof typeof save.hatched]?.shiny === true)),
+      title: save.title,
+      dexFlags,
+      achievements: save.achievements.unlocked,
+      bestTime: save.achievements.lifetime.bestTime,
+      ribbons: save.ribbons.map((r) => r.tier),
+    } }
+  }
   async update(token: string, nameInput: unknown) {
     const user = await this.identify(token)
     const name = clean(nameInput).slice(0, 24)
