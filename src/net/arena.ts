@@ -28,7 +28,7 @@ export const ARENA_PROTOCOL = 1
  * Who queues: a Clerk session token, or a guest id where the relay seats guests (dev only). The same
  * shape as the rooms' `Auth` (`protocol.ts`), spelled out since this file imports nothing.
  */
-export type QueueAuth = { kind: 'clerk'; token: string } | { kind: 'guest'; id: string }
+export type QueueAuth = { kind: 'clerk'; token: string } | { kind: 'trainer'; token: string } | { kind: 'guest'; id: string }
 
 /**
  * The match formats (`ArenaFormat` in `data/arenaFormats.ts`), spelled out since this file imports nothing:
