@@ -1,0 +1,419 @@
+import { DurableObject } from 'cloudflare:workers'
+import type { Env } from './env'
+import { HATCHLING_IDS } from '../../src/data/hatchlings'
+import { LEGEND_IDS } from '../../src/data/legends'
+import { FESTIVAL, type FestivalId } from '../../src/data/festivals'
+import { brasiliaDay } from '../../src/game/day'
+import { festivalOn, latestFestival, donationRefusal, isHeld, parseDonationAmount, donateFrom } from '../../src/game/festival'
+import { parseSaveData } from '../../src/game/meta'
+import type { Save } from '../../src/game/meta'
+// Keep Worker gift validation independent of browser game modules.
+// Keep Worker-only referral definitions independent of browser game modules.
+// These mirror src/game/referral.ts; verify both when changing rewards.
+type ReferralContent =
+  | { kind: 'egg'; tier: 'friend' | 'ultra' }
+  | { kind: 'title'; title: 'ambassador' }
+  | { kind: 'style'; style: { slot: 'frame'; id: 'ambassador' } }
+  | { kind: 'shinyHatch'; family: 'dratini' }
+type ReferralGift = {
+  id: string
+  content: ReferralContent
+  reason: { kind: 'welcome'; from: string | null } | { kind: 'friends'; count: number }
+}
+const REFERRAL = { runs: 3 } as const
+const WELCOME_GIFT: ReferralContent = { kind: 'egg', tier: 'friend' }
+const FRIEND_MILESTONES: ReadonlyArray<{ friends: number; gifts: readonly ReferralContent[] }> = [
+  { friends: 1, gifts: [{ kind: 'egg', tier: 'friend' }] },
+  { friends: 3, gifts: [{ kind: 'title', title: 'ambassador' }, { kind: 'style', style: { slot: 'frame', id: 'ambassador' } }] },
+  { friends: 5, gifts: [{ kind: 'egg', tier: 'ultra' }] },
+  { friends: 10, gifts: [{ kind: 'shinyHatch', family: 'dratini' }] },
+]
+
+type SupportTier = 'supporter' | 'gold' | 'diamond'
+type User = { supporterTier?: SupportTier | null; sessionVersion?: number; mustChangePassword?: boolean; id: string; handle: string; name: string; salt: string; verifier: string; created: number; referredBy?: string | null; referralRuns?: number; referralCounted?: boolean }
+type Session = { id: string; expires: number; version?: number }
+const encoder = new TextEncoder()
+const hex = (a: Uint8Array) => [...a].map((n) => n.toString(16).padStart(2, '0')).join('')
+const bytes = (n: number) => crypto.getRandomValues(new Uint8Array(n))
+const digest = async (value: string) => hex(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value))))
+const derive = async (pass: string, salt: string) => {
+  const key = await crypto.subtle.importKey('raw', encoder.encode(pass), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', iterations: 100000, salt: encoder.encode(salt) }, key, 256)
+  return hex(new Uint8Array(bits))
+}
+const clean = (v: unknown) => typeof v === 'string' ? v.trim() : ''
+const handleOf = (v: unknown) => /^[a-z0-9_]{3,20}$/.test(clean(v).toLowerCase()) ? clean(v).toLowerCase() : null
+const publicProfile = (u: User) => ({ id: u.id, handle: u.handle, name: u.name, created: u.created, supporterTier: u.supporterTier ?? null, mustChangePassword: u.mustChangePassword === true })
+const expiresIn = 30 * 24 * 3600 * 1000
+
+/** Single global account directory. All credentials and session hashes remain within this Durable Object. */
+export class TrainerAccounts extends DurableObject<Env> {
+  /** Last manually published announcement, persisted across Worker deployments. */
+  async announcement() {
+    return (await this.ctx.storage.get<{ id: string; message: string }>('global:announcement')) ?? null
+  }
+  async publishAnnouncement(message: unknown) {
+    if (typeof message !== 'string' || message.trim().length < 1 || message.trim().length > 240) return { error: 'invalid' }
+    const announcement = { id: crypto.randomUUID(), message: message.trim() }
+    await this.ctx.storage.put('global:announcement', announcement)
+    return announcement
+  }
+  async register(handleInput: unknown, passInput: unknown, nameInput: unknown, inviterInput?: unknown) {
+    const handle = handleOf(handleInput)
+    const pass = clean(passInput)
+    const name = clean(nameInput).slice(0, 24)
+    if (!handle || pass.length < 12 || pass.length > 128 || name.length < 1) return { error: 'invalid' }
+    if (await this.ctx.storage.get('name:' + handle)) return { error: 'taken' }
+    const inviterHandle = handleOf(inviterInput)
+    const inviterId = inviterHandle ? await this.ctx.storage.get<string>('name:' + inviterHandle) : null
+    const id = crypto.randomUUID()
+    const salt = hex(bytes(16))
+    const u: User = { id, handle, name, salt, verifier: await derive(pass, salt), created: Date.now(), referredBy: inviterId ?? null, referralRuns: 0, referralCounted: false }
+    await this.ctx.storage.put({ ['user:' + id]: u, ['name:' + handle]: id })
+    if (inviterId) await this.ctx.storage.put('gift:' + id + ':welcome', { id: 'private-ref-welcome-' + id, content: WELCOME_GIFT, reason: { kind: 'welcome', from: inviterHandle } } satisfies ReferralGift)
+    return this.issue(u)
+  }
+  async login(handleInput: unknown, passInput: unknown) {
+    const handle = handleOf(handleInput)
+    const pass = clean(passInput)
+    if (!handle || !pass) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    // Equalize credential verification work for missing accounts.
+    const verifier = await derive(pass, user?.salt ?? 'unlisted-account-salt')
+    if (!user || verifier !== user.verifier) return { error: 'invalid' }
+    return this.issue(user)
+  }
+  /** Admin-initiated credential replacement; preserves the trainer ID, save and rewards. */
+  async resetPassword(handleInput: unknown, passwordInput: unknown) {
+    const handle = handleOf(handleInput)
+    const password = typeof passwordInput === 'string' ? passwordInput : ''
+    if (!handle || password.length < 12 || password.length > 128) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const salt = hex(bytes(16))
+    const verifier = await derive(password, salt)
+    await this.ctx.storage.put('user:' + user.id, { ...user, salt, verifier, mustChangePassword: true, sessionVersion: (user.sessionVersion ?? 0) + 1 })
+    return { ok: true, handle: user.handle, sessionsInvalidated: true }
+  }
+  /** A signed-in trainer replaces their temporary password with a private permanent one. */
+  async changePassword(token: string, oldInput: unknown, nextInput: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' }
+    const oldPassword = typeof oldInput === 'string' ? oldInput : ''
+    const newPassword = typeof nextInput === 'string' ? nextInput : ''
+    if (newPassword.length < 12 || newPassword.length > 128 || oldPassword === newPassword) return { error: 'invalid' }
+    if (await derive(oldPassword, user.salt) !== user.verifier) return { error: 'incorrect_password' }
+    const salt = hex(bytes(16))
+    const verifier = await derive(newPassword, salt)
+    const nextUser = { ...user, salt, verifier, mustChangePassword: false, sessionVersion: (user.sessionVersion ?? 0) + 1 }
+    await this.ctx.storage.put('user:' + user.id, nextUser)
+    // Changing credentials revokes all old sessions, including this one.
+    return await this.issue(nextUser)
+  }
+  private async issue(user: User) {
+    const token = hex(bytes(32))
+    await this.ctx.storage.put('session:' + await digest(token), { id: user.id, expires: Date.now() + expiresIn, version: user.sessionVersion ?? 0 } satisfies Session)
+    return { token, profile: publicProfile(user) }
+  }
+  async identify(token: string) {
+    if (!/^[0-9a-f]{64}$/.test(token)) return null
+    const key = 'session:' + await digest(token)
+    const session = await this.ctx.storage.get<Session>(key)
+    if (!session) return null
+    if (session.expires <= Date.now()) { await this.ctx.storage.delete(key); return null }
+    const user = await this.ctx.storage.get<User>('user:' + session.id) ?? null
+    return user && (session.version ?? 0) === (user.sessionVersion ?? 0) ? user : null
+  }
+  /** Only the authenticated Worker administrator may call this RPC from the route. */
+  /** Issue event shiny-choice tickets, independently of paid supporter status. */
+  /** Admin-issued Pokémon Mystery Gift for a specific private Trainer Account. */
+  async grantPokemon(handleInput: unknown, familyInput: unknown, shinyInput: unknown) {
+    const handle = handleOf(handleInput)
+    const family = typeof familyInput === 'string' ? familyInput.toLowerCase() : ''
+    if (!handle || typeof shinyInput !== 'boolean') return { error: 'invalid' }
+    const hatchling = (HATCHLING_IDS as readonly string[]).includes(family)
+    const legend = (LEGEND_IDS as readonly string[]).includes(family)
+    if (!hatchling && !legend) return { error: 'unknown_pokemon' }
+    if (legend && shinyInput) return { error: 'shiny_legend_gifts_unsupported' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const giftId = 'private-event-pokemon-' + crypto.randomUUID()
+    await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+      id: giftId,
+      content: legend ? { kind: 'legend', legend: family } : { kind: 'pokemonGift', family, shiny: shinyInput },
+      reason: { kind: 'staff', from: null },
+    })
+    return { ok: true, handle: user.handle, family, shiny: shinyInput, giftId }
+  }
+  /** Admin-issued exclusive title; repeat grants preserve the same gift ID. */
+  async grantTitle(handleInput: unknown, titleInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || (titleInput !== 'developer' && titleInput !== 'tester')) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const giftId = 'private-title-' + user.id + '-' + titleInput
+    await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+      id: giftId, content: { kind: 'title', title: titleInput },
+      reason: { kind: 'staff', from: null },
+    })
+    return { ok: true, handle: user.handle, title: titleInput }
+  }
+  async grantShinyTickets(handleInput: unknown, countInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || !Number.isInteger(countInput) || (countInput as number) < 1 || (countInput as number) > 10) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const count = countInput as number
+    for (let i = 0; i < count; i++) {
+      const giftId = 'private-event-shiny-' + crypto.randomUUID()
+      await this.ctx.storage.put('gift:' + user.id + ':' + giftId, {
+        id: giftId,
+        content: { kind: 'shinyPick' },
+        reason: { kind: 'staff', from: null },
+      })
+    }
+    return { ok: true, handle: user.handle, count }
+  }
+  async grantSupporter(handleInput: unknown, tierInput: unknown) {
+    const handle = handleOf(handleInput)
+    if (!handle || (tierInput !== null && tierInput !== 'supporter' && tierInput !== 'gold' && tierInput !== 'diamond')) return { error: 'invalid' }
+    const id = await this.ctx.storage.get<string>('name:' + handle)
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    if (!user) return { error: 'not_found' }
+    const tier = tierInput as SupportTier | null
+    await this.ctx.storage.put('user:' + user.id, { ...user, supporterTier: tier })
+    const gifts: { id: string; content: unknown; reason: { kind: 'support'; tier: SupportTier } }[] = []
+    if (tier) {
+      gifts.push(
+        { id: 'private-support-' + user.id + '-title', content: { kind: 'title', title: 'supporter' }, reason: { kind: 'support', tier: 'supporter' } },
+        { id: 'private-support-' + user.id + '-frame', content: { kind: 'style', style: { slot: 'frame', id: 'supporter' } }, reason: { kind: 'support', tier: 'supporter' } },
+        { id: 'private-support-' + user.id + '-shiny', content: { kind: 'shinyPick' }, reason: { kind: 'support', tier: 'supporter' } },
+      )
+      if (tier === 'gold' || tier === 'diamond') gifts.push(
+        { id: 'private-support-' + user.id + '-background', content: { kind: 'style', style: { slot: 'background', id: 'supporter' } }, reason: { kind: 'support', tier: 'gold' } },
+        { id: 'private-support-' + user.id + '-wallpaper', content: { kind: 'style', style: { slot: 'wallpaper', id: 'supporter' } }, reason: { kind: 'support', tier: 'gold' } },
+      )
+    }
+    for (const gift of gifts) await this.ctx.storage.put('gift:' + user.id + ':' + gift.id, gift)
+    return { profile: publicProfile({ ...user, supporterTier: tier }), gifts: gifts.length }
+  }
+  async profile(handleInput: unknown) {
+    const handle = handleOf(handleInput)
+    const id = handle ? await this.ctx.storage.get<string>('name:' + handle) : null
+    const user = id ? await this.ctx.storage.get<User>('user:' + id) : null
+    return user ? publicProfile(user) : null
+  }
+  async update(token: string, nameInput: unknown) {
+    const user = await this.identify(token)
+    const name = clean(nameInput).slice(0, 24)
+    if (!user || !name) return null
+    const changed = { ...user, name }
+    await this.ctx.storage.put('user:' + user.id, changed)
+    return publicProfile(changed)
+  }
+  /** Private-fork referrals; the account, never localStorage, owns credit and gift IDs. */
+  async referrals(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    const all = await this.ctx.storage.list<User>({ prefix: 'user:' })
+    const friends = [...all.values()].filter((u) => u.referredBy === user.id).map((u) => ({ handle: u.handle, name: u.name, runs: u.referralRuns ?? 0, counted: u.referralCounted === true }))
+    return { handle: user.handle, link: '?ref=' + user.handle, friends, counted: friends.filter((u) => u.counted).length, milestones: FRIEND_MILESTONES.map((m) => ({ friends: m.friends, reached: friends.filter((u) => u.counted).length >= m.friends })) }
+  }
+  async gifts(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    const gifts = await this.ctx.storage.list<ReferralGift>({ prefix: 'gift:' + user.id + ':' })
+    return [...gifts.values()]
+  }
+  /**
+   * A run submission is currently client-attested, not an authoritative match result.
+   * Never use this endpoint for tradeable or paid rewards without server verification.
+   */
+  async referralRun(token: string, runId: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' }
+    if (typeof runId !== 'string' || !/^[a-zA-Z0-9_-]{16,80}$/.test(runId)) return { error: 'invalid' }
+    if (!user.referredBy || user.referralCounted) return { ok: true, counted: Boolean(user.referralCounted) }
+    const key = 'run:' + user.id + ':' + runId
+    if (await this.ctx.storage.get(key)) return { ok: true, counted: false }
+    await this.ctx.storage.put(key, true)
+    const runs = Math.min(REFERRAL.runs, (user.referralRuns ?? 0) + 1)
+    const updated = { ...user, referralRuns: runs, referralCounted: runs >= REFERRAL.runs }
+    await this.ctx.storage.put('user:' + user.id, updated)
+    if (updated.referralCounted) {
+      const all = await this.ctx.storage.list<User>({ prefix: 'user:' })
+      const counted = [...all.values()].filter((u) => u.referredBy === user.referredBy && u.referralCounted).length
+      for (const milestone of FRIEND_MILESTONES) {
+        if (counted < milestone.friends) continue
+        for (let i = 0; i < milestone.gifts.length; i++) {
+          const content = milestone.gifts[i]
+          if (!content) continue
+          const giftId = 'private-ref-' + user.referredBy + '-' + milestone.friends + '-' + i
+          await this.ctx.storage.put('gift:' + user.referredBy + ':' + milestone.friends + ':' + i, { id: giftId, content, reason: { kind: 'friends', count: milestone.friends } } satisfies ReferralGift)
+        }
+      }
+    }
+    return { ok: true, counted: updated.referralCounted, runs }
+  }
+  /** Sum the largest saved candy jar for each private Trainer Account.
+   * Jars are lifetime totals, not spendable balances. Reading persisted saves
+   * also includes candies earned before this endpoint was deployed.
+   */
+  async communityCandyGoal() {
+    const saves = await this.ctx.storage.list<{ data?: unknown }>({ prefix: 'save:' })
+    let candies = 0
+    for (const record of saves.values()) {
+      const data = record?.data
+      if (!data || typeof data !== 'object' || Array.isArray(data)) continue
+      const halloween = (data as Record<string, unknown>).halloween
+      if (!halloween || typeof halloween !== 'object' || Array.isArray(halloween)) continue
+      const raw = (halloween as Record<string, unknown>).candies
+      if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0) {
+        candies = Math.min(Number.MAX_SAFE_INTEGER, candies + raw)
+      }
+    }
+    return { candies }
+  }
+
+  /** Private festival ledger. The Durable Object owns the money and every
+   * contribution; browsers cannot submit their own claimed totals. */
+  private async festivalRecords() {
+    const records = await this.ctx.storage.list<{
+      userId: string; festival: FestivalId; day: string; amount: number;
+      held: boolean; handle: string; at: number; voided?: boolean;
+    }>({ prefix: 'festival:donation:' })
+    return [...records.values()].filter((r) => !r.voided)
+  }
+
+  async festivalStatus(token: string) {
+    const day = brasiliaDay(new Date())
+    const shown = latestFestival(day)
+    const user = await this.identify(token)
+    const records = await this.festivalRecords()
+    const pots: Partial<Record<FestivalId, number>> = {}
+    for (const record of records) if (!record.held) {
+      pots[record.festival] = (pots[record.festival] ?? 0) + record.amount
+    }
+    const entries = shown ? records.filter((r) => r.festival === shown.id && !r.held) : []
+    const byUser = new Map<string, { handle: string; amount: number }>()
+    for (const entry of entries) {
+      const old = byUser.get(entry.userId)
+      byUser.set(entry.userId, { handle: entry.handle, amount: (old?.amount ?? 0) + entry.amount })
+    }
+    const ranked = [...byUser.entries()].sort((a, b) => b[1].amount - a[1].amount)
+    const plaque = await this.ctx.storage.list<boolean>({ prefix: 'festival:public:' })
+    const top = ranked.filter(([id]) => plaque.get('festival:public:' + id) !== false)
+      .slice(0, FESTIVAL.top).map(([, donor]) => donor)
+    const mine = user ? {
+      today: records.filter((r) => r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0),
+      given: Object.fromEntries([...new Set(records.map((r) => r.festival))].map((festival) => [
+        festival, records.filter((r) => r.userId === user.id && r.festival === festival && !r.held).reduce((n, r) => n + r.amount, 0),
+      ])),
+      held: records.filter((r) => r.userId === user.id && r.held).reduce((n, r) => n + r.amount, 0),
+      public: plaque.get('festival:public:' + user.id) !== false,
+      rank: ranked.findIndex(([id]) => id === user.id) + 1 || null,
+    } : null
+    return { day, festival: shown?.id ?? null, pots, top, donors: byUser.size, me: mine }
+  }
+
+  async setFestivalPublic(token: string, show: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    if (typeof show !== 'boolean') return { error: 'invalid' as const }
+    await this.ctx.storage.put('festival:public:' + user.id, show)
+    return { ok: true as const }
+  }
+
+  /** Atomic wallet debit and immutable ledger insert in one DO storage transaction.
+   * Revision checked before debit: another tab's save sync cannot silently overwrite it.
+   */
+  async donateFestival(token: string, amountInput: unknown, revision: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    const amount = parseDonationAmount(amountInput)
+    if (amount === null) return { error: 'invalid' as const }
+    const key = 'save:' + user.id
+    const day = brasiliaDay(new Date())
+    const festival = festivalOn(day)
+    return this.ctx.storage.transaction(async (tx) => {
+      // Check the day's cap INSIDE the transaction so simultaneous donations
+      // from multiple devices cannot spend the same remaining allowance.
+      const records = await tx.list<{ userId: string; day: string; amount: number; voided?: boolean }>({ prefix: 'festival:donation:' })
+      const today = [...records.values()].filter((r) => !r.voided && r.userId === user.id && r.day === day).reduce((n, r) => n + r.amount, 0)
+      const stored = await tx.get<{ revision: number; data: Save; updated: number }>(key)
+      if (!stored?.data) return { error: 'nosave' as const }
+      if (!Number.isSafeInteger(revision) || revision !== stored.revision) return { error: 'stale' as const }
+      const save = parseSaveData(stored.data)
+      const refusal = donationRefusal({
+        festival, amount, handle: user.handle,
+        runs: save.achievements.lifetime.runs, today, wallet: save.wallet,
+      })
+      if (refusal) return { error: refusal }
+      if (!festival) return { error: 'closed' as const }
+      const held = isHeld(save.wallet)
+      const next = donateFrom(save, amount)
+      const recordId = crypto.randomUUID()
+      await tx.put(key, { revision: stored.revision + 1, data: next, updated: Date.now() })
+      await tx.put('festival:donation:' + recordId, {
+        userId: user.id, festival: festival.id, day, amount, held, handle: user.handle, at: Date.now(),
+      })
+      return { ok: true as const, save: next, revision: stored.revision + 1, held, today: today + amount }
+    })
+  }
+
+  /** Donations awaiting review, never exposed without the Worker admin token. */
+  async festivalHeld() {
+    const records = await this.ctx.storage.list<{
+      userId: string; festival: FestivalId; day: string; amount: number;
+      held: boolean; voided?: boolean; handle: string; at: number;
+    }>({ prefix: 'festival:donation:' })
+    return [...records.entries()].filter(([, r]) => r.held && !r.voided).map(([key, r]) => ({
+      id: key.slice('festival:donation:'.length), festival: r.festival,
+      handle: r.handle, amount: r.amount, day: r.day, at: r.at,
+    }))
+  }
+
+  async reviewFestivalDonation(id: string, approve: boolean) {
+    if (!/^[0-9a-f-]{36}$/.test(id)) return { error: 'invalid' as const }
+    const key = 'festival:donation:' + id
+    return this.ctx.storage.transaction(async (tx) => {
+      const record = await tx.get<{
+        held: boolean; voided?: boolean; userId: string; festival: FestivalId;
+        day: string; amount: number; handle: string; at: number;
+      }>(key)
+      if (!record || !record.held || record.voided) return { error: 'not_found' as const }
+      await tx.put(key, { ...record, held: false, voided: !approve })
+      return { ok: true as const }
+    })
+  }
+
+  /** Optimistic revisioned cloud saves. No unverified client can replace another revision. */
+  async readSave(token: string) {
+    const user = await this.identify(token)
+    if (!user) return null
+    return await this.ctx.storage.get<{ revision: number; data: unknown; updated: number }>('save:' + user.id) ?? { revision: 0, data: null, updated: 0 }
+  }
+  async putSave(token: string, revision: unknown, data: unknown) {
+    const user = await this.identify(token)
+    if (!user) return { error: 'unauthorized' as const }
+    if (!Number.isSafeInteger(revision) || (revision as number) < 0 || !data || typeof data !== 'object' || Array.isArray(data)) return { error: 'invalid' as const }
+    const bytes = new TextEncoder().encode(JSON.stringify(data)).byteLength
+    if (bytes > 262144) return { error: 'tooLarge' as const }
+    const key = 'save:' + user.id
+    const old = await this.ctx.storage.get<{ revision: number; data: unknown; updated: number }>(key)
+    if ((old?.revision ?? 0) !== revision) return { error: 'conflict' as const, revision: old?.revision ?? 0 }
+    const next = { revision: (revision as number) + 1, data, updated: Date.now() }
+    await this.ctx.storage.put(key, next)
+    // Preserve the previous revision for manual recovery from accidental corruption.
+    if (old) await this.ctx.storage.put('save-backup:' + user.id, old)
+    return { ok: true as const, revision: next.revision }
+  }
+  async logout(token: string) {
+    if (/^[0-9a-f]{64}$/.test(token)) await this.ctx.storage.delete('session:' + await digest(token))
+  }
+}
