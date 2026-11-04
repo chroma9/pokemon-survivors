@@ -2258,8 +2258,6 @@ export const en: Messages = {
         crossing: 'The tower is on fire! Climb it floor by floor!',
         phases: ['Ho-Oh takes to the air! Dodge its burning trails and Brave Bird.', 'Ho-Oh *rises from its ashes*! The edge of the roof is ablaze.'],
       },
-      palkia: "Lord of space. Its dimensional cuts slice through hordes.",
-    shadowMewtwo: 'Shadow Mewtwo. A hidden legendary with devastating attacks of many types.',
     dialga: {
         place: 'Spear Pillar',
         epithet: 'Lord of Time',
