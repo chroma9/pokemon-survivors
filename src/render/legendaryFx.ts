@@ -1065,6 +1065,79 @@ export const drawLegendaryGround = (ctx: Ctx, g: Game, t: number) => {
 }
 
 /** Air layer (over the Pokémon). */
+const drawSpatialSlash = (ctx: Ctx, a: Attack) => {
+  const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
+  const open = Math.max(0, Math.min(1, a.age / 0.07))
+  if (fade <= 0 || open <= 0) return
+  const angle = a.memo
+  const dx = Math.cos(angle)
+  const dy = Math.sin(angle)
+  const nx = -dy
+  const ny = dx
+  const length = a.tier
+  // Unlike a beam, each slash opens as a tapered fracture across the target.
+  // Both lips share a broken centerline but have different widths and jagged
+  // edges, like a fissure in the picture rather than glowing energy.
+  ctx.save()
+  ctx.globalAlpha = fade
+  ctx.lineJoin = 'miter'
+  ctx.lineCap = 'butt'
+  const n = 16
+  const points: Array<{ x: number; y: number; w: number }> = []
+  for (let j = 0; j <= n; j++) {
+    const u = j / n
+    const d = u * length
+    const crack = Math.sin(u * 57 + a.id * 0.31) * 2.7 + Math.sin(u * 119 + a.id) * 1.1
+    const taper = Math.pow(Math.max(0, 1 - Math.abs(u * 2 - 1)), 0.6)
+    points.push({
+      x: a.x + dx * d + nx * crack,
+      y: a.y + dy * d + ny * crack,
+      w: (1 + 9 * taper) * open * fade,
+    })
+  }
+  const path = (offset: number) => {
+    ctx.beginPath()
+    for (let j = 0; j <= n; j++) {
+      const p = points[j]!
+      const x = p.x + nx * p.w * offset
+      const y = p.y + ny * p.w * offset
+      if (j === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    for (let j = n; j >= 0; j--) {
+      const p = points[j]!
+      const x = p.x - nx * p.w * offset
+      const y = p.y - ny * p.w * offset
+      ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+  }
+  // Thin bright outline, narrow pink edge, hollow nearly-black center.
+  path(0.72)
+  ctx.fillStyle = '#f7e4fa'
+  ctx.fill()
+  path(0.57)
+  ctx.fillStyle = '#d956ae'
+  ctx.fill()
+  path(0.41)
+  ctx.fillStyle = '#150d23'
+  ctx.fill()
+  // Sharp splinter-like glints detach only along the fracture, never at the
+  // caster, with no shiny round highlights or laser-style parallel rails.
+  ctx.strokeStyle = '#f6b2e7'
+  ctx.lineWidth = 1
+  for (let i = 2; i < n - 1; i += 3) {
+    const p = points[i]!
+    const direction = i % 2 ? 1 : -1
+    ctx.beginPath()
+    ctx.moveTo(p.x + nx * p.w * 0.5 * direction, p.y + ny * p.w * 0.5 * direction)
+    ctx.lineTo(p.x + nx * (p.w + 4) * direction + dx * 4, p.y + ny * (p.w + 4) * direction + dy * 4)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+/** Air layer (over the Pokémon). */
 export const drawLegendaryAir = (ctx: Ctx, g: Game, t: number, visible: (x: number, y: number, m?: number) => boolean) => {
   // The veil goes first, so the clock and the rings shine over it (and the stopped foes' clocks, `drawStoppedFoes`).
   for (const a of g.attacks) if (a.age >= 0 && a.visual === 'timeClock') drawTimeVeil(ctx, g, a)
@@ -1072,6 +1145,9 @@ export const drawLegendaryAir = (ctx: Ctx, g: Game, t: number, visible: (x: numb
     if (a.age < 0) continue
     // Rings and beams span the screen: they draw even when their center is off it.
     switch (a.visual) {
+      case 'spatialSlash':
+        drawSpatialSlash(ctx, a)
+        continue
       case 'originRing':
         drawOriginRing(ctx, a, t)
         continue
