@@ -389,11 +389,47 @@ const newMoon: Painter = (ctx, w, h, camX, camY, t, g) => {
   }
 }
 
+/** Palkia's omen: visible rose-colored spatial ripples sliding over the sky.
+ * Purely cosmetic (no canvas readback, postprocessing or camera shifts). */
+const spatialShimmer: Painter = (ctx, w, h, _camX, _camY, t, g) => {
+  const omen = g.rift.omen?.legend === 'palkia' ? g.rift.omen : null
+  const k = omen ? Math.max(0, Math.min(1, 1 - omen.left / RIFT.omenTime)) : 1
+  const strength = 0.55 + 0.45 * k
+  ctx.save()
+  // Gentle overall pink atmosphere; the waves themselves should remain
+  // readable even over dark weather, bright terrain and low-quality modes.
+  ctx.fillStyle = `rgba(220,72,158,${(0.075 + 0.105 * k).toFixed(3)})`
+  ctx.fillRect(0, 0, w, h)
+  const bands = Math.max(7, Math.ceil(h / 65))
+  for (let i = 0; i < bands; i++) {
+    const y = (i + 0.5) * h / bands
+    const phase = t * (0.48 + (i % 3) * 0.12) + i * 1.31
+    // A drifting translucent band reads as a refraction of the entire
+    // scene, rather than a geometric laser or a permanent neon stripe.
+    const ribbon = (thick: number, color: string, offset: number) => {
+      ctx.lineWidth = thick
+      ctx.strokeStyle = color
+      ctx.beginPath()
+      for (let x = -8; x <= w + 8; x += 5) {
+        const yy = y + offset + Math.sin(x * 0.019 + phase) * (5 + 5 * strength) + Math.sin(x * 0.041 - phase * 0.7) * 2.5
+        if (x === -8) ctx.moveTo(x, yy)
+        else ctx.lineTo(x, yy)
+      }
+      ctx.stroke()
+    }
+    ribbon(9, `rgba(237,104,197,${(0.045 + 0.04 * strength).toFixed(3)})`, 0)
+    ribbon(2, `rgba(255,191,233,${(0.18 + 0.17 * strength).toFixed(3)})`, -2)
+    ribbon(1, `rgba(252,125,205,${(0.16 + 0.15 * strength).toFixed(3)})`, 3)
+  }
+  ctx.restore()
+}
+
 const TINTS: Record<LegendSky, string> = {
   downpour: 'rgba(8,18,52,0.42)',
   harshSun: 'rgba(248,152,40,0.18)',
   gale: 'rgba(200,232,216,0.16)',
   timeWarp: 'rgba(80,120,200,0.22)',
+  spatialShimmer: 'rgba(225,95,170,0.15)',
   storm: 'rgba(24,32,64,0.3)',
   embers: 'rgba(200,64,24,0.18)',
   mist: 'rgba(232,224,248,0.22)',
@@ -402,7 +438,7 @@ const TINTS: Record<LegendSky, string> = {
 }
 
 /** The skies painted so far; the others get their tint until theirs are written. */
-const PAINTERS: Partial<Record<LegendSky, Painter>> = { downpour, harshSun, gale, storm, embers, timeWarp, mist, meteors, newMoon }
+const PAINTERS: Partial<Record<LegendSky, Painter>> = { downpour, harshSun, gale, storm, embers, timeWarp, mist, meteors, newMoon, spatialShimmer }
 
 /** The sky in play: a domain legendary's omen or open portal on the map, or its domain once it has shown itself. */
 export const skyNow = (g: Game): LegendSky | null => {
