@@ -17,9 +17,15 @@ export const SIM_ROOTS = ['src/game/lockstep.ts', 'src/game/snapshot.ts', 'src/g
 
 /** Import specifiers in a module's text: static imports and re-exports, side-effect imports and dynamic `import()`. */
 export const importsOf = (text: string): string[] => {
+  // Type-only edges vanish from the emitted JavaScript. Including them makes
+  // a visual/UI type import part of the simulation hash (and falsely subjects
+  // unrelated renderer code to deterministic-simulation rules).
+  const runtimeText = text
+    .replace(/\bimport\s+type\b[\s\S]*?\bfrom\s*['"][^'"]+['"]\s*;?/g, '')
+    .replace(/\bexport\s+type\s*\{[\s\S]*?\}\s*from\s*['"][^'"]+['"]\s*;?/g, '')
   const out: string[] = []
   const re = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]/g
-  for (let m = re.exec(text); m; m = re.exec(text)) out.push(m[1]!)
+  for (let m = re.exec(runtimeText); m; m = re.exec(runtimeText)) out.push(m[1]!)
   return out
 }
 
