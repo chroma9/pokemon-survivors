@@ -77,3 +77,15 @@
 - Kept the new upstream map, game mechanics, and public support UI otherwise unchanged.
 
 **Testing still required:** TypeScript build, GitHub Actions results, end-to-end gift redemption and cloud-save persistence, UI navigation, co-op + Arena, and Cloudflare Worker deployment. None of these are claimed verified yet.
+
+## Phase 1 — production admin parity and security checkpoints
+
+- Ported the read-only Developer Observatory to `relay/src/shardObject.ts` and the authenticated Worker route `GET /admin/observatory`. Results contain displayed names and safe room status, not identities or seat secrets.
+- Ported authenticated `POST /admin/spawn` via a private Worker-to-shard RPC; the WebSocket client path explicitly rejects forged `adminSpawn` events.
+- Adapted the deterministic lockstep simulation and stamped entry decoder to apply the authorized spawn to all clients, with enemy/count/slot validation tests.
+- Restored production `ps.spawn()` for co-op (server-authorized) and solo (requires successful relay admin verification).
+- Restored production `ps.money()`, `ps.unlockFamily()`, `ps.revokeFamily()`, `ps.unlockShiny()`, and `ps.restoreBackup()`, all gated by live relay admin verification.
+- Restored `deploy:private` and `typecheck:private` scripts for the Cloudflare Worker. The private-branch CI workflow now generates types for `wrangler.private.jsonc`.
+- **Deferred:** authenticated production Rift omen command until its current upstream API is mapped.
+
+**Still not verified:** no successful build/test status can be confirmed from available GitHub status endpoints. Running the new test suite and functional smoke tests is a release gate. Private relay secrets and Durable Object continuity must be verified before any deployment.
