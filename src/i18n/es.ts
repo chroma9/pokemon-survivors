@@ -2260,13 +2260,22 @@ export const es: Messages = {
         crossing: '¡La torre está en llamas! ¡Sube piso por piso!',
         phases: ['¡Ho-Oh alza el vuelo! Esquiva sus estelas de fuego y el Brave Bird.', '¡Ho-Oh *renace de sus cenizas*! El borde del techo arde.'],
       },
-      dialga: {
+      palkia: "Señor del espacio. Sus cortes dimensionales atraviesan hordas.",
+    shadowMewtwo: 'Mewtwo Oscuro. Un legendario oculto con ataques devastadores de varios tipos.',
+    dialga: {
         place: 'Columna Lanza',
         epithet: 'Señor del Tiempo',
         omen: 'El tiempo empieza a tropezar…',
         crossing: '¡El tiempo se deshace! ¡Avanza por la Columna Lanza!',
         phases: ['¡El tiempo se distorsiona! Con el Roar of Time tus ataques se congelan en el aire.', '¡El tiempo se acelera! Dialga es cada vez más rápido.'],
         cues: { stop: '¡El tiempo se detuvo!', forward: '¡El tiempo saltó hacia adelante!', rewind: '¡El tiempo retrocedió!' },
+      },
+      palkia: {
+        place: 'Columna Lanza',
+        epithet: 'Señor del Espacio',
+        omen: 'El aire ondula con un extraño brillo rosado…',
+        crossing: '¡El espacio se curva! ¡Cruza la Columna Lanza antes de que el vacío te alcance!',
+        phases: ['¡El espacio se retuerce alrededor de Palkia! Esquiva los ataques convergentes.', '¡Palkia rasga la arena! Evita los cortes cruzados de Spacial Rend.'],
       },
       latias: {
         place: 'Isla Sur',
@@ -3423,6 +3432,14 @@ export const es: Messages = {
         { fork: [{ name: 'Campo estático', desc: 'Cada salto deja chispas; +10% parálisis' }, { name: 'Ramificación', desc: 'Cada salto se divide en 2 más; -2 de daño' }] },
         '+2 saltos',
       ],
+    },
+    shadowBall: {
+      description: "Lanza esferas sombrías que atraviesan enemigos.",
+      upgrades: ["+5 de daño", "+1 proyectil", "+20 de velocidad", "+6 de daño", "+1 perforación", "Recarga -0.2s", "+2 proyectiles, +20% de área"],
+    },
+    darkPulse: {
+      description: "Una onda radial de oscuridad golpea enemigos cercanos.",
+      upgrades: ["+5 de daño", "Área +15%", "Recarga -0.25s", "+6 de daño", "Área +20%", "Recarga -0.3s", "+8 de daño, área +20%"],
     },
     hex: {
       description: 'Una maldición salta de enemigo en enemigo. Hace ×1.7 de daño a quien tenga un estado.',
@@ -4859,6 +4876,15 @@ export const es: Messages = {
         'Recarga 0.6s más rápida y +25 de daño',
       ],
     },
+    spacialRend: {
+      description: "Palkia rasga el espacio con un corte dimensional que daña a los enemigos a lo largo de la grieta.",
+      upgrades: [
+        "+18 de daño",
+        "+20% de área",
+        { fork: [{ name: "Cortes paralelos", desc: "+1 corte por uso" }, { name: "Fractura profunda", desc: "+25 de daño y recarga 0.4s más rápida" }] },
+        "Recarga 0.5s más rápida y +18 de daño",
+      ],
+    },
     mistBall: {
       description: 'Las esferas de niebla de Latias flotan hacia enemigos distintos y estallan en una niebla que se queda, hiriendo y debilitando a quien está dentro (hacen menos daño al tocarte).',
       upgrades: [
@@ -5232,6 +5258,7 @@ export const es: Messages = {
     dracoMeteor: 'Lluvia de meteoros a tu alrededor que puede quemar.',
     diamondStorm: 'Lluvia de piedras a tu alrededor que empujan fuerte.',
     blizzard: 'Lluvia de carámbanos a tu alrededor que ralentiza.',
+    darkNova: 'Una esfera oscura colosal explota y deja un enorme campo Sombra que causa daño.',
     astralBarrage: 'Anillo de bolas sombrías disparadas en todas direcciones, que pueden paralizar.',
     auraSphere: 'Anillo de esferas de energía disparadas en todas direcciones.',
     attackOrder: 'Anillo de aguijones disparados en todas direcciones, que pueden envenenar.',
