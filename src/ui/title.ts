@@ -1099,7 +1099,9 @@ export const titleScreen = (
         ? []
         : [h('div', { class: 'lobby-community' }, pressable(discordCard(), 'discord'), ...SOCIAL_IDS.map((id) => pressable(socialCard(id), id)))]
     const dojo = rails ? [pressable(dojoTile(true), 'dojo')] : []
-    const side = h('div', { class: 'lobby-side' }, ...(rails ? [gift] : []), hall, ...invites, ...dojo, ...community, ...(rails ? [explore] : []))
+    // Keep the fork's focused layout: referrals and gameplay tiles, without Hall/social promotion cards.
+    const showCommunityCards = false
+    const side = h('div', { class: 'lobby-side' }, ...(rails ? [gift] : []), ...(showCommunityCards ? [hall, ...community] : []), ...invites, ...dojo, ...(rails ? [explore] : []))
     // A friend's invite needs the room of a banner: under the partner on the rails, under the Hall elsewhere.
     const notice = rails ? h('div', { class: 'lobby-notice' }) : side
     inviteBanner(notice, press('invite'), (banner) => navigable(banner, 'invite'))
