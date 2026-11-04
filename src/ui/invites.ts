@@ -1,4 +1,6 @@
 import { accountHandle, accountState, signIn } from '../account'
+import { currentTrainer, trainerReferrals } from '../trainerAccounts'
+import { coopUrl } from '../coopShell'
 import { track } from '../analytics'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -23,6 +25,11 @@ let invites: { handle: string; list: Promise<InvitedFriend[] | null> } | null = 
 
 /** The player's invited friends, asked once per page (`fresh` asks again). Null offline, for a guest or before a handle. */
 export const loadInvites = (fresh = false) => {
+  const privateTrainer = currentTrainer()
+  if (privateTrainer) {
+    const relay = coopUrl()
+    return relay ? trainerReferrals(relay).then((r) => r.friends).catch(() => null) : Promise.resolve(null)
+  }
   const handle = accountState().kind === 'signedIn' ? accountHandle() : null
   if (!handle) return Promise.resolve(null)
   if (fresh || invites?.handle !== handle) invites = { handle, list: fetchInvites() }
@@ -98,14 +105,15 @@ export const invitesScreen = (root: HTMLElement, input: Input, onClose: () => vo
   const render = (opening = false) => {
     const m = t().invites
     const s = accountState()
-    const handle = s.kind === 'signedIn' ? accountHandle() : null
-    const url = handle ? gameUrl(handle) : null
+    const privateTrainer = currentTrainer()
+    const handle = privateTrainer?.handle ?? (s.kind === 'signedIn' ? accountHandle() : null)
+    const url = privateTrainer && handle ? `${location.origin}${location.pathname}?ref=${encodeURIComponent(handle)}` : handle ? gameUrl(handle) : null
     const list = Array.isArray(friends) ? friends : null
     const count = countedFriends(list)
 
     const actions: Action[] = [
       ...(url ? [{ label: sheet() ? m.share : m.copy, run: () => void shareLink(root, url) }] : []),
-      ...(s.kind === 'guest' ? [{ label: m.signIn, run: () => void signIn() }] : []),
+      ...(s.kind === 'guest' && !privateTrainer ? [{ label: m.signIn, run: () => void signIn() }] : []),
       ...(s.kind === 'signedIn' && !handle ? [{ label: m.createProfile, run: openEditor }] : []),
       { label: m.back, run: close },
     ]
