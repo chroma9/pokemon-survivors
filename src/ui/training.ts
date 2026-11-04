@@ -7,6 +7,7 @@ import { ITEM_IDS, ITEMS, type ItemDef, type ItemId } from '../data/items'
 import { TRAINING, TRAINING_TARGETS, type TrainingTarget } from '../data/training'
 import type { PokeType } from '../data/types'
 import { abilitySet } from '../game/abilities'
+import { playablePortrait } from '../playableForms'
 import { formAt } from '../game/branch'
 import { MAX_ITEMS, MAX_MOVES } from '../game/leveling'
 import { branchAt, forkAt, maxMoveLevel, MOVES, type MoveId } from '../game/moves'
@@ -98,7 +99,7 @@ const lookOf = (starter: PlayableId, shiny: boolean, f: TrainingForm) => {
   if (isLegend(starter)) {
     const own = LEGENDS[starter].line[0]
     const form = formAfter(starter, f.awakened)
-    return form && !formLocked(form) ? { src: formPortraitUrl(own.dex, form.key), name: form.name } : { src: portraitUrl(own.dex, shiny), name: own.name }
+    return form && !formLocked(form) ? { src: formPortraitUrl(own.dex, form.key), name: form.name } : { src: playablePortrait(starter, own.dex, shiny), name: own.name }
   }
   const form = formAt(starter, f.branch, f.stage)
   return { src: portraitUrl(form.dex, shiny), name: form.name }
