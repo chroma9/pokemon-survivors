@@ -1,5 +1,5 @@
 import { privateAdminConsole } from './privateAdmin'
-import { trainerToken, scheduleTrainerSave, syncTrainerSave } from './trainerAccounts'
+import { currentTrainer, trainerToken, scheduleTrainerSave, syncTrainerSave } from './trainerAccounts'
 import { openTrainerProfiles } from './ui/privateTrainer'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
@@ -2775,6 +2775,8 @@ const showCoopUpdate = (beforeReload: () => void = () => {}) => {
 }
 
 const signedIn = () => accountState().kind === 'signedIn'
+// Private Trainer Accounts satisfy our relay's sign-in requirement without a Clerk profile.
+const privateCoopAccess = () => trainerToken() && currentTrainer() ? 'open' : coopAccess(accountsEnabled, accountState())
 
 /** The room the player is in (or joining), for presence and friends' invites; null outside one. */
 const coopRoomCode = () => {
@@ -2825,7 +2827,7 @@ const openCoop = (dest: CoopDest) => {
  * an account without a handle picks one (`profileEditor`). Then it goes on.
  */
 const enterCoop = (dest: CoopDest) => {
-  const access = coopAccess(accountsEnabled, accountState())
+  const access = privateCoopAccess()
   if (access === 'open') return openCoop(dest)
   if (access === 'handle') return setScreen(profileEditor(ui, input, (saved) => (saved ? enterCoop(dest) : leaveCoopDoor())))
   if (access === 'signIn') track('coop', { step: 'gate', via: dest.room ? 'link' : 'tile' })
@@ -3005,7 +3007,7 @@ let arenaOpened = false
 const reportArenaOpen = (screen: 'arena' | 'hub') => {
   if (arenaOpened) return
   arenaOpened = true
-  track('arena_open', { screen, account: coopAccess(accountsEnabled, accountState()) === 'open' ? 1 : 0 })
+  track('arena_open', { screen, account: privateCoopAccess() === 'open' ? 1 : 0 })
 }
 
 /** The Arena's screen (the lobby's tile): pick a Pokémon and a format, then bots (at once, no account), the public queue (Casual, Ranqueada) or friends (an Arena room); or its hub. */
@@ -3018,7 +3020,7 @@ const showArena = () => {
       bots: (id, format) => void playArenaBots(id, format),
       queue: relay ? (id, kind, format) => enterArenaQueue(id, kind, format) : null,
       friends: relay ? (id, format) => void openArenaRoom(id, format) : null,
-      needsAccount: coopAccess(accountsEnabled, accountState()) !== 'open',
+      needsAccount: privateCoopAccess() !== 'open',
       hub: () => showArenaHub('profile'),
       back: () => showTitle({ focus: 'arena' }),
     }),
@@ -3116,7 +3118,7 @@ const leaveQueue = () => {
  * Arena's own sign-in, or the handle picker), then the queue.
  */
 const enterArenaQueue = (id: VersusPick, kind: QueueKind, format: ArenaFormat) => {
-  const access = coopAccess(accountsEnabled, accountState())
+  const access = privateCoopAccess()
   if (access === 'open') return playArenaQueue(id, kind, format)
   if (access === 'handle') return setScreen(profileEditor(ui, input, (saved) => (saved ? enterArenaQueue(id, kind, format) : showArena())))
   setScreen(arenaGate(ui, input, { play: () => enterArenaQueue(id, kind, format), back: () => showArena() }))
@@ -3243,7 +3245,7 @@ const playArenaBots = async (id: VersusPick, format: ArenaFormat, map: MapId | n
  * to Arena); open, a room is made in Arena mode with this player on Blue.
  */
 const openArenaRoom = async (id: VersusPick, format: ArenaFormat) => {
-  if (coopAccess(accountsEnabled, accountState()) !== 'open') return enterCoop({ room: null, invitedBy: null })
+  if (privateCoopAccess() !== 'open') return enterCoop({ room: null, invitedBy: null })
   const client = coopClient()
   if (!client) return toast(ui, t().coop.off, 4000, 'coopOff')
   closeArenaClient()
