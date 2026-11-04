@@ -349,9 +349,9 @@ export type Motion =
 export type Visual =
   | 'ember' | 'flame' | 'water' | 'leaf' | 'star' | 'thunder' | 'whirlpool' | 'vine' | 'sludge' | 'gust'
   | 'fist' | 'steel' | 'arrow' | 'shuriken' | 'jaws' | 'pyro' | 'psy' | 'quake' | 'drumRoots' | 'heart' | 'note' | 'blade' | 'shell'
-  | 'iceShard' | 'rockTomb' | 'pin' | 'dragonBreath'
+  | 'iceShard' | 'rockTomb' | 'pin' | 'dragonBreath' | 'payDay'
   /** Special attacks (`special.ts`), drawn by `render/specialFx.ts`. */
-  | 'blitz' | 'fireTrail' | 'blast' | 'beam' | 'roots' | 'nova' | 'bolt' | 'meteor' | 'orb' | 'wave' | 'puddle'
+  | 'darkNovaOrb' | 'darkNovaField' | 'darkNovaBurst' | 'blitz' | 'fireTrail' | 'blast' | 'beam' | 'roots' | 'nova' | 'bolt' | 'meteor' | 'orb' | 'wave' | 'puddle'
   /** Chain dash: the capsule along the path, the slash at the landing and the player's afterimages (drawn by `render/draw.ts`). */
   | 'streak' | 'slash' | 'afterimage'
   /** The rainbow burst that ends a Mega Evolution (`mega.ts`), drawn by `render/megaFx.ts`. */
@@ -396,7 +396,7 @@ export type TypeEvolvedVisual =
 
 /** Lunges, chains, mines and turrets (`moveRules.ts`), drawn by `render/moveFx.ts`. */
 export type TacticVisual =
-  | 'quick' | 'extremeSpeed' | 'shock' | 'thunderbolt' | 'hex'
+  | 'quick' | 'extremeSpeed' | 'shock' | 'thunderbolt' | 'hex' | 'shadowBall' | 'darkPulse'
   | 'spikes' | 'barbs' | 'spikesBlast' | 'barbsBlast'
   | 'wisp' | 'wispShot' | 'inferno' | 'infernoShot'
 
