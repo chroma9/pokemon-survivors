@@ -106,6 +106,17 @@ describe('seats', () => {
     expect(of(sent(account, 'a1'), 'welcome')[0]?.room.members).toEqual([expect.objectContaining({ name: '@ash', account: true })])
   })
 
+  it('uses the verified private Trainer name instead of a spoofed client-supplied name, including reconnects', () => {
+    const state = newState()
+    connect(state, 'trainer1', 'ua', T0)
+    const verified = { id: 't:trainer-1', account: true, name: 'Verified Trainer' }
+    const first = hello(state, 'trainer1', helloMsg('trainer-1-xxxxxxxx', { auth: { kind: 'trainer', token: 'session' }, name: 'Impostor' }), verified, T0, { guests: false })
+    expect(of(sent(first, 'trainer1'), 'welcome')[0]?.room.members[0]?.name).toBe('Verified Trainer')
+    connect(state, 'trainer2', 'ua', T0 + 1)
+    const second = hello(state, 'trainer2', helloMsg('trainer-1-xxxxxxxx', { auth: { kind: 'trainer', token: 'session' }, name: 'Different Impostor' }), verified, T0 + 1, { guests: false })
+    expect(of(sent(second, 'trainer2'), 'welcome')[0]?.room.members[0]?.name).toBe('Verified Trainer')
+  })
+
   it('gives a seat back to its identity from any socket, and tells the old one it was replaced', () => {
     const state = newState()
     const first = join(state, 'tab1', 'guest-a-xxxxxxxxxxxx')
