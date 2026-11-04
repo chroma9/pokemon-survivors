@@ -207,3 +207,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - `04b1cab` and `7cffff4`: explicitly classify Spiritomb's bespoke Shadow Ball and Dark Pulse as complete, unevolved moves and assert their intentionally direct upgrade progression (no forks). Do not invent move evolutions as a shortcut to test passing.
 - **Still open:** deterministic Math guard's module graph unexpectedly includes substantial UI/render code (197 banned function hits), challenge day reproducibility, golden-run/replay rule version, snapshot phase persistence, missing `tmShadow` PNG, learned move balance/count constraints, and potentially new failures from recent changes. Investigate rather than disable tests or blindly overwrite expected digests.
 - Keep all subsequent changes on `Updated-11-3-2026`, avoid `main` and Worker production deployment.
+
+### CI repairs continued — 2026-11-04, batch 3
+
+- `580399e`, `39be142`: the co-op simulation's import crawler had been pulling in modules imported solely as erased TypeScript types, causing visual/audio/UI code to contaminate the sim-build hash and deterministic-math guard (197 banned calls). Now removes `import type` and `export type` edges, with regression coverage retaining runtime JSON imports. This changes the sim-build hash; all preview clients/relays must use the same new build, without joining old rooms. Full CI result pending.
+- `f50a663`: found a genuine Onix/Steelix learnset bug: three stage move lists despite two evolution stages. Consolidated the otherwise unreachable third list into Steelix's second stage, preserving all its moves.
+- `9e09110`: added a distinct 24×24 pixel-art Shadow TM PNG at `public/assets/items/tmShadow.png` (Git binary blob/tree commit), providing the missing type-shop artwork rather than suppressing the asset completeness assertion. Needs visual in-game review.
+- Remain cautious: daily challenge historical pick changes, replay RULES_VERSION 44 mismatch and snapshots are behavioral/replay compatibility questions, not tests to silence by replacing expectations. Address before merging.
