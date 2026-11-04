@@ -22,6 +22,12 @@ import { sharePreview, trainerShare, trainerTotals } from './share'
 import { hint, menu, type Screen } from './screens'
 import { backButton, gearButton, shellBody, topBar } from './shell'
 
+/** The private network's supporter tier, when a private Trainer Account is active. */
+const displayedTier = (save: ReturnType<typeof loadSave>): SupporterTier | null => {
+  const privateTrainer = currentTrainer()
+  return privateTrainer ? privateTrainer.supporterTier ?? null : knownTier(save)
+}
+
 /**
  * The trainer's avatar: their Pokémon (`trainerAvatar`) once signed in, a
  * Poké Ball for guests; a gold ring for supporters.
@@ -29,7 +35,7 @@ import { backButton, gearButton, shellBody, topBar } from './shell'
 const avatar = (s: AccountState, size: 'small' | 'big') => {
   const save = loadSave()
   const signedIn = s.kind === 'signedIn'
-  const tier = knownTier(save)
+  const tier = displayedTier(save)
   const face = trainerAvatar(save, tier)
   const ring = (signedIn || Boolean(currentTrainer())) && tier ? ' supporter' : ''
   return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn || currentTrainer() ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
@@ -39,7 +45,7 @@ const avatar = (s: AccountState, size: 'small' | 'big') => {
 const titleLine = (cls: string) => {
   const save = loadSave()
   if (!save.title) return null
-  const tier = knownTier(save)
+  const tier = displayedTier(save)
   return h(
     'span',
     { class: cls },
@@ -237,7 +243,7 @@ export const trainerCardScreen = (
   const build = (opening: boolean) => {
     if (sub || closed) return
     const s = accountState()
-    const tier = s.kind === 'signedIn' || currentTrainer() ? knownTier(loadSave()) : null
+    const tier = s.kind === 'signedIn' || currentTrainer() ? displayedTier(loadSave()) : null
     askApi(s, tier)
     const a = t().account
     const sync = syncLine(s)
