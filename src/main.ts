@@ -112,7 +112,7 @@ import { clearSpot, featureAt, featuresNear, footOf, inSolid, runArchetype, setA
 import { TERRAIN, type SolidKind } from './data/terrain'
 import type { LandmarkId } from './data/landmarks'
 import { dexNews, dexStatus, mergeDex, recordRun, type Pokedex } from './game/dex'
-import { runEarnings, wonRun, type ConvertedEggs } from './game/meta'
+import { parseSave, runEarnings, wonRun, type ConvertedEggs } from './game/meta'
 import { missionStatus, type MissionStatus } from './game/missions'
 import { summarizeRun, type RunSummary } from './game/tally'
 import { parseHandle, rankable, runMode, runResult } from './game/ranking'
@@ -4502,6 +4502,10 @@ if (trainerToken()) queueMicrotask(() => {
 // clients' deterministic simulation ticks; local spawns are solo-only.
 if (!import.meta.env.DEV) {
   const commands = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
+  const authorized = () => verifyPrivateAdmin(coopUrl())
+  const backup = () => {
+    if (!localStorage.getItem('ps:adminSaveBackup')) localStorage.setItem('ps:adminSaveBackup', JSON.stringify(loadSave()))
+  }
   Object.assign(window, { ps: {
     ...commands,
     spawn: async (kind: EnemyId, count = 1, target?: string) => {
@@ -4511,6 +4515,51 @@ if (!import.meta.env.DEV) {
       if (!run) return 'ps.spawn: start a run first'
       devSpawn(kind, count)
       return 'ps: local enemies spawned'
+    },
+    unlockFamily: async (id?: HatchlingId, shiny = false) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(HATCHLINGS, id)) return 'ps: unknown Pokémon family'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : HATCHLING_IDS
+      writeSave({ ...save, hatched: { ...save.hatched, ...Object.fromEntries(ids.map((i) => [i, { shiny }])) } })
+      return 'ps: family unlocks saved'
+    },
+    /** Admin-only testing: remove a hatched family unlock from this device. */
+    revokeFamily: async (id: HatchlingId) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!id || !Object.hasOwn(HATCHLINGS, id)) return 'ps.revokeFamily: unknown Pokémon family'
+      const save = loadSave()
+      if (!save.hatched[id]) return 'ps.revokeFamily: family is not unlocked'
+      backup()
+      const hatched = { ...save.hatched }
+      delete hatched[id]
+      writeSave({ ...save, hatched })
+      return 'ps: ' + id + ' unlock revoked locally; cloud sync may restore it from your account save. Refresh menus to check.'
+    },
+    unlockShiny: async (id?: PlayableId) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (id && !Object.hasOwn(PLAYABLE, id)) return 'ps: unknown Pokémon'
+      backup()
+      const save = loadSave()
+      const ids = id ? [id] : (Object.keys(PLAYABLE) as PlayableId[])
+      writeSave({ ...save, shinyStarters: ids.reduce(unlockShinyStarter, save.shinyStarters) })
+      return 'ps: shiny unlocks saved'
+    },
+    restoreBackup: async () => {
+      if (!await authorized()) return 'ps: unauthorized'
+      const stored = localStorage.getItem('ps:adminSaveBackup')
+      if (!stored) return 'ps: no pre-cheat save backup'
+      writeSave(parseSave(stored))
+      return 'ps: original save restored; refresh the page'
+    },
+    money: async (amount = 20000) => {
+      if (!await authorized()) return 'ps: unauthorized'
+      if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) return 'ps.money: amount must be 1–1000000'
+      backup()
+      const save = loadSave()
+      writeSave({ ...save, wallet: save.wallet + amount })
+      return 'ps: money added; refresh menus to see your balance'
     },
   } })
 }
