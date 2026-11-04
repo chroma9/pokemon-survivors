@@ -89,3 +89,12 @@
 - **Deferred:** authenticated production Rift omen command until its current upstream API is mapped.
 
 **Still not verified:** no successful build/test status can be confirmed from available GitHub status endpoints. Running the new test suite and functional smoke tests is a release gate. Private relay secrets and Durable Object continuity must be verified before any deployment.
+
+## Phase 2 started — Onix and Meowth families
+
+- Ported the complete playable definitions for **Onix → Steelix** (Rare egg) and **Meowth → Persian** (Common egg) from production `main` into the upstream `src/data/hatchlings.ts`.
+- Preserved the upstream egg system, evolution data model, gameplay map, and roster. Both families use their original stats, movesets and evolution bonuses.
+- Verified that upstream already has the normal sprite manifest and Idle images for species 95, 208, 52 and 53. Steelix (208) and Persian (53) have shiny manifest entries.
+- **Asset gap:** the upstream sprite manifest does not include shiny Onix (95) or shiny Meowth (52), whereas production `main` does. These assets have **not** been copied. Do not mark either family fully done until binaries, portraits and metadata are in place.
+- **Phase 1 ongoing:** upstream CI now targets the port branch; code and unit tests were added, but a passing result is not yet verified. Live Cloudflare configuration and account migration require a smoke test before release.
+
