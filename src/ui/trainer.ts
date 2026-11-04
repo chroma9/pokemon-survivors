@@ -31,8 +31,8 @@ const avatar = (s: AccountState, size: 'small' | 'big') => {
   const signedIn = s.kind === 'signedIn'
   const tier = knownTier(save)
   const face = trainerAvatar(save, tier)
-  const ring = signedIn && tier ? ' supporter' : ''
-  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
+  const ring = (signedIn || Boolean(currentTrainer())) && tier ? ' supporter' : ''
+  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn || currentTrainer() ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
 }
 
 /** The equipped title, with the supporter's heart (and an OG's plate) before it, or null. */
