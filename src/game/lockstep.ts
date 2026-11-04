@@ -1,4 +1,5 @@
 import { COOP } from '../data/coop'
+import * as dm from '../engine/dmath'
 import { ENEMIES, type EnemyId } from '../data/enemies'
 import { spawnEnemy } from './enemies'
 import { VERSUS } from '../data/versus'
@@ -225,10 +226,10 @@ const applyEntry = (g: Game, e: TickEntry, inputs: StepInput[]) => {
   switch (e.kind) {
     case 'adminSpawn': {
       if (g.versus) return
-      const base = Math.atan2(p.facing.y, p.facing.x)
+      const base = dm.atan2(p.facing.y, p.facing.x)
       for (let i = 0; i < e.count; i++) {
         const angle = base + (i - (e.count - 1) / 2) * 0.35
-        spawnEnemy(g, e.enemy, p.x + Math.cos(angle) * 90, p.y + Math.sin(angle) * 90)
+        spawnEnemy(g, e.enemy, p.x + dm.cos(angle) * 90, p.y + dm.sin(angle) * 90)
       }
       return
     }
