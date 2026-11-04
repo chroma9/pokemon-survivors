@@ -4,7 +4,7 @@ import { importsOf, simBuildId, simModules } from './simBuild'
 const files = (over: Record<string, string> = {}): ((path: string) => string | null) => {
   const all: Record<string, string> = {
     'src/game/lockstep.ts': "import { a } from './a'\nimport type { T } from '../data/t'\nexport const x = 1",
-    'src/game/a.ts': "export * from '../engine/m'\nconst late = () => import('./lazy')",
+    'src/game/a.ts': "export * from '../engine/m'\nimport table from '../data/table.json'\nconst late = () => import('./lazy')",
     'src/game/lazy.ts': 'export {}',
     'src/data/t.ts': "import table from './table.json'\nexport type T = typeof table",
     'src/data/table.json': '{"hp": 1}',
@@ -21,10 +21,11 @@ const EXTRA = { rules: 21, protocol: 2 }
 describe('the simulation build id', () => {
   it('reads every kind of import specifier', () => {
     expect(importsOf("import a from './a'\nexport { b } from \"./b\"\nimport './c'\nawait import('./d')")).toEqual(['./a', './b', './c', './d'])
+    expect(importsOf("import type { T } from '../ui/types'\nexport type { U } from '../ui/uiTypes'\nimport { x } from './runtime'")).toEqual(['./runtime'])
   })
 
   it('follows the imports from the roots, json included, and nothing that only imports the simulation', () => {
-    expect(simModules(ROOTS, files())).toEqual(['src/data/t.ts', 'src/data/table.json', 'src/engine/m.ts', 'src/game/a.ts', 'src/game/lazy.ts', 'src/game/lockstep.ts'])
+    expect(simModules(ROOTS, files())).toEqual(['src/data/table.json', 'src/engine/m.ts', 'src/game/a.ts', 'src/game/lazy.ts', 'src/game/lockstep.ts'])
   })
 
   it('changes with the simulation and its rules, not with the UI', () => {
