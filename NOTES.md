@@ -225,3 +225,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - `ac3d6c0`: added diagnostic logging to deterministic math guard to identify the import edges that pull visual/UI code into the simulation's dependency closure. **Temporary logging until the boundary issue is diagnosed**; then remove/replace with an appropriate explicit invariant.
 - **Critical outstanding release gate:** `RULES_VERSION` remains at 44 while gameplay replay fingerprints have changed (shop/sketch/Magic Guard). Once gameplay changes are stable, bump to 45 and pin the actual new fingerprints; freeze the previous rules simulator in `server/sims/rules-44.mjs` with `npm run rules:freeze` before production. Do not ship new rules with an unfrozen old replay verifier.
 - No production writes, private relay deploy, or main merge authorized.
+
+### CI simulation-import scanner compatibility — 2026-11-04
+
+- Root cause of ~193 spurious deterministic-math checks: `src/coop/simBuild.ts` parsed import-like **text inside comments and ordinary string literals** (including an incidental `../trainerAccounts` mention), falsely marking browser UI/render modules as required to run the gameplay simulation.
+- Initial AST-based fix `cd2cd9d` plus parser regression test `94f1342` hit a new blocker: this upstream uses TypeScript 7 whose `typescript` module exports a reduced interface (`ScriptKind`/compiler AST APIs absent). Latest complete Actions logs from that head failed **at game typechecking**, not gameplay.
+- `e5eeeb1` replaced the unsupported compiler import with a no-new-dependencies scanner anchored to actual import/export source lines, excluding type-only imports and comments, plus literal dynamic imports. Existing regression tests check fake comment imports, strings and erased imports. **Requires GitHub Actions confirmation** before claiming correctness. Keep a watch for multi-line imports and false positives in the simulation hash.
+- `9bdf01c` updated custom moves' role/learnset test bookkeeping without changing actual moves. The `RULES_VERSION=44` replay mismatch and the frozen prior simulator remain outstanding release gates.
