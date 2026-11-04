@@ -1,4 +1,5 @@
 import { accountHandle, accountsEnabled, accountState, onAccountChange, signIn } from '../account'
+import { currentTrainer, trainerToken } from '../trainerAccounts'
 import { FESTIVAL, type Festival, type FestivalId } from '../data/festivals'
 import { BAG_ITEMS } from '../data/shop'
 import type { FrameId } from '../data/style'
@@ -209,7 +210,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
   )
   el.append(sheet)
 
-  const signedIn = () => accountState().kind === 'signedIn'
+  const signedIn = () => (currentTrainer() !== null && trainerToken() !== null) || accountState().kind === 'signedIn'
   /** The most the player may give now: the rules' cap, today's cap left and the wallet. */
   const most = () => Math.min(FESTIVAL.dailyCap, view.capLeft, loadSave().wallet)
   const amount = () => (custom ? typedAmount(field.value) : chip)
@@ -322,7 +323,7 @@ export const openFestival = (root: HTMLElement, input: Input, close: () => void,
   const renderPlaque = (f: Festival) => {
     const pl = m.plaque
     const mine = view.mine
-    const handle = accountHandle()
+    const handle = currentTrainer()?.handle ?? accountHandle()
     const given = mine?.given[f.id] ?? 0
     plaqueSwitch.setAttribute('aria-checked', String(mine?.public !== false))
     plaqueSwitch.replaceChildren(h('span', {}, pl.show), h('b', {}, mine?.public === false ? pl.hidden : pl.shown))
