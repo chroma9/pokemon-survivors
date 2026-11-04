@@ -4501,6 +4501,6 @@ if (trainerToken()) queueMicrotask(() => {
 // Live-room spawn and observatory controls are not enabled until the updated
 // upstream room protocol has been verified.
 if (!import.meta.env.DEV) {
-  const { spawn: _spawn, observe: _observe, ...verifiedCommands } = privateAdminConsole(coopUrl)
+  const { spawn: _spawn, ...verifiedCommands } = privateAdminConsole(coopUrl, () => run?.coop ? coopClient()?.state().code ?? null : null)
   Object.assign(window, { ps: { ...verifiedCommands } })
 }
