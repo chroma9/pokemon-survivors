@@ -36,7 +36,7 @@ import * as dm from '../engine/dmath'
  * - chain: lunges into the nearest foe; each landing opens a short window to jump to the next
  * - stance: swaps Aegislash between Shield and Blade Forme (`stance.ts`), no damage
  */
-export type SpecialKind = 'dash' | 'beam' | 'roots' | 'nova' | 'bolt' | 'rain' | 'ring' | 'wave' | 'trail' | 'chain' | 'stance'
+export type SpecialKind = 'dash' | 'beam' | 'roots' | 'nova' | 'bolt' | 'rain' | 'ring' | 'wave' | 'trail' | 'chain' | 'stance' | 'darkNova'
 
 type SpecialTier = {
   name: string
@@ -133,6 +133,12 @@ export const SPECIALS = {
     base: { name: 'Icicle Crash', damage: 26, area: 1, count: 11 },
     final: { name: 'Blizzard', damage: 42, area: 1.25, count: 18 },
     status: { kind: 'slow', chance: 1, duration: 1.5, power: 0.6 },
+  },
+  darkNova: {
+    type: 'shadow', kind: 'darkNova', cooldown: 16, charge: 0.65,
+    base: { name: 'Dark Nova', damage: 65, area: 1, count: 1 },
+    final: { name: 'Dark Nova', damage: 90, area: 1.2, count: 1 },
+    status: { kind: 'slow', chance: 1, duration: 2, power: 0.5 },
   },
   astralBarrage: {
     type: 'ghost', kind: 'ring', cooldown: 9, charge: 0.3,
@@ -442,6 +448,7 @@ const BY_SPECIES: Partial<Record<PlayableId, SpecialId | readonly SpecialId[]>> 
   swablu: ['boomburst', 'dracoMeteor'],
   pidgey: 'aeroblast',
   deoxys: 'formeChange',
+  shadowMewtwo: 'darkNova',
 }
 
 export const specialOfType = (type: PokeType): SpecialId => BY_TYPE[type]
@@ -608,6 +615,19 @@ export const rechargeSpecial = (s: RechargeTimers, cut: number) => {
  * (the dash or lunge moves the player) and a little faster while laying a trail.
  */
 export const specialSpeedFactor = (g: Game) => {
+  // Dark Nova's delayed impact uses the same full-screen flash and screen shake
+  // as existing major attacks. Trigger once when its burst actually arrives.
+  for (const a of g.attacks) {
+    if (a.visual !== 'darkNovaBurst' || a.owner !== g.player.slot || a.age < 0 || a.memo !== 0) continue
+    a.memo = 1
+    g.flash = Math.max(g.flash, 0.4)
+    shakeScreen(g, 8, { x: a.x, y: a.y })
+    // The existing special release sound is a layered low-frequency blast.
+    // Fire it at landing, not just when the projectile is launched.
+    g.events.push({ kind: 'special', phase: 'release', name: 'Dark Nova Impact' })
+    g.hitstop = Math.max(g.hitstop, BLAST_HITSTOP)
+    burst(g, a.x, a.y, { colors: ['#f7e5ff', '#d28fea', '#b2384d', '#f6d45a'], count: 45, speed: 260, ttl: 0.55 })
+  }
   const s = g.player.special
   if (s.charge > 0) return 0.45
   if (s.active <= 0) return 1
@@ -803,6 +823,36 @@ const release = (g: Game, r: ResolvedSpecial) => {
           damage: dmg, knockback: 240, ttl: 0.45, grow: (95 * area) / 0.45, age: -i * 0.18, status: r.def.status ?? null,
         })
       }
+      return
+    }
+    case 'darkNova': {
+      const flight = 0.75
+      const dir = fromAngle(s.angle)
+      const x = p.x + dir.x * 130
+      const y = p.y - 8 + dir.y * 130
+      const radius = 82 * area
+      // One colossal orb, followed by an expanding impact and persistent field.
+      spawnAttack(g, {
+        move: 'special', type: 'shadow', visual: 'darkNovaOrb',
+        x: p.x, y: p.y - 8,
+        shape: { kind: 'circle', r: 26 * area },
+        motion: { kind: 'linear', vx: dir.x * 130 / flight, vy: dir.y * 130 / flight },
+        damage: 0, knockback: 0, activeFrom: Infinity, ttl: flight,
+      })
+      spawnAttack(g, {
+        move: 'special', type: 'shadow', visual: 'darkNovaField',
+        x, y, shape: { kind: 'circle', r: radius },
+        motion: { kind: 'static' }, damage: dmg * 0.16, knockback: 0,
+        hitInterval: 0.5, status: r.def.status ?? null,
+        ttl: 5 + flight, age: -flight,
+      })
+      spawnAttack(g, {
+        move: 'special', type: 'shadow', visual: 'darkNovaBurst',
+        x, y, shape: { kind: 'circle', r: 12 },
+        motion: { kind: 'static' }, damage: dmg, knockback: 210,
+        ttl: flight + 0.35, age: -flight, activeUntil: 0.25,
+        grow: (radius - 12) / 0.25,
+      })
       return
     }
     case 'bolt': return releaseBolts(g, r, area, dmg)
