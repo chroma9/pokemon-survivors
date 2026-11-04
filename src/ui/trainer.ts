@@ -98,7 +98,7 @@ type Row = { label: string; run: () => void; icon?: string; wide?: boolean; tone
 export const trainerCardScreen = (
   root: HTMLElement,
   input: Input,
-  opts: { supporters: (back: () => void) => Screen },
+  opts: { supporters: (back: () => void) => Screen; privateAccount?: (back: () => void) => Screen },
   onClose: () => void,
 ): Screen => {
   const el = h('div', { class: 'screen shell dim trainer-screen' })
@@ -140,9 +140,11 @@ export const trainerCardScreen = (
       wide: true,
       run: () => openSub((back) => discordScreen(root, input, back)),
     }
-    if (s.kind !== 'signedIn') return [...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
+    const privateAccount: Row[] = opts.privateAccount ? [{ label: 'Private Trainer Account', run: () => openSub(opts.privateAccount!) }] : []
+    if (s.kind !== 'signedIn') return [...privateAccount, ...(s.kind === 'guest' && accountsEnabled ? [{ label: m.join, run: () => void signIn() }, discord] : []), share, missions]
     const handle = s.handle
     return [
+      ...privateAccount,
       { label: handle === null ? m.createProfile : m.editProfile, run: () => openSub((back) => profileEditor(root, input, back)) },
       ...(handle ? [{ label: m.viewProfile, run: () => openSub((back) => profileScreen(root, input, handle, back)) }] : []),
       share,
