@@ -92,15 +92,26 @@ export const trainerReferrals = async (relay: string) => await request(relay, 'r
 export const submitTrainerReferralRun = async (relay: string, runId: string) => await request(relay, 'run', 'POST', { runId })
 /** Gift IDs remain stable across devices; save.gifts makes applying an already claimed gift idempotent. */
 export const fetchTrainerGifts = async (relay: string): Promise<Gift[]> => {
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return []
   const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  if (trainerToken() !== token || currentTrainer()?.id !== owner) return []
   return result.gifts
 }
 
 export const collectTrainerGifts = async (relay: string) => {
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return { applied: [] as string[], blocked: [] as string[] }
   const result = await request(relay, 'gifts') as { gifts: Gift[] }
+  const sameTrainer = () => trainerToken() === token && currentTrainer()?.id === owner
   const applied: string[] = []
   const blocked: string[] = []
+  if (!sameTrainer()) return { applied, blocked }
   for (const gift of result.gifts) {
+    // Never apply a gift returned for an account that has since signed out.
+    if (!sameTrainer()) return { applied, blocked }
     const outcome = applyGift(loadSave(), gift)
     if (outcome.status === 'applied') {
       writeSave(outcome.save)
