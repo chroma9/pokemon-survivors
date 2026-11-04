@@ -176,8 +176,9 @@ export const trainerCardScreen = (
     const save = loadSave()
     const { counts, shinies, medals } = trainerTotals(save)
     const ribbons = ribbonCounts(save.ribbons)
-    const name = s.kind === 'signedIn' ? s.name || m.guest : m.guest
-    const handle = s.kind === 'signedIn' && s.handle ? `@${s.handle}` : null
+    const cloud = currentTrainer()
+    const name = cloud?.name ?? (s.kind === 'signedIn' ? s.name || m.guest : m.guest)
+    const handle = cloud ? `@${cloud.handle}` : s.kind === 'signedIn' && s.handle ? `@${s.handle}` : null
     const discord = s.kind === 'signedIn' && s.discord ? s.discord : null
     const stat = (n: number, label: string) => h('span', { class: 'trainer-stat' }, h('b', {}, formatNumber(n)), h('small', {}, label))
     const chips = [
@@ -234,7 +235,7 @@ export const trainerCardScreen = (
   const build = (opening: boolean) => {
     if (sub || closed) return
     const s = accountState()
-    const tier = s.kind === 'signedIn' ? knownTier(loadSave()) : null
+    const tier = s.kind === 'signedIn' || currentTrainer() ? knownTier(loadSave()) : null
     askApi(s, tier)
     const a = t().account
     const sync = syncLine(s)
