@@ -98,3 +98,13 @@
 - **Asset gap:** the upstream sprite manifest does not include shiny Onix (95) or shiny Meowth (52), whereas production `main` does. These assets have **not** been copied. Do not mark either family fully done until binaries, portraits and metadata are in place.
 - **Phase 1 ongoing:** upstream CI now targets the port branch; code and unit tests were added, but a passing result is not yet verified. Live Cloudflare configuration and account migration require a smoke test before release.
 
+
+## Validation handoff
+
+- Production admin parity is now present in source for: verify/login/logout, announce, password resets, gift Pokémon, titles, shiny tickets, supporter tiers, Observatory, deterministic co-op spawning, solo spawning, money, hatchling unlock/revoke, shiny unlock, pre-cheat save restore and solo Rift omen.
+- Added game unit tests covering private token parsing, co-op auth preference, admin-spawn validation and Onix/Meowth family evolution/tier definitions; carried forward the No Companion merge regression.
+- Enabled `.github/workflows/ci.yml` on `Updated-11-3-2026` in addition to the dedicated private-port workflow. **No passing status was available through the connected status queries.**
+- Added the new branch's anticipated Cloudflare Pages preview origin to the private relay's allowed origins.
+- **Next release gate:** inspect GitHub Actions outputs, resolve any TypeScript/test failures and validate Cloudflare with correct secrets. Do not deploy or merge into production until that happens.
+- **Remaining game content:** shiny Onix/Meowth sprite binaries, Shadow Mewtwo, Palkia and move ports.
+
