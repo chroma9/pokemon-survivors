@@ -6,7 +6,7 @@ import { STARTER_IDS, starterDex } from '../data/starters'
 import { EMOTES, type Emote } from './art'
 import { createCompanion, drawCompanion, stepCompanion, type CompanionView } from './companion'
 import { drawSparkles, shadow } from './draw'
-import { drawPokemon, hasShiny, loadedSprites, loadSpecies, type Dex } from './sprites'
+import { drawPokemon, hasShiny, loadedSprites, loadSpecies, sprites, type Dex, type FormKey } from './sprites'
 import { drawGround } from './world'
 import { drawMeadowJacks, drawMeadowNight } from './halloweenArt'
 import {
@@ -111,6 +111,7 @@ type Wanderer = {
 export type Partner = {
   dex: Dex
   shiny: boolean
+  form?: FormKey
   state: 'home' | 'out' | 'back' | 'trip' | 'shop'
   x: number
   y: number
@@ -256,7 +257,7 @@ export const createTitleScene = (seed: number): TitleScene => {
 }
 
 /** The lobby's partner takes its place on the stage, with the supporter's companion if one walks along (`null`: the lobby closed, both are gone). */
-export const meetPartner = (s: TitleScene, partner: { dex: Dex; shiny: boolean } | null, companion: CompanionView | null = null) => {
+export const meetPartner = (s: TitleScene, partner: { dex: Dex; shiny: boolean; form?: FormKey } | null, companion: CompanionView | null = null) => {
   for (const wd of s.wanderers) wd.followUntil = 0
   s.exploring = false
   // A new lobby starts at home: any trip it didn't finish is called off.
@@ -758,7 +759,7 @@ export const drawTitleScene = (ctx: CanvasRenderingContext2D, s: TitleScene, w: 
   const p = s.partner?.state === 'home' ? null : s.partner
   const c = p && s.companion
   const drawPartner = () => {
-    const sprite = p && loadedSprites(p.dex, p.shiny)
+    const sprite = p && (p.form ? sprites(p.dex, p.shiny, p.form) : loadedSprites(p.dex, p.shiny))
     if (!p || !sprite) return
     const x = Math.round(p.x) - camX
     const y = Math.round(p.y) - camY
