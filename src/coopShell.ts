@@ -73,8 +73,12 @@ const local: Store = {
  * (co-op is for signed-in players); dev builds keep it, as guests on the dev relay.
  */
 export const coopUrl = (): string | null => {
+  // Private Trainer Accounts do not require the upstream Clerk account API.
+  // An explicitly configured Worker is usable in a production Pages preview.
+  const configured = import.meta.env.VITE_COOP_URL
+  if (configured) return configured
   if (!accountsEnabled && !import.meta.env.DEV) return null
-  return (import.meta.env.DEV ? local.get(URL_KEY) : null) ?? import.meta.env.VITE_COOP_URL ?? (import.meta.env.DEV ? DEV_RELAY : null)
+  return import.meta.env.DEV ? local.get(URL_KEY) ?? DEV_RELAY : null
 }
 
 export const setCoopUrl = (url: string | null) => (url ? local.set(URL_KEY, url) : local.remove(URL_KEY))
