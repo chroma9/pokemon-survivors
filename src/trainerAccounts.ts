@@ -150,17 +150,26 @@ const mergeTrainerSave = (cloud: ReturnType<typeof loadSave>, local: ReturnType<
 
 /** Merge server and device progress, then CAS upload. A fresh local edit reruns syncing. */
 export const syncTrainerSave = async (relay: string) => {
-  if (!trainerToken()) return { synced: false, reason: 'signedOut' }
+  const session = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!session || !owner) return { synced: false, reason: 'signedOut' }
+  // A login/logout can happen while a fetch is outstanding. Never write an old
+  // trainer's cloud data into the next trainer's local save or revision.
+  const sameSession = () => trainerToken() === session && currentTrainer()?.id === owner
   if (syncBusy) { syncPending = true; return { synced: false, reason: 'busy' } }
   syncBusy = true
   try {
     for (let attempt = 0; attempt < 4; attempt++) {
       const cloud = await request(relay, 'save') as { revision: number; data: unknown; updated: number }
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       const local = loadSave()
       const merged = cloud.data === null ? local : mergeTrainerSave(parseSaveData(cloud.data), local, cloud.revision)
-      const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
+      const result = await fetch(relay + '/trainers/save', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session }, body: JSON.stringify({ revision: cloud.revision, data: merged }) })
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       if (result.status === 409) continue
       const body = await result.json() as { error?: string; revision: number }
+      if (!sameSession()) return { synced: false, reason: 'accountChanged' }
       if (!result.ok) throw Error(body.error ?? 'Cloud save failed')
       localStorage.setItem(REV, String(body.revision))
       // Keep changes made during the HTTP request and schedule another sync.
