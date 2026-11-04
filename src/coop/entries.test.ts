@@ -8,13 +8,13 @@ const stamped = (i: Input, nonce = 0): Entry => [3, i.k, ...inputValues(i, nonce
 
 describe('private co-op admin events', () => {
   it('converts authorized relay-stamped spawns into deterministic tick entries', () => {
-    expect(toTickEntry([3, 'adminSpawn', 'zubat', 3], slots)).toEqual({ slot: 1, kind: 'adminSpawn', enemy: 'zubat', count: 3 })
+    expect(toTickEntry([3, 'adminSpawn', 'voltorb', 3], slots)).toEqual({ slot: 1, kind: 'adminSpawn', enemy: 'voltorb', count: 3 })
   })
 
   it('rejects invalid enemy ids, excessive counts, and unknown seats', () => {
     expect(toTickEntry([3, 'adminSpawn', 'not_a_pokemon', 1], slots)).toBeNull()
-    expect(toTickEntry([3, 'adminSpawn', 'zubat', 21], slots)).toBeNull()
-    expect(toTickEntry([7, 'adminSpawn', 'zubat', 1], slots)).toBeNull()
+    expect(toTickEntry([3, 'adminSpawn', 'voltorb', 21], slots)).toBeNull()
+    expect(toTickEntry([7, 'adminSpawn', 'voltorb', 1], slots)).toBeNull()
   })
 })
 
