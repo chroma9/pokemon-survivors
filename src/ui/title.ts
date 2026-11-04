@@ -1515,6 +1515,8 @@ export const titleScreen = (
     buildLobby()
   }
   const offSynced = onSaveSynced(refresh)
+  // Private Trainer cloud sync is independent of the upstream account API.
+  window.addEventListener('ps:trainer-save-synced', refresh)
   // Each layout builds its own lobby (rails, cards, profiles in the top bar): a rotation or a resized window that switches it rebuilds.
   const layouts = [LANDSCAPE, NARROW].map((q) => matchMedia(q))
   for (const q of layouts) q.addEventListener('change', refresh)
@@ -1551,6 +1553,6 @@ export const titleScreen = (
       for (const tick of tickers) tick(time)
       if (logo.width > 1) fitLogo(logo, lobby === null)
     },
-    dispose: () => (clearInterval(announcementPoll), overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
+    dispose: () => (clearInterval(announcementPoll), overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), window.removeEventListener('ps:trainer-save-synced', refresh), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
   }
 }
