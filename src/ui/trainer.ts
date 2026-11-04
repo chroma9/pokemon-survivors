@@ -1,4 +1,5 @@
 import { accountState, accountsEnabled, onAccountChange, signIn, signOut, syncSave, type AccountState } from '../account'
+import { currentTrainer } from '../trainerAccounts'
 import { isAdmin } from '../admin'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
