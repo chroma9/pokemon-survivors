@@ -2260,8 +2260,6 @@ export const es: Messages = {
         crossing: '¡La torre está en llamas! ¡Sube piso por piso!',
         phases: ['¡Ho-Oh alza el vuelo! Esquiva sus estelas de fuego y el Brave Bird.', '¡Ho-Oh *renace de sus cenizas*! El borde del techo arde.'],
       },
-      palkia: "Señor del espacio. Sus cortes dimensionales atraviesan hordas.",
-    shadowMewtwo: 'Mewtwo Oscuro. Un legendario oculto con ataques devastadores de varios tipos.',
     dialga: {
         place: 'Columna Lanza',
         epithet: 'Señor del Tiempo',
