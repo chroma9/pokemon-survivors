@@ -92,7 +92,7 @@ type SelectActions = {
  * bar is just "Escolher". `dojo`: picking who trains at the Dojo, the same plain bar ("Treinar"),
  * the captured legends included (they train with their awakenings).
  */
-export const starterSelect = (root: HTMLElement, input: Input, actions: SelectActions, initial: PlayableId = 'charmander', opts: { coop?: boolean; dojo?: boolean } = {}): Screen & { selected: () => PlayableId } => {
+export const starterSelect = (root: HTMLElement, input: Input, actions: SelectActions, initial: PlayableId = 'charmander', opts: { coop?: boolean; dojo?: boolean; allowCoopLegends?: boolean } = {}): Screen & { selected: () => PlayableId } => {
   const m = t()
   /** Co-op and the Dojo only pick a Pokémon: no Legend mode, Bag, difficulty or Poké Mart, and the partner stays. */
   const plain = opts.coop === true || opts.dojo === true
@@ -104,8 +104,9 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
   const canPick = (id: PlayableId) => ownsShiny(save, id)
   const shinyOf = (id: PlayableId) => playsShiny(forms, id)
 
-  /** Co-op leaves the Legend mode home: no Lendários tab, and a legend partner opens on the starters. */
-  const tabs: readonly Tab[] = opts.coop ? TABS.filter((k) => k !== 'legends') : TABS
+  /** Private co-op can restore the captured Legendary roster; ordinary co-op keeps upstream restrictions. */
+  const showCoopLegends = opts.coop === true && opts.allowCoopLegends === true
+  const tabs: readonly Tab[] = opts.coop && !showCoopLegends ? TABS.filter((k) => k !== 'legends') : TABS
   let tab: Tab = tabs.includes(tabOf(initial)) ? tabOf(initial) : 'starters'
   /** Each tab remembers its own cursor, so switching back lands where it was. */
   const firstHatched = HATCHLING_IDS.find((id) => save.hatched[id]) ?? HATCHLING_IDS[0]!
@@ -325,7 +326,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     h('div', { class: 'partner-tabs', role: 'tablist' }, ...tabs.map((k) => tabButtons[k]), h('span', { class: 'key-hint' }, 'TAB'), randomButton),
     h('div', { class: 'partner-pane starters' }, starterGrid, teaser),
     eggsPane,
-    !opts.coop && legendsPane,
+    (!opts.coop || showCoopLegends) && legendsPane,
   )
 
   /* ---------- Partner panel ---------- */
