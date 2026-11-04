@@ -111,3 +111,9 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - `7dfd7310b04a4c59a907c0234abb625a21e3dfb9`: private Trainer sign-out now requires the final cloud-save synchronization to complete. If a sync is already busy or cannot finish, sign-out reports a retryable error rather than silently revoking the session while changes remain unsaved.
 - **Still unverified:** build, UI and cloud-save regression tests. The account-switch guard and sign-out change require manual two-account and delayed-network scenarios during validation.
 - **No action required from owner now.** Work remains isolated to `Updated-11-3-2026`; production main and Cloudflare deployments remain untouched.
+
+### Community-goal / referral cross-check — 2026-11-04
+
+- Private referrals are wired in both `src/game/referral.ts` and `relay/src/trainerAccounts.ts`: a referred player counts after three recorded runs; the 1/3/5/10 friend milestone reward schedules match at source level. Solo and completed co-op report calls were inspected in `src/main.ts`. No runtime confirmation yet.
+- The upstream Halloween community candy goal is a **distinct system**, configured at `15_000_000` candies with a per-account cap of `20_000` in `src/data/halloween.ts`. Its client in `src/candyGoal.ts` reads the upstream `API_URL`, while the private relay contains a separate `/candy-goal` endpoint. Do **not** conflate this with older requests for a 15,000 community target or silently alter upstream game balance.
+- **Open review item:** determine which community progress bar was intended to count private multiplayer runs and verify its associated server ledger/endpoint before making balance or reward changes. The 15-million Halloween total is not evidence that the private referral objective is correct or incorrect.
