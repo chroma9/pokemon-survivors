@@ -1,4 +1,5 @@
 import { accountHandle, accountState } from '../account'
+import { currentTrainer, trainerToken } from '../trainerAccounts'
 import { track } from '../analytics'
 import { playSfx } from '../engine/audio'
 import type { Input } from '../engine/input'
@@ -58,8 +59,11 @@ const wornStyle = (): CardStyle => {
 
 /** Who shares: the handle and title, and the game's link crediting the handle (shown without the scheme). */
 const trainerLine = (title: TitleId | null): CardTrainer & { url: string } => {
-  const handle = accountHandle()
-  const url = gameUrl(handle)
+  const privateTrainer = trainerToken() ? currentTrainer() : null
+  const handle = privateTrainer?.handle ?? accountHandle()
+  const url = privateTrainer
+    ? `${location.origin}${location.pathname}?ref=${encodeURIComponent(privateTrainer.handle)}`
+    : gameUrl(handle)
   return { handle, title: title ? t().achievements.titles[title] : null, link: url.replace(/^https?:\/\/(www\.)?/, ''), url }
 }
 
@@ -134,6 +138,7 @@ const showcaseOrder = (a: { dex: number; legendary: boolean }, b: { dex: number;
 export const trainerShare = (partner: PlayableId): ShareCard => {
   const save = loadSave()
   const s = accountState()
+  const privateTrainer = trainerToken() ? currentTrainer() : null
   const trainer = trainerLine(save.title)
   const { species, counts, shinies, medals } = trainerTotals(save)
   const showcase = shinies
@@ -143,7 +148,7 @@ export const trainerShare = (partner: PlayableId): ShareCard => {
   const first = PLAYABLE[partner].line[0]
   const card: TrainerCardData = {
     date: new Date(),
-    name: s.kind === 'signedIn' && s.name ? s.name : null,
+    name: privateTrainer?.name ?? (s.kind === 'signedIn' && s.name ? s.name : null),
     partner: { dex: first.dex, name: first.name, shiny: playsShiny(save, partner) },
     medals,
     shinies: shinies.length,
