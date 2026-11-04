@@ -360,6 +360,67 @@ export const LEGENDARY_MOVES = {
     },
   },
 
+  /* Palkia — sharp spatial rifts rather than an energy beam. */
+  spacialRend: {
+    name: 'Spacial Rend',
+    type: 'dragon',
+    legendary: true,
+    base: stats({ damage: 76, cooldown: 3.7, amount: 1, area: 1, knockback: 65 }),
+    upgrades: [
+      { damage: 18 },
+      { area: 0.2 },
+      { fork: [{ stats: { amount: 1 } }, { stats: { damage: 25, cooldown: -0.4 } }] },
+      { cooldown: -0.5, damage: 18 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      const target = nearestEnemy(g, p.x, p.y, 245)
+      const aim = aimAt(g, 245, target)
+      const ux = dm.cos(aim)
+      const uy = dm.sin(aim)
+      const length = 116 * s.area
+      // Rifts split open across an enemy's position, not outward from
+      // Palkia's body. Without a target, open one ahead of the player.
+      const centerX = target ? target.x : p.x + ux * 105
+      const centerY = target ? target.y - 7 : p.y - 7 + uy * 105
+      for (let i = 0; i < s.amount; i++) {
+        // A slightly diagonal cut across the direction of attack: never a beam
+        // from the caster. Extra cuts are offset alongside the first.
+        const angle = aim + Math.PI * 0.5 + (i % 2 === 0 ? 0.24 : -0.24)
+        const dx = dm.cos(angle)
+        const dy = dm.sin(angle)
+        const lateral = (i - (s.amount - 1) / 2) * 27
+        const cx = centerX + ux * lateral
+        const cy = centerY + uy * lateral
+        const x0 = cx - dx * length * 0.5
+        const y0 = cy - dy * length * 0.5
+        // All segments of one rift share their hit list: no repeated damage
+        // from overlapping hitboxes or along the same fracture.
+        const hits = new Map<number, number>()
+        const segments = Math.max(8, Math.ceil(length / 12))
+        for (let j = 0; j <= segments; j++) {
+          const u = j / segments
+          spawnAttack(g, {
+            ...look('spacialRend', 'dragon', 'hitbox'),
+            x: x0 + dx * length * u, y: y0 + dy * length * u,
+            shape: { kind: 'circle', r: 12 * s.area },
+            motion: { kind: 'static' }, damage: s.damage,
+            knockback: s.knockback, hits, ttl: 0.25,
+          })
+        }
+        spawnAttack(g, {
+          ...look('spacialRend', 'dragon', 'spatialSlash'),
+          x: x0, y: y0, shape: { kind: 'circle', r: 5 },
+          motion: { kind: 'static' }, damage: 0,
+          ttl: 0.36, activeFrom: Infinity, memo: angle,
+          tier: length,
+        })
+      }
+      shakeScreen(g, 1.5)
+      cast(g, 'spacialRend')
+    },
+  },
+
   /* Latias */
   mistBall: {
     name: 'Mist Ball',
