@@ -72,8 +72,10 @@ export const trainerChip = (input: Input, opts: { onOpen: () => void }) => {
   }
   draw(accountState())
   const offState = onAccountChange(draw)
+  const onPrivateTrainerChanged = () => draw(accountState())
+  window.addEventListener('ps:trainer-changed', onPrivateTrainerChanged)
   const offKey = input.onKey((key) => key === 'KeyC' && open())
-  return { el, dispose: () => (offState(), offKey()) }
+  return { el, dispose: () => (offState(), window.removeEventListener('ps:trainer-changed', onPrivateTrainerChanged), offKey()) }
 }
 
 /** Month and year of a date, in the current language (`10/2026`). */
