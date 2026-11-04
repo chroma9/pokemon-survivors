@@ -141,7 +141,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     return h(
       'span',
       { class: 'partner-cell-silhouette' },
-      h('i', { style: `width:${sheet.fw}px;height:${sheet.fh}px;background-image:url(${sheet.url});transform:translateY(${((bodyH - 2 * footY) * scale) / 2}px) scale(${scale})` }),
+      h('i', { style: `width:${sheet.fw}px;height:${sheet.fh}px;background-image:url(${sheet.url});transform:translateY(${((bodyH - 2 * footY) * scale) / 2 - (id === 'palkia' ? 6 : 0)}px) scale(${scale})` }),
     )
   }
   const shinyTag = () => h('img', { class: 'partner-cell-shiny', src: sparkleIcon(), alt: 'Shiny' })
@@ -744,7 +744,7 @@ export const starterSelect = (root: HTMLElement, input: Input, actions: SelectAc
     const ctx = context2d(sprite)
     ctx.clearRect(0, 0, sprite.width, sprite.height)
     const s = playableForm(id) ? sprites(dex, false, playableForm(id)) : (shinyOf(id) && loadedSprites(dex, true)) || loadedSprites(dex)
-    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6, {
+    if (s) drawPokemon(ctx, s, 'Idle', 0, locked ? 0 : time, sprite.width / 2, sprite.height - 6 - (id === 'palkia' ? 8 : 0), {
       tint: locked ? { color: '#283048', amount: 1 } : id === 'mewtwo' && mewtwoAppearance() === 'clone' ? { color: '#281838', amount: 0.55 } : undefined,
       outline: !locked && id === 'mewtwo' && mewtwoAppearance() === 'clone' ? '#a050f0' : undefined,
     })
