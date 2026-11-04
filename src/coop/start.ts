@@ -1,4 +1,5 @@
-import { PLAYABLE_IDS } from '../data/hatchlings'
+import { PLAYABLE_IDS, type PlayableId } from '../data/hatchlings'
+import { LEGEND_IDS } from '../data/legends'
 import { COOP } from '../data/coop'
 import { parseDifficulty, type Difficulty } from '../game/difficulty'
 import { createCoopGame, type CoopLoadout } from '../game/game'
@@ -24,7 +25,7 @@ import { isDayKey, type DayKey } from '../game/day'
  * family, `PLAYABLE_IDS`: the Legend mode stays solo, `COOP_LOCKS`), Poké Mart
  * ranks, whether it plays shiny and, in a Versus room, the team they asked for.
  */
-export type CoopPick = { starter: (typeof PLAYABLE_IDS)[number]; ranks: Ranks; shiny: boolean; team?: Team }
+export type CoopPick = { starter: PlayableId; ranks: Ranks; shiny: boolean; team?: Team }
 
 /**
  * What a room plays: a co-op run against the horde, or a Versus match (`game/versus.ts`):
@@ -56,7 +57,7 @@ const rankOf = (raw: unknown, max: number) => (typeof raw === 'number' && Number
 
 /** A loadout from the wire: an unknown Pokémon (or a legend) falls back to the first starter, ranks are clamped to the Poké Mart's. */
 export const parseLoadout = (raw: Loadout): CoopPick => {
-  const starter = PLAYABLE_IDS.find((id) => id === raw.starter) ?? PLAYABLE_IDS[0]!
+  const starter = [...PLAYABLE_IDS, ...LEGEND_IDS].find((id) => id === raw.starter) ?? PLAYABLE_IDS[0]!
   const r = raw.ranks
   const ranks: Record<UpgradeId, number> = { ...NO_RANKS }
   if (isRecord(r)) for (const id of UPGRADE_IDS) ranks[id] = rankOf(r[id], UPGRADES[id].maxRank)
