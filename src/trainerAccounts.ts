@@ -195,22 +195,31 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null
  * Never spend locally until the server confirms it.
  */
 export const donateTrainerFestival = async (relay: string, amount: number) => {
-  if (!trainerToken()) return { ok: false as const, error: 'guest' }
+  const token = trainerToken()
+  const owner = currentTrainer()?.id
+  if (!token || !owner) return { ok: false as const, error: 'guest' }
+  const sameTrainer = () => trainerToken() === token && currentTrainer()?.id === owner
   try {
-    await syncTrainerSave(relay)
+    const firstSync = await syncTrainerSave(relay)
+    if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
+    if (!firstSync.synced) return { ok: false as const, error: 'syncPending' }
     for (let attempt = 0; attempt < 2; attempt++) {
       const cloud = await request(relay, 'save') as { revision: number; data: unknown }
+      if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
       const response = await fetch(relay + '/trainers/festival/donate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + trainerToken() },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ amount, revision: cloud.revision }),
       })
       const result = await response.json() as {
         ok?: boolean; error?: string; save?: unknown; revision?: number; held?: boolean; today?: number
       }
+      if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
       if (!response.ok || result.ok !== true) {
         if (result.error === 'stale' && attempt === 0) {
-          await syncTrainerSave(relay)
+          const retrySync = await syncTrainerSave(relay)
+          if (!sameTrainer()) return { ok: false as const, error: 'accountChanged' }
+          if (!retrySync.synced) return { ok: false as const, error: 'syncPending' }
           continue
         }
         return { ok: false as const, error: result.error ?? 'offline' }
