@@ -108,3 +108,24 @@
 - **Next release gate:** inspect GitHub Actions outputs, resolve any TypeScript/test failures and validate Cloudflare with correct secrets. Do not deploy or merge into production until that happens.
 - **Remaining game content:** shiny Onix/Meowth sprite binaries, Shadow Mewtwo, Palkia and move ports.
 
+
+## Bulk feature migration checkpoint — 2026-11-04
+
+Following owner direction, **finish transfer before debugging/compilation triage**. All changes are isolated to `Updated-11-3-2026`; do not merge to production `main` or deploy during migration.
+
+### Source and assets added/adapted
+- Palkia: legendary and enemy registrations, Rift domain, Spear Pillar arena, signature Spacial Rend logic and icon, dimensional-slash art, spatial beam/palette/omen sky, and normal/shiny assets.
+- Shadow Mewtwo: private playable legendary, Shadow type and matchup logic, playable Shadow sprite form, custom Shadow sprites, Mewtwo Clone cosmetic selector, Dark Nova special/orb/impact/field and effects.
+- Spiritomb: Ultra Rare egg entry, Shadow Ball + Dark Pulse learnset and recipient distribution, one-stage Strengthening (stats, milestones, evolution visual, events and stat preview).
+- Onix/Steelix and Meowth/Persian: upstream already has playable families; imported shiny Onix and shiny Meowth sprites, and restored Meowth Pay Day knockout payouts.
+- Updated sprite manifest for Palkia/shiny, Shadow Mewtwo, shiny Onix and shiny Meowth.
+- Ported custom text and move descriptions in en/pt/es/fr/zh without replacing upstream locale files.
+- Restored account UI CSS, and Shadow Ball/Dark Pulse icons.
+
+### Still to transfer or reconcile before the combined debugging phase
+- Remaining integration/UI differences between production `main` and new upstream: Rift/legend presentations, on-screen notices, special music/SFX and announcements, save and gift edge cases, supporter UI, and other custom game logic.
+- Inspect every fork-specific gameplay/relay difference in the outstanding compare list, avoiding reversion of newer upstream mechanics.
+- Confirm hardcoded client display checks are not treated as server-side security.
+- After all feature ports, run game/relay TypeScript checks, tests, visual smoke tests, co-op sync and cloud-save migration checks; only then diagnose/fix failures.
+
+This is a migration checkpoint, **not** a build/test pass or production deployment.
