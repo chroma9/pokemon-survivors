@@ -120,6 +120,8 @@ export type Player = {
   hurt: number
   /** Index into the starter's evolution line. */
   stage: number
+  /** A one-stage Pokémon's Strengthening milestone has been reached. */
+  strengthened?: boolean
   moves: OwnedMove[]
   items: OwnedItem[]
   stats: PlayerStats
@@ -770,6 +772,8 @@ export type GameEvent =
   /** Legend mode (`legend.ts`): an awakening (`n`, 1 or 2) started, or landed, maybe in its `form` (Primal Kyogre). */
   | { kind: 'awaken'; legend: LegendId; n: number }
   | { kind: 'awakened'; legend: LegendId; n: number; form: LegendForm | null }
+  | { kind: 'strengthen'; pokemon: PlayableId }
+  | { kind: 'strengthened'; pokemon: PlayableId }
   /** A legendary boss fell (rift, trio, mythical, Mewtwo, Arceus), once per defeat: the save counts it toward capturing it. */
   | { kind: 'legendBeaten'; legend: EnemyId; shiny: boolean }
   /** A boss with phases moved on to phase `phase` (from 0), or began its ultimate (`move`, the official English name). */
@@ -818,7 +822,7 @@ export type GameEvent =
 export type Buff = { id: BuffId; left: number; total: number }
 
 /** An evolution's scene: dex `from` → `to`. A legend's awakening (`awakening`: 1 or 2) plays it too, landing in its `form` where it takes one. */
-export type Evolution = { from: number; to: number; t: number; awakening?: number; form?: LegendForm }
+export type Evolution = { from: number; to: number; t: number; awakening?: number; strengthening?: true; form?: LegendForm }
 
 export type Game = {
   /** Multipliers this run plays with (`difficulty.ts`). */
