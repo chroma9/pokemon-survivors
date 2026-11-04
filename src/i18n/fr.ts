@@ -2256,8 +2256,6 @@ export const fr: Messages = {
         crossing: 'La tour est en feu ! Grimpe-la étage par étage !',
         phases: ['Ho-Oh prend son envol ! Esquive ses traînées brûlantes et Brave Bird.', 'Ho-Oh *renaît de ses cendres* ! Le bord du toit est en flammes.'],
       },
-      palkia: "Seigneur de l’espace. Ses failles dimensionnelles traversent les hordes.",
-    shadowMewtwo: 'Mewtwo Obscur. Un légendaire secret aux attaques dévastatrices de plusieurs types.',
     dialga: {
         place: 'Colonnes Lances',
         epithet: 'Seigneur du Temps',
