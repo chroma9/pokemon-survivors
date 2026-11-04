@@ -117,3 +117,11 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - Private referrals are wired in both `src/game/referral.ts` and `relay/src/trainerAccounts.ts`: a referred player counts after three recorded runs; the 1/3/5/10 friend milestone reward schedules match at source level. Solo and completed co-op report calls were inspected in `src/main.ts`. No runtime confirmation yet.
 - The upstream Halloween community candy goal is a **distinct system**, configured at `15_000_000` candies with a per-account cap of `20_000` in `src/data/halloween.ts`. Its client in `src/candyGoal.ts` reads the upstream `API_URL`, while the private relay contains a separate `/candy-goal` endpoint. Do **not** conflate this with older requests for a 15,000 community target or silently alter upstream game balance.
 - **Open review item:** determine which community progress bar was intended to count private multiplayer runs and verify its associated server ledger/endpoint before making balance or reward changes. The 15-million Halloween total is not evidence that the private referral objective is correct or incorrect.
+
+### Critical parity fix: local save changes now queue private cloud sync — 2026-11-04
+
+- **Source fix committed:** `496801046b29ca01729d1b668ed40fc98f97dbca` restores the `ps:save-written` event in `src/ui/save.ts`, matching the existing private account listener in `src/main.ts` (which debounces `scheduleTrainerSave`).
+- This event existed in the older fork's save writer but was missing from the new-upstream port. Without it, ordinary game progress changes may persist only on-device until an explicit sync, sign-out or reload.
+- The writer compares serialized data and dispatches only if it actually changed, limiting redundant sync scheduling.
+- **Verification still needed:** confirm gameplay earns/cloud persistence across browser refresh and devices; ensure writes originating from server sync do not cause uncontrolled repeat requests. The latter should settle because identical saved data produces no event, but this has not been runtime-tested.
+- **Source review status:** confirmed `src/main.ts` subscribes to `ps:save-written`, `src/trainerAccounts.ts` debounces saves, and the updated writer emits that exact event.
