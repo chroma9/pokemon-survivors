@@ -5,6 +5,7 @@ import { gen, randomToken } from './codes'
 import { gzip } from './gzip'
 import {
   connect,
+  adminSpawn,
   createRoom,
   deadline,
   disconnect,
@@ -254,6 +255,15 @@ export class ShardObject extends DurableObject<Env> {
       run: room.run ? { tick: room.run.next, paused: room.run.paused, players: room.run.start.players.length } : null,
       players: room.seats.map((s) => ({ seat: s.seat, name: s.name, connected: s.offlineSince === null, away: s.away, ready: s.ready })),
     }
+  }
+
+  /** Only invoked by the Worker after its independent admin bearer check. */
+  async spawnAdminEnemy(code: string, enemy: string, count: number, target?: string): Promise<boolean> {
+    const shell = this.rooms.get(code)
+    if (!shell) return false
+    const done = adminSpawn(shell.state, enemy, count, target)
+    if (done) this.scheduleAlarm()
+    return done
   }
 
   async fetch(request: Request): Promise<Response> {
