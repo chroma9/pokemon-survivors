@@ -2930,6 +2930,8 @@ export const pt = {
       arenaUltra: 'Ultra Ball da Arena',
       arenaMaster: 'Master Ball da Arena',
       creator: 'Criador(a) de Conteúdo',
+      developer: 'Desenvolvedor(a)',
+      tester: 'Testador(a)',
     } satisfies Record<TitleId, string>,
     goals: {
       runs: (n: string) => (n === '1' ? 'Jogue uma partida' : `Jogue ${n} partidas`),
