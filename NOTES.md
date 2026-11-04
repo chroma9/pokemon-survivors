@@ -125,3 +125,11 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - The writer compares serialized data and dispatches only if it actually changed, limiting redundant sync scheduling.
 - **Verification still needed:** confirm gameplay earns/cloud persistence across browser refresh and devices; ensure writes originating from server sync do not cause uncontrolled repeat requests. The latter should settle because identical saved data produces no event, but this has not been runtime-tested.
 - **Source review status:** confirmed `src/main.ts` subscribes to `ps:save-written`, `src/trainerAccounts.ts` debounces saves, and the updated writer emits that exact event.
+
+### Private Trainer cloud progress refresh — 2026-11-04
+
+- **Ported in source:** `0c044b50187b46bb87b65cffbb2522a11a0e3422` dispatches `ps:trainer-save-synced` only after a successful private Trainer save synchronization has updated local progress.
+- **Ported in source:** `628e3dd1ec964e52ab6c98c01fc2204f054faf3f` subscribes the current lobby to that event, rebuilding it using the existing upstream refresh routine. The event listener is removed when the title screen is disposed.
+- This restores the private cloud-sync UI refresh pathway without changing Clerk/upstream account listeners. Verify with two devices, a newly unlocked Pokémon and a save that changes companion/egg counts.
+- Together with `4968010`, local gameplay save changes now schedule private cloud sync, and a completed sync refreshes the lobby.
+- **Still not tested at runtime:** the changes are source-level only; integrated build and account/gameplay tests remain release gates.
