@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SIM_ROOTS, importsOf, resolveImport, simModules } from '../coop/simBuild'
+import { SIM_ROOTS, simModules } from '../coop/simBuild'
 
 /** Every source under `src` as text, by its repo path (`src/game/game.ts`). */
 const SOURCES: Record<string, string> = import.meta.glob(['/src/**/*.ts', '/src/**/*.json', '!/src/**/*.test.ts'], { query: '?raw', import: 'default', eager: true })
@@ -35,17 +35,6 @@ describe('the simulation sticks to deterministic math', () => {
         .split('\n')
         .flatMap((line, i) => (BANNED.test(line) ? [`${m}:${i + 1}: ${line.trim()}`] : [])),
     )
-    if (found.length) {
-      // Identify which graph edges drag non-simulation code into a replay hash.
-      const outside = modules.flatMap((from) =>
-        importsOf(read(from) ?? '').flatMap((spec) => {
-          const into = resolveImport(from, spec, (path) => read(path) !== null)
-          return into && /^(src\/render\/|src\/ui\/|src\/engine\/(input|gamepad|pixelart|viewport)\.ts|src\/game\/bugReport\.ts|src\/trainerAccounts\.ts|src\/privateMewtwo\.ts|src\/account\.ts)/.test(into)
-            ? [`${from} -> ${into}`] : []
-        }),
-      )
-      console.error('Simulation boundary imports (first 80):', outside.slice(0, 80))
-    }
     expect(found).toEqual([])
   })
 })
