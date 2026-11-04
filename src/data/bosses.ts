@@ -7,7 +7,7 @@ import type { EnemyId } from './enemies'
 export type HazardVisual =
   | 'rock' | 'slam' | 'thunder' | 'ice' | 'fire' | 'psychic' | 'water' | 'dragon' | 'steel' | 'aero' | 'grass' | 'shadow' | 'judgment'
   /** Toxic Spikes and the like, thrown by the world (`game/hazards.ts`). */
-  | 'poison'
+  | 'poison' | 'spatial'
   /** The horde's spit shots (`game/spitters.ts`), one look per flavor; `sludge` also names its puddle. */
   | SpitVisual
   /** The Eon duo's colors: Latias's red Mist Ball, Latios's blue Luster Purge (both Psychic). */
