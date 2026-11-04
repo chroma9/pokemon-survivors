@@ -31,9 +31,9 @@ const awakenTo = (g: Game, n: number) => {
 }
 
 describe('legends data', () => {
-  it('has the 23 regular ones, the event and the festival ones, out of the regular cast the Desafio do dia draws from', () => {
+  it('has the 24 regular ones including Palkia, plus event, festival and private legends', () => {
     const regular: readonly string[] = PLAYABLE_IDS
-    expect(REGULAR_LEGENDS).toHaveLength(23)
+    expect(REGULAR_LEGENDS).toHaveLength(24)
     expect(LEGEND_IDS).toEqual([...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS, ...PRIVATE_LEGENDS])
     for (const id of LEGEND_IDS) {
       expect(id in PLAYABLE).toBe(true)
