@@ -2631,7 +2631,7 @@ const watchCoop = (client: CoopClient) => {
 /** A co-op seat's loadout from the save: the partner (`coopStarter`), its ranks and its shiny. */
 const coopLoadout = (): CoopPick => {
   const save = loadSave()
-  const starter = coopStarter(save.partner)
+  const starter = coopStarter(save.partner, true)
   return { starter, ranks: save.ranks, shiny: playsShiny(save, starter) }
 }
 
@@ -2946,9 +2946,9 @@ const showRoom = () => {
 
 /** The partner select for the room: the pick becomes this player's loadout (and the saved partner), then back to the room. */
 const showCoopPartner = () => {
-  // The co-op select has no Lendários tab; `coopStarter` keeps the type honest.
+  // Our private co-op accepts captured legends; Arena mode keeps its separate roster.
   const pick = (id: PlayableId) => {
-    const starter = coopStarter(id)
+    const starter = coopStarter(id, true)
     updateSave((s) => ({ ...s, partner: starter }))
     coopClient()?.setLoadout(coopLoadout())
     setTimeout(showRoom, 250)
@@ -2963,8 +2963,8 @@ const showCoopPartner = () => {
       // A hatch's "Jogar com" takes the newcomer into the room, never into a solo run.
       incubator: () => showIncubator(() => showCoopPartner(), pick),
     },
-    coopStarter(loadSave().partner),
-    { coop: true },
+    coopStarter(loadSave().partner, true),
+    { coop: true, allowCoopLegends: true },
   )
   setScreen(select)
 }
