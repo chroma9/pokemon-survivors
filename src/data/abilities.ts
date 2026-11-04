@@ -398,8 +398,10 @@ export const FAMILY_ABILITIES = {
   meowth: ['pickup', 'technician', 'unnerve'],
   onix: ['rockHead', 'sturdy', 'weakArmor'],
   spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
-  shadowMewtwo: ['magicGuard', 'shedSkin', 'protean'],
-  palkia: ['pressure', 'sniper', 'adaptability'],
+  // Its innate is already Magic Guard; do not offer that stateful ability twice.
+  shadowMewtwo: ['moldBreaker', 'shedSkin', 'protean'],
+  // Pressure is innate; Swift Swim gives the Water/Dragon legend a distinct pick.
+  palkia: ['swiftSwim', 'sniper', 'adaptability'],
   darkrai: ['insomnia', 'unnerve', 'infiltrator'],
   cresselia: ['naturalCure', 'magicGuard', 'synchronize'],
 } as const satisfies Record<PlayableId, AbilitySet>
