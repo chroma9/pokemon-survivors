@@ -395,6 +395,8 @@ export const FAMILY_ABILITIES = {
   latios: ['sniper', 'infiltrator', 'adaptability'],
   deoxys: ['sniper', 'moxie', 'adaptability'],
   arceus: ['moldBreaker', 'magicGuard', 'sturdy'],
+  meowth: ['pickup', 'technician', 'unnerve'],
+  onix: ['rockHead', 'sturdy', 'weakArmor'],
   spiritomb: ['pressure', 'infiltrator', 'cursedBody'],
   shadowMewtwo: ['magicGuard', 'shedSkin', 'protean'],
   palkia: ['pressure', 'sniper', 'adaptability'],
