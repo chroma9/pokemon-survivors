@@ -226,6 +226,19 @@ export const LEGENDARY_ICONS: Record<LegendaryMoveId, () => PixelSprite> = {
       px(5, 5, '#202848', 3, 1)
       px(5, 5, '#78a0f8')
     }), '#101838'),
+  spacialRend: () =>
+    medallion(paint(11, 11, (px) => {
+      // Razor-thin tear in the fabric of space.
+      for (let i = 0; i < 11; i++) {
+        const x = i
+        const y = 10 - i + (i % 3 === 1 ? 1 : 0)
+        px(x, y, '#ee83d0', 2, 3)
+        px(x, y, '#fff0ff', 1, 1)
+        if (i > 1 && i < 10) px(x, y + 1, '#271229')
+      }
+      px(2, 3, '#f8c0ed', 2, 1)
+      px(7, 8, '#f8c0ed', 2, 1)
+    }), '#28102e'),
   mistBall: () =>
     medallion(paint(11, 11, (px) => {
       for (let y = 0; y < 11; y++) for (let x = 0; x < 11; x++) {
