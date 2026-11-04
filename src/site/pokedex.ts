@@ -155,7 +155,9 @@ export const gameDex = (): DexEntry[] => {
   const playable = [...STARTER_IDS.flatMap((id) => playableEntries(id, 'starter')), ...HATCHLING_IDS.flatMap((id) => playableEntries(id, 'egg'))]
   const listed = new Set(playable.map((e) => e.dex))
   const wild = [...wildByDex].filter(([dex]) => !listed.has(dex)).map(([, id]) => wildEntry(id))
-  return [...playable, ...wild, eventEntry()].sort(byDex)
+  // Playable Meowth and the map-event Meowth are the same National Dex species.
+  // Avoid inserting its event-only card a second time after making it hatchable.
+  return [...playable, ...wild, ...(listed.has(MEOWTH_DEX) ? [] : [eventEntry()])].sort(byDex)
 }
 
 /** The site's Pokédex: every species the game loads, `gameDex()` plus the gift-only companions and the domains' cameos (never met in a run, so never counted in game). */
