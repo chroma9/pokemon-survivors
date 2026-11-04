@@ -271,3 +271,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - Updated runbook in `6f6705f` to identify the **preview-only `GAME_ADMIN_TOKEN` secret** needed for admin testing (never copy production token, never commit it). The preview Worker will refuse admin grants/spawns if the secret is absent.
 - As of writing, latest head `6f6705f` GitHub Actions were **queued**; last checked green CI and private Worker checks were on `5b4f3507`. Do not claim newest code verified until fresh checks finish.
 - No isolated Worker has been deployed, no production Workers touched, and main remains untouched. The next external dependency is owner's Cloudflare account approval/access to deploy the disposable preview Worker and configure a Pages preview build-time relay URL. Do not merge to main before smoke tests.
+
+### Preview hostname clarification — 2026-11-04
+
+- Owner confirmed the static Pages client works; only relay-dependent features currently cannot run. The shown address `95a1deee.chroma9-survivors.pages.dev` was a temporary **immutable deployment URL**, not a stable endpoint and must not be pinned.
+- `relay/src/origins.ts` already supports a single-label subdomain wildcard with anchored regular expressions. Commit `270d580` updated **preview-only** `relay/wrangler.preview.jsonc` to allow the project root and `https://*.chroma9-survivors.pages.dev` (branch and immutable Pages previews) without granting arbitrary origins. The existing *production* Worker configuration is unchanged.
+- `4ea745b` corrects the isolated-preview runbook to explicitly treat deployment SHA hostnames as ephemeral. Use stable Pages branch settings for `VITE_COOP_URL`, not an individual deployment URL; `VITE_COOP_URL` points to Worker, not to a Pages deployment.
+- No preview Worker deploy or production changes made. New fixes need fresh Actions verification.
