@@ -40,7 +40,7 @@ describe('the simulation sticks to deterministic math', () => {
       const outside = modules.flatMap((from) =>
         importsOf(read(from) ?? '').flatMap((spec) => {
           const into = resolveImport(from, spec, (path) => read(path) !== null)
-          return into && /^(src\/render\/|src\/ui\/|src\/engine\/(input|gamepad|pixelart|viewport)\.ts|src\/game\/bugReport\.ts|src\/trainerAccounts\.ts|src\/account\.ts)/.test(into)
+          return into && /^(src\/render\/|src\/ui\/|src\/engine\/(input|gamepad|pixelart|viewport)\.ts|src\/game\/bugReport\.ts|src\/trainerAccounts\.ts|src\/privateMewtwo\.ts|src\/account\.ts)/.test(into)
             ? [`${from} -> ${into}`] : []
         }),
       )
