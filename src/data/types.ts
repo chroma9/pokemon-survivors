@@ -1,7 +1,7 @@
 export const POKE_TYPES = [
   'normal', 'fire', 'water', 'grass', 'electric', 'poison', 'flying',
   'bug', 'rock', 'ground', 'ghost', 'fighting', 'psychic', 'ice',
-  'steel', 'dark', 'fairy', 'dragon',
+  'steel', 'dark', 'fairy', 'dragon', 'shadow',
 ] as const
 
 export type PokeType = (typeof POKE_TYPES)[number]
@@ -25,6 +25,7 @@ export const TYPE_COLORS: Record<PokeType, string> = {
   dark: '#705848',
   fairy: '#ee99ac',
   dragon: '#7038f8',
+  shadow: '#604E82',
 }
 
 /** Official chart, restricted to the types we use. Missing entries are 1x. */
@@ -55,6 +56,7 @@ const CHART: Partial<Record<PokeType, Partial<Record<PokeType, number>>>> = {
  * 4x→2, 2x→1.5, ½→0.75, ¼ and 0→0.5.
  */
 export const effectiveness = (attack: PokeType, defender: readonly PokeType[]) => {
+  if (attack === 'shadow') return defender.includes('shadow') ? 0.75 : 1.5
   const raw = defender.reduce((m, t) => m * (CHART[attack]?.[t] ?? 1), 1)
   if (raw >= 4) return 2
   if (raw >= 2) return 1.5
