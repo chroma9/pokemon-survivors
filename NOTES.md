@@ -180,3 +180,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - Do not point the preview at the **live** `chroma9-survivors-coop` Worker or live TrainerAccounts DO. Do not redeploy the existing private Worker and do not merge to main without explicit approval. Preview data should be disposable.
 - Confirm CORS origins if the actual Pages preview hostname differs from the branch-specific origin; do not add wildcard origins without reason.
 - Verification after deployment: Worker health/room creation, register/login, two browsers in co-op, cloud save isolation, prizes/gifts, and ability to reconnect. The source fixes are not yet end-to-end verified.
+
+### Palkia locked silhouette positioning restored — 2026-11-04
+
+- Owner supplied screenshot showing Palkia's locked silhouette too low in both the small Legendary selection grid tile and the large right-hand preview. This is a **confirmed missed stable-fork UI change**, not a speculative visual tweak.
+- Compared `src/ui/starterSelect.ts` on read-only production `main` against migration branch `Updated-11-3-2026` and found two absent Palkia-only offsets. Ported both exactly in commit `1ca94787920fa1e21cbf1abb9584e225614e02dd`: the locked grid cell's CSS sheet transform raises Palkia **6 px**, and the large canvas sprite's draw anchor raises Palkia **8 px**.
+- Only Palkia's positions changed; other Pokémon and upstream selection behavior remain untouched. **Awaiting visual verification** after the preview rebuild.
+- Future reconciliation should include known visual-only stable-fork changes: compare read-only `main` with the migration branch before declaring visual parity.
