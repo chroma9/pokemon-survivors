@@ -2427,7 +2427,7 @@ export const es: Messages = {
   types: {
     normal: 'Normal', fire: 'Fuego', water: 'Agua', grass: 'Planta', electric: 'Eléctrico', poison: 'Veneno',
     flying: 'Volador', bug: 'Bicho', rock: 'Roca', ground: 'Tierra', ghost: 'Fantasma', fighting: 'Lucha',
-    psychic: 'Psíquico', ice: 'Hielo', steel: 'Acero', dark: 'Siniestro', fairy: 'Hada', dragon: 'Dragón',
+    psychic: 'Psíquico', ice: 'Hielo', steel: 'Acero', dark: 'Siniestro', fairy: 'Hada', dragon: 'Dragón', shadow: 'Sombra',
   },
 
   missions: {
@@ -5241,6 +5241,11 @@ export const es: Messages = {
     arceus: 'El dios. Su tipo cambia con cada bioma.',
     darkrai: 'Pesadilla. Duerme a las multitudes y las hiere en sueños.',
     cresselia: 'Luna creciente. Cuchillas que vuelven y una luna llena que cura.',
+    meowth: 'Rápido y astuto. Pay Day convierte derrotas en monedas.',
+    onix: 'Serpiente de roca resistente. Evoluciona a Steelix.',
+    spiritomb: 'Espíritus sellados. Ataques sombríos y fortalecimiento.',
+    palkia: 'Señor del espacio. Sus cortes dimensionales atraviesan hordas.',
+    shadowMewtwo: 'Mewtwo Sombrío. Un legendario oculto de ataques devastadores.',
   },
 
   specials: {
