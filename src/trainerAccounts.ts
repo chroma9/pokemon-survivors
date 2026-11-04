@@ -56,6 +56,19 @@ export const loginTrainer = async (relay: string, handle: string, password: stri
   return result.profile as TrainerProfile
 }
 export const trainerLookup = async (relay: string, handle: string) => (await request(relay, 'profile/' + encodeURIComponent(handle.toLowerCase()))).profile as TrainerProfile
+/** Only the public fields required to reproduce another Trainer's card. */
+export type PublicTrainerCard = {
+  partner: string
+  partnerShiny: boolean
+  title: string | null
+  dexFlags: readonly (readonly [number, number])[]
+  achievements: readonly string[]
+  bestTime: number
+  ribbons: readonly string[]
+}
+export const lookupTrainerCard = async (relay: string, handle: string) =>
+  await request(relay, 'card/' + encodeURIComponent(handle.trim().toLowerCase())) as { profile: TrainerProfile; card: PublicTrainerCard | null }
+
 export const refreshTrainer = async (relay: string) => {
   const session = trainerToken()
   const owner = currentTrainer()?.id
