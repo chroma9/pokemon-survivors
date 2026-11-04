@@ -2832,7 +2832,7 @@ export const pt = {
     titleTag: 'TÍTULO',
     equipped: 'EM USO',
     /** Titles that come as a Mystery Gift, with how they were earned. */
-    giftTitles: { ambassador: 'Trouxe 3 amigos para o jogo', supporter: 'Apoiou o projeto com uma doação', pumpkinKing: 'Encheu o pote de doces da Noite das Bruxas', exorcist: 'Venceu todos os chefes da Caça aos Fantasmas', vipCustomer: 'Juntou 30 carimbos no cartão fidelidade do Kecleon', tycoon: 'Transformou a loja do Kecleon em Loja de Departamento', patron: 'Doou ₽50.000 ou mais num Festival da Praça', ogSupporter: 'Apoiou o jogo antes do Patreon', arenaPoke: 'Fechou uma temporada ranqueada da Arena em Poké Ball', arenaGreat: 'Chegou a Great Ball numa temporada ranqueada da Arena', arenaUltra: 'Chegou a Ultra Ball numa temporada ranqueada da Arena', arenaMaster: 'Chegou a Master Ball numa temporada ranqueada da Arena', creator: 'Faz vídeos e lives de Pokémon Survivors' } satisfies Record<GiftTitleId, string>,
+    giftTitles: { ambassador: 'Trouxe 3 amigos para o jogo', supporter: 'Apoiou o projeto com uma doação', pumpkinKing: 'Encheu o pote de doces da Noite das Bruxas', exorcist: 'Venceu todos os chefes da Caça aos Fantasmas', vipCustomer: 'Juntou 30 carimbos no cartão fidelidade do Kecleon', tycoon: 'Transformou a loja do Kecleon em Loja de Departamento', patron: 'Doou ₽50.000 ou mais num Festival da Praça', ogSupporter: 'Apoiou o jogo antes do Patreon', arenaPoke: 'Fechou uma temporada ranqueada da Arena em Poké Ball', arenaGreat: 'Chegou a Great Ball numa temporada ranqueada da Arena', arenaUltra: 'Chegou a Ultra Ball numa temporada ranqueada da Arena', arenaMaster: 'Chegou a Master Ball numa temporada ranqueada da Arena', creator: 'Faz vídeos e lives de Pokémon Survivors', developer: 'Concedido aos desenvolvedores do jogo', tester: 'Concedido aos testadores autorizados' } satisfies Record<GiftTitleId, string>,
     newMedals: 'Novas medalhas',
     names: {
       firstRun: 'Primeiros passos',
@@ -2967,6 +2967,8 @@ export const pt = {
       hiddenZones: (n: string) => `Encontre as ${n} zonas ocultas (raras, sem aviso: fique de olho no mapa)`,
     } satisfies Record<AchievementStat, (n: string) => string>,
     region: (name: string) => `Vença o Mewtwo com um inicial de ${name}`,
+      developer: 'Desenvolvedor',
+      tester: 'Testador',
   },
 
   moves: {
