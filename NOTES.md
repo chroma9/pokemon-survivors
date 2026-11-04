@@ -214,3 +214,14 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - `f50a663`: found a genuine Onix/Steelix learnset bug: three stage move lists despite two evolution stages. Consolidated the otherwise unreachable third list into Steelix's second stage, preserving all its moves.
 - `9e09110`: added a distinct 24×24 pixel-art Shadow TM PNG at `public/assets/items/tmShadow.png` (Git binary blob/tree commit), providing the missing type-shop artwork rather than suppressing the asset completeness assertion. Needs visual in-game review.
 - Remain cautious: daily challenge historical pick changes, replay RULES_VERSION 44 mismatch and snapshots are behavioral/replay compatibility questions, not tests to silence by replacing expectations. Address before merging.
+
+### CI regression repair — 2026-11-04, batch 4
+
+- Verified the last completed private CI head `f86f3dd` (log at `2026-11-04T09:13Z`) had **5 failing / 1,610 passing / 17 skipped**, down from 31 failing at start of triage. The failing categories: deterministic math import closure, golden-run digest, signature/coverage checks, and replay rules-version guard. Newer commits not yet verified passing.
+- `bf1668b`: versioned daily-challenge pool to preserve previously recorded starter assignments; original seeded historical days before Nov 4, 2026 omit the three newly playable private egg families, while newer dates include Meowth, Onix and Spiritomb.
+- `f86f3dd`: re-targeted the daily challenge complete-cycle test to post-rollout dates, leaving the historic three-date regression check in place.
+- `f5a2d21`, `582073d`: expanded learnset balance tests scale the shared-move cap to one fifth of the expanded roster, tolerate intentional cross-family Dream Eater/Dig use in private Pokémon and report all remaining overuse rather than stopping at the first offender. Test behavior still needs latest CI review.
+- `aa531a9`: restored the random snapshot test's reliable scenarios, with specialized domain/awakening/terrain restoration cases still independently checked. The failing snapshot test was a changed random-scenario coverage list, not a divergence between original/restored state.
+- `ac3d6c0`: added diagnostic logging to deterministic math guard to identify the import edges that pull visual/UI code into the simulation's dependency closure. **Temporary logging until the boundary issue is diagnosed**; then remove/replace with an appropriate explicit invariant.
+- **Critical outstanding release gate:** `RULES_VERSION` remains at 44 while gameplay replay fingerprints have changed (shop/sketch/Magic Guard). Once gameplay changes are stable, bump to 45 and pin the actual new fingerprints; freeze the previous rules simulator in `server/sims/rules-44.mjs` with `npm run rules:freeze` before production. Do not ship new rules with an unfrozen old replay verifier.
+- No production writes, private relay deploy, or main merge authorized.
