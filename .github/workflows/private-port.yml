@@ -31,6 +31,6 @@ jobs:
       - name: Install relay dependencies
         run: npm ci --prefix relay
       - name: Typecheck private relay
-        run: npm run typecheck --prefix relay
+        run: npm run typecheck:private --prefix relay
       - name: Run relay tests
         run: npm test --prefix relay
