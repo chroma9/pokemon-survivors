@@ -231,13 +231,15 @@ describe('save fields', () => {
 describe('egg families', () => {
   it('cover every type and every generation', () => {
     const types = new Set(HATCHLING_IDS.flatMap((id) => PLAYABLE[id].line.flatMap((s) => s.types)))
-    expect([...types].toSorted()).toEqual([...POKE_TYPES].toSorted())
+    // Shadow is an additional private attack type, not a wild egg-family typing.
+    expect([...types].toSorted()).toEqual(POKE_TYPES.filter((type) => type !== 'shadow').toSorted())
     const gens = new Set(HATCHLING_IDS.flatMap((id) => PLAYABLE[id].line.map((s) => regionOf(s.dex).gen)))
     expect(gens.size).toBe(9)
   })
 
   it('evolve mid-run and grow stronger (Smeargle aside: one stage, it paints moves instead)', () => {
-    expect(HATCHLING_IDS.filter((id) => PLAYABLE[id].line.length === 1)).toEqual(['smeargle'])
+    // Spiritomb also has one stage and earns Strengthening instead of evolution.
+    expect(HATCHLING_IDS.filter((id) => PLAYABLE[id].line.length === 1)).toEqual(['spiritomb', 'smeargle'])
     for (const id of HATCHLING_IDS) {
       const line: readonly EvolutionStage[] = PLAYABLE[id].line
       if (line.length === 1) continue
