@@ -1,5 +1,7 @@
+import { applyDeltas } from '../game/stats'
+import { playablePortrait } from '../playableForms'
 import { playSfx } from '../engine/audio'
-import { PLAYABLE, type PlayableId } from '../data/hatchlings'
+import { strengtheningOf, PLAYABLE, type PlayableId } from '../data/hatchlings'
 import type { PlayableDef } from '../data/starters'
 import { TYPE_COLORS } from '../data/types'
 import { MEGA, MEGAS, megasOf, type MegaId } from '../data/megas'
@@ -166,7 +168,9 @@ const abilityRows = (id: PlayableId) => {
 export const statBars = (id: PlayableId, count: number = STAT_BARS.length) => {
   const m = t()
   const base = starterStats(id, 0)
-  const final = starterStats(id, PLAYABLE[id].line.length - 1)
+  const finalBase = starterStats(id, PLAYABLE[id].line.length - 1)
+  const strengthening = strengtheningOf(id)
+  const final = strengthening ? applyDeltas(finalBase, [strengthening.bonus]) : finalBase
   return h(
     'div',
     { class: 'stat-bars' },
@@ -215,7 +219,7 @@ export const evoLine = (id: PlayableId, stage: number, onStage: (stage: number) 
           : h(
               'button',
               { class: i === stage ? 'evo-stage selected' : 'evo-stage', type: 'button', onclick: () => onStage(i), title: st.name },
-              h('img', { src: portraitUrl(st.dex), alt: st.name }),
+              h('img', { src: playablePortrait(id, st.dex), alt: st.name }),
               h('span', { class: 'evo-name' }, st.name),
               h('span', { class: 'evo-types' }, ...st.types.map((type) => h('i', { style: `--type:${TYPE_COLORS[type]}`, title: type }))),
             ),
@@ -284,7 +288,7 @@ export const detailsSheet = (opts: SheetOpts) => {
   const render = () => {
     const form = PLAYABLE[id].line[stage]!
     head.replaceChildren(
-      h('img', { class: 'partner-sheet-portrait', src: portraitUrl(form.dex, shiny), alt: '' }),
+      h('img', { class: 'partner-sheet-portrait', src: playablePortrait(id, form.dex, shiny), alt: '' }),
       h('div', {}, h('div', { class: 'partner-sheet-name' }, form.name), h('div', { class: 'types' }, ...form.types.map(typeBadge))),
     )
     const k = tabs[tab]!
