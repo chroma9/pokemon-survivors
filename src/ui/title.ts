@@ -34,7 +34,8 @@ import { festivalCard, festivalCardShows, festivalTile, type FestivalTab } from 
 import { fillHalloweenCard, halloweenCard, halloweenCardShows, halloweenTile } from './halloween'
 import { contentLine } from './gifts'
 import { countedFriends, loadInvites } from './invites'
-import { isUnread, latestUpdate } from './news'
+import { announcementPending, announcementScreen, fetchAnnouncement, isUnread, latestUpdate } from './news'
+import { coopUrl } from '../coopShell'
 import { hallFace, hallPortrait, type HallOpen } from './supporters'
 import { surveyWaiting, takeSurveyOffer } from './survey'
 import type { Screen } from './screens'
@@ -1464,8 +1465,29 @@ export const titleScreen = (
     if (spot) talkButton.style.cssText = `left:${Math.round(spot.x / uiZoom())}px;top:${Math.round(spot.y / uiZoom())}px`
   }
 
+  let checkingAnnouncement = false
+  const checkAnnouncement = async () => {
+    if (checkingAnnouncement || overScreen || !lobby || el.classList.contains('hidden')) return
+    checkingAnnouncement = true
+    try {
+      const announcement = await fetchAnnouncement(coopUrl())
+      if (!announcement || !announcementPending(announcement) || overScreen || !lobby || el.classList.contains('hidden')) return
+      openOver(() => announcementScreen(root, input, announcement, () => {
+        overScreen = null
+        el.classList.remove('hidden')
+        buildLobby()
+      }))
+    } catch {
+      // Broadcast availability must never block the lobby.
+    } finally {
+      checkingAnnouncement = false
+    }
+  }
+  const announcementPoll = window.setInterval(() => { void checkAnnouncement() }, 30000)
+
   const enterLobby = () => {
     buildLobby()
+    void checkAnnouncement()
     actions.ready()
     // `?loja` (and the dev's `ps.plaza()`) head for the shop once the lobby is laid out.
     const trip = opts.shop
@@ -1524,6 +1546,6 @@ export const titleScreen = (
       for (const tick of tickers) tick(time)
       if (logo.width > 1) fitLogo(logo, lobby === null)
     },
-    dispose: () => (overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
+    dispose: () => (clearInterval(announcementPoll), overScreen?.dispose(), chat?.dispose(), offIntro?.(), offKeys?.(), closeChip?.(), offSynced(), offLayouts(), offPointers(), leaveMeadow(), el.remove()),
   }
 }
