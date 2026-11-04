@@ -163,3 +163,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - Fixed all eight affected files on `Updated-11-3-2026`: `src/i18n/{en,es,fr,zh}.ts` and `src/i18n/site/{en,es,fr,zh}.ts`. Each now has a Shadow type label, and the game dictionaries describe Meowth, Onix, Spiritomb, Palkia, and Shadow Mewtwo. Portuguese translations were already corrected in `51a7727` / `bc75315`.
 - Commits: `e9c13ad`, `d778034`, `ec34a9a`, `b7ce621`, `420440a`, `35eb5d5`, `74a216f`, `a425a30`.
 - **Still requires verification:** a fresh Cloudflare Pages or GitHub Actions build for at least `a425a30` should pass game TypeScript, then Vite and relay tests must pass. This note records source fixes, not a successful deployment.
+
+### Cloudflare Pages build: public Pokédex generation blocked by private Shadow Mewtwo — 2026-11-04
+
+- Owner supplied a Pages log for head `747c3ef4565f5ce141284ad725e254ec1ab276cf` (08:33Z): `tsc --noEmit` completed; Vite then failed generating site routes with `No Pokédex entry for legend shadowMewtwo` at `src/site/pokedex.ts`.
+- Cause: the public site's `dexPages()` iterated every playable `LEGEND_IDS` and expected a wild enemy entry. Private Shadow Mewtwo is a distinct playable identity sharing National Dex 150 with ordinary Mewtwo; no separate wild enemy Pokédex entry exists. Creating a fictitious second public 150 entry would be incorrect.
+- **Source fix:** commit `e6456ccb39bfa6ab307d3169f03b099e93282cd5` excludes `PRIVATE_LEGENDS` (alongside the existing festival legend exclusion) from public standalone legendary page generation. Shadow Mewtwo remains playable in the private game and co-op; the public Pokédex and sitemap retain normal Mewtwo.
+- **Build still unverified** for this new head: wait for a new Pages/Actions result. The Vite `configLoader: 'native'` file-extension warning in the supplied log is non-fatal and separate from the generation error.
