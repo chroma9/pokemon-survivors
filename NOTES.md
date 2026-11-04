@@ -54,3 +54,19 @@ Purpose: Read this file at the start of every new ChatGPT development session. T
 ## Session handoff
 
 As of 2026-11-04, owner clarified: **Ignore all old branches for development. Use only `Updated-11-3-2026`.** Migration is still in progress, and broad debugging/testing is intentionally deferred until all features have been moved.
+
+## Ongoing documentation policy — owner instruction, 2026-11-04
+
+- Update this file **alongside every meaningful milestone**, not only at the end of a session: completed migration phases, important design/branch decisions, newly discovered blockers, verified test outcomes, changed deployment requirements, and major fixes. Include date, commit or other evidence, and the next action.
+- Keep this file a concise, current handoff rather than dumping every trivial commit; put detailed implementation histories in `docs/private-feature-port-2026-11-03.md`.
+- Clearly label **ported in code**, **verified**, **pending**, and **blocked**. Never interpret a commit title or passing compilation alone as a completed gameplay feature.
+- At the beginning of each future session, read this file before making changes, and refresh its status after reaching a milestone.
+
+### Progress review — 2026-11-04
+
+- **Approximate migration status:** ~85% of intended custom feature transfer appears represented in source. This is a qualitative estimate, not a measured percentage or release-readiness figure.
+- Recent commits restored lobby trainer identity, focused private lobby, admin announcement polling, private referral links, and eligible solo/completed co-op referral accounting.
+- **Remaining transfer/reconciliation:** inspect custom game/relay/UI differences not yet matched, including Rift presentation and media, supporter and account interactions, saved progress and gift edge cases, progression correctness, and upstream compatibility. Track anything deliberately excluded.
+- **Integration validation pending:** GitHub Actions private-port workflow is failing at the reviewed head `0f35e7207`; CI was in progress for that head at time of review. Earlier head `e7a1f4210` showed failures in both CI and private-port workflows. Causes have not been diagnosed, consistent with owner's migrate-first instruction.
+- Do not confuse **migration completeness** with **release readiness**: no production deployment, no confirmed successful full build or end-to-end multiplayer/cloud-save test yet.
+- **Next step:** complete feature parity review and missing port work on `Updated-11-3-2026`; then begin joint debugging, automated checks, smoke testing and Cloudflare deployment review before requesting owner approval.
