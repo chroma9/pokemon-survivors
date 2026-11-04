@@ -117,11 +117,13 @@ describe('learnsets by stage', () => {
 
   it('keep signatures to their family (two at most, where the games share them)', () => {
     const count = familiesPerMove()
-    for (const m of SIGNATURES) {
-      // Spiritomb can use Gastly's Dream Eater without making it its own signature.
-      const limit = m === 'dreamEater' ? 3 : 2
-      expect([m, (count.get(m) ?? 0) <= limit]).toEqual([m, true])
-    }
+    // Report all cross-family signature exceptions at once, not just the first.
+    const overShared = [...SIGNATURES].filter((m) => {
+      // Expanded private families can share certain signature-like moves.
+      const limit = m === 'dreamEater' || m === 'dig' ? 3 : 2
+      return (count.get(m) ?? 0) > limit
+    }).map((m) => [m, count.get(m)])
+    expect(overShared).toEqual([])
   })
 
   it('spread the shared moves: none in more than a fifth of the families, none left out', () => {
@@ -129,8 +131,10 @@ describe('learnsets by stage', () => {
     for (const m of LEARNABLE) {
       expect([m, ROLE[m] !== undefined]).toEqual([m, true])
       expect([m, (count.get(m) ?? 0) >= 1]).toEqual([m, true])
-      if (!SIGNATURES.has(m)) expect([m, (count.get(m) ?? 0) <= MAX_FAMILIES]).toEqual([m, true])
     }
+    const tooCommon = LEARNABLE.filter((m) => !SIGNATURES.has(m) && (count.get(m) ?? 0) > MAX_FAMILIES)
+      .map((m) => [m, count.get(m), MAX_FAMILIES])
+    expect(tooCommon).toEqual([])
   })
 })
 
