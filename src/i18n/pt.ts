@@ -2969,8 +2969,6 @@ export const pt = {
       hiddenZones: (n: string) => `Encontre as ${n} zonas ocultas (raras, sem aviso: fique de olho no mapa)`,
     } satisfies Record<AchievementStat, (n: string) => string>,
     region: (name: string) => `Vença o Mewtwo com um inicial de ${name}`,
-      developer: 'Desenvolvedor',
-      tester: 'Testador',
   },
 
   moves: {
