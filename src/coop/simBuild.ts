@@ -1,5 +1,3 @@
-import * as ts from 'typescript'
-
 /**
  * The co-op build id: a hash of the simulation's source, so the relay pins a
  * room to the simulation it runs and not to the whole app. Pedro deploys many
@@ -17,33 +15,43 @@ import * as ts from 'typescript'
 /** Where the co-op simulation starts: the lockstep step, the snapshots, and what the netcode feeds them. */
 export const SIM_ROOTS = ['src/game/lockstep.ts', 'src/game/snapshot.ts', 'src/game/coop.ts', 'src/coop/entries.ts', 'src/coop/start.ts', 'src/net/protocol.ts'] as const
 
-/** Actual runtime imports, not strings in comments or erased TypeScript type imports. */
+/** Runtime imports (not type-only imports or text inside comments). */
 export const importsOf = (text: string): string[] => {
-  // The regex scanner used to recognize `from '../trainerAccounts'` in
-  // comments as a real import. That dragged UI, audio and input into the
-  // deterministic simulation hash even though the game never executes them.
-  const source = ts.createSourceFile('sim.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
-  const out: string[] = []
-  const visit = (node: ts.Node) => {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-      const clause = node.importClause
-      const named = clause?.namedBindings
-      const allTypes = clause?.isTypeOnly || (clause && !clause.name && named && ts.isNamedImports(named) && named.elements.every((e) => e.isTypeOnly))
-      if (!allTypes) out.push(node.moduleSpecifier.text)
-    } else if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-      const named = node.exportClause
-      const allTypes = node.isTypeOnly || (named && ts.isNamedExports(named) && named.elements.every((e) => e.isTypeOnly))
-      if (!allTypes) out.push(node.moduleSpecifier.text)
-    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-      const arg = node.arguments[0]
-      if (arg && ts.isStringLiteral(arg)) out.push(arg.text)
+  // Mask comments without changing line breaks. Unlike the earlier scanner,
+  // an ordinary comment saying "from '../ui/save'" cannot create a false
+  // simulation dependency. The regex only recognizes import/export statements
+  // starting a source line and literal dynamic imports.
+  const source = text.replace(/\\/\\*[\\s\\S]*?\\*\\/|(^|[^:'"`])\\/\\/[^\\n]*/gm, (part) =>
+    part.replace(/[^\\n]/g, ' '),
+  )
+  const result: string[] = []
+  const lines = source.split('\\n')
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!.trim()
+    if (/^import\\s+type\\b|^export\\s+type\\b/.test(line)) continue
+    if (/^import\\s*['"]/.test(line)) {
+      const spec = /^import\\s*['"]([^'"]+)['"]/.exec(line)
+      if (spec) result.push(spec[1]!)
+      continue
     }
-    ts.forEachChild(node, visit)
+    if (/^(?:import|export)\\s/.test(line)) {
+      // Declarations may span lines. Stop at their module specifier.
+      const stmt = lines.slice(i, i + 20).join('\\n')
+      const match = /\\bfrom\\s*['"]([^'"]+)['"]/.exec(stmt)
+      if (match) {
+        const prefix = stmt.slice(0, match.index).trim()
+        const body = prefix.replace(/^(?:import|export)\\s*/, '').trim()
+        const named = /^\\{([\\s\\S]*?)\\}$/.exec(body)
+        const onlyTypes = named && named[1]!.split(',').filter(Boolean).every((x) => /^type\\s/.test(x.trim()))
+        if (!onlyTypes) result.push(match[1]!)
+      }
+    }
   }
-  visit(source)
-  return out
+  // Literal dynamic imports, never arbitrary strings containing the word.
+  const dynamic = /\\bimport\\s*\\(\\s*['"]([^'"]+)['"]\\s*\\)/g
+  for (let m = dynamic.exec(source); m; m = dynamic.exec(source)) result.push(m[1]!)
+  return result
 }
-
 const normalize = (path: string) => {
   const parts: string[] = []
   for (const part of path.split('/')) {
