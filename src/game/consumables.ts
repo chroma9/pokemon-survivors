@@ -1,4 +1,3 @@
-import type { Sfx } from '../engine/audio'
 import { dirTo } from '../engine/math'
 import { chance, range } from '../engine/rng'
 import { query } from '../engine/spatial'
@@ -20,10 +19,14 @@ import * as dm from '../engine/dmath'
  * clock, rosary…). Each definition is data plus an `apply` effect that runs
  * when the player picks it up.
  */
+// Keep the deterministic consumable table independent of browser-only WebAudio types.
+// The client verifies these literal names against playSfx when rendering effects.
+type ConsumableSfx = 'heal' | 'levelUp' | 'item' | 'flute' | 'explosion'
+
 export type ConsumableDef = {
   /** Official English name; the pickup toast line lives in `i18n`. */
   name: string
-  sfx: Sfx
+  sfx: ConsumableSfx
   apply: (g: Game) => void
 }
 
