@@ -1,3 +1,6 @@
+import { privateAdminConsole } from './privateAdmin'
+import { trainerToken, scheduleTrainerSave, syncTrainerSave } from './trainerAccounts'
+import { openTrainerProfiles } from './ui/privateTrainer'
 import '@fontsource/press-start-2p'
 import '@fontsource/vt323'
 import './ui/style.css'
@@ -667,7 +670,7 @@ const showTitle = (opts: { intro?: boolean; focus?: LobbyFocus; shop?: ShopTrip;
       },
       // Closing rebuilds the title, so a sign in's merged save shows up on the Trainer chip.
       trainer: (focus) =>
-        trainerCardScreen(ui, input, { supporters: (back) => supportersScreen(ui, input, { play: (id) => void startRun(id), onClose: back }, null) }, () => showTitle({ focus })),
+        trainerCardScreen(ui, input, { supporters: (back) => supportersScreen(ui, input, { play: (id) => void startRun(id), onClose: back }, null), privateAccount: (back) => openTrainerProfiles(ui, input, back) }, () => showTitle({ focus })),
       ranking: rankingEnabled ? (focus) => rankingScreen(ui, input, () => showTitle({ focus }), { difficulty: loadSave().difficulty, mode: runMode(loadSave().partner) }) : undefined,
       ideas: rankingEnabled ? (focus) => suggestionsScreen(ui, input, () => showTitle({ focus })) : undefined,
       supporters: (focus, open) => supportersScreen(ui, input, { play: (id) => void startRun(id), onClose: () => showTitle({ focus }) }, open),
@@ -4479,4 +4482,23 @@ if (import.meta.env.DEV) {
       }),
     },
   })
+}
+
+// The private account system uses the configured private Cloudflare relay.
+// Keep it separate from upstream's Clerk account and game UI.
+window.addEventListener('ps:save-written', () => {
+  const relay = coopUrl()
+  if (relay && trainerToken()) scheduleTrainerSave(relay)
+})
+if (trainerToken()) queueMicrotask(() => {
+  const relay = coopUrl()
+  if (relay) void syncTrainerSave(relay).catch((err) => console.warn('Trainer cloud sync unavailable', err))
+})
+
+// Production console commands remain behind server-side admin verification.
+// Live-room spawn and observatory controls are not enabled until the updated
+// upstream room protocol has been verified.
+if (!import.meta.env.DEV) {
+  const { spawn: _spawn, observe: _observe, ...verifiedCommands } = privateAdminConsole(coopUrl)
+  Object.assign(window, { ps: { ...verifiedCommands } })
 }
