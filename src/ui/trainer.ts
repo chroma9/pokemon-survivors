@@ -50,7 +50,7 @@ const titleLine = (cls: string) => {
     'span',
     { class: cls },
     tier && h('img', { src: supporterIcon(tier), alt: '' }),
-    tier && knownOg() && h('img', { class: 'og', src: ogIcon(), alt: t().supporters.og.badge }),
+    tier && !currentTrainer() && knownOg() && h('img', { class: 'og', src: ogIcon(), alt: t().supporters.og.badge }),
     h('span', {}, t().achievements.titles[save.title]),
   )
 }
