@@ -2423,7 +2423,7 @@ export const zh: Messages = {
   types: {
     normal: '一般', fire: '火', water: '水', grass: '草', electric: '電', poison: '毒',
     flying: '飛行', bug: '蟲', rock: '岩石', ground: '地面', ghost: '幽靈', fighting: '格鬥',
-    psychic: '超能力', ice: '冰', steel: '鋼', dark: '惡', fairy: '妖精', dragon: '龍',
+    psychic: '超能力', ice: '冰', steel: '鋼', dark: '惡', fairy: '妖精', dragon: '龍', shadow: '暗影',
   },
 
   missions: {
@@ -5235,6 +5235,11 @@ export const zh: Messages = {
     arceus: '神。屬性隨每個區域而改變。',
     darkrai: '惡夢。讓敵群沉睡，並在夢中傷害它們。',
     cresselia: '新月。會飛回的月刃與治癒的滿月。',
+    meowth: '敏捷又狡猾。聚寶功讓擊倒敵人也能賺取金幣。',
+    onix: '堅固的岩石巨蛇，可進化為大鋼蛇。',
+    spiritomb: '封印的靈魂，以暗影攻擊與強化作戰。',
+    palkia: '空間之主，以空間裂斬穿透敵群。',
+    shadowMewtwo: '暗影超夢，擁有強大暗影力量的隱藏傳說寶可夢。',
   },
 
   specials: {
