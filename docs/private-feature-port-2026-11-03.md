@@ -54,3 +54,16 @@
 - Private Trainer Account tokens must be integrated with the new co-op client and relay handshake before private sign-in can replace Clerk in our production flow.
 - Do not deploy until the Wrangler Durable Object binding and secrets are checked for the target environment.
 
+
+## Phase 1 follow-up checkpoint — UI, co-op and automated checks
+
+- Added a **Private Trainer Account** row in upstream's Trainer Card; native Clerk profile UI remains available.
+- Wired cloud-save event syncing and session resume from `src/main.ts`.
+- Exposed server-verified production admin console commands, excluding unported live-room spawn and observatory.
+- Adapted the private Trainer Account page to the new UI API. The old gift redemption and companion/shiny picker screens cannot be reused directly; their UI port is still pending. A read-only account gift count is available.
+- Extended shared room protocol, client, relay identity, and Arena queue to recognize private Trainer Account auth. Existing Clerk and guest protocols remain supported.
+- Updated co-op and Arena entry gates to accept an authenticated Trainer Account.
+- Added regression tests for private auth tokens and co-op client token selection.
+- Added `.github/workflows/private-port.yml` for branch-only unit tests, TypeScript and relay checks (no deploy step).
+
+**Validation:** Changes committed only to `Updated-11-3-2026`. Successful GitHub Actions checks have not yet been confirmed. End-to-end UI, co-op, token revocation, saved data, and relay deployment tests remain required.
