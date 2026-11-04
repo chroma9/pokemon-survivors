@@ -3,7 +3,7 @@ import { createRng } from '../engine/rng'
 import { ABILITIES, FAMILY_ABILITIES, type AbilityEffect } from '../data/abilities'
 import { EVOLUTIONS } from '../data/evolutions'
 import { PLAYABLE, PLAYABLE_IDS } from '../data/hatchlings'
-import { AWAKEN_AT, EVENT_LEGENDS, FESTIVAL_LEGENDS, LEGEND_IDS, LEGENDS, REGULAR_LEGENDS, type LegendDef } from '../data/legends'
+import { AWAKEN_AT, EVENT_LEGENDS, FESTIVAL_LEGENDS, LEGEND_IDS, PRIVATE_LEGENDS, LEGENDS, REGULAR_LEGENDS, type LegendDef } from '../data/legends'
 import { ENEMIES, type EnemyDef } from '../data/enemies'
 import { EVENTS, MYTHICALS, STAGES, TRIOS } from '../data/waves'
 import { DIFFICULTIES, DIFFICULTY_IDS } from './difficulty'
@@ -34,7 +34,7 @@ describe('legends data', () => {
   it('has the 23 regular ones, the event and the festival ones, out of the regular cast the Desafio do dia draws from', () => {
     const regular: readonly string[] = PLAYABLE_IDS
     expect(REGULAR_LEGENDS).toHaveLength(23)
-    expect(LEGEND_IDS).toEqual([...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS])
+    expect(LEGEND_IDS).toEqual([...REGULAR_LEGENDS, ...EVENT_LEGENDS, ...FESTIVAL_LEGENDS, ...PRIVATE_LEGENDS])
     for (const id of LEGEND_IDS) {
       expect(id in PLAYABLE).toBe(true)
       expect(regular.includes(id)).toBe(false)
@@ -43,7 +43,7 @@ describe('legends data', () => {
 
   it('open with their legendary move, from one list of moves to draft from and no evolved move', () => {
     const evolved = new Set<string>(EVOLUTIONS.map((e) => e.to))
-    for (const id of LEGEND_IDS) {
+    for (const id of LEGEND_IDS.filter((id) => !PRIVATE_LEGENDS.some((privateId) => privateId === id))) {
       const def: LegendDef = LEGENDS[id]
       const list = def.learnset[0]
       expect([id, list[0]]).toEqual([id, def.signature])
