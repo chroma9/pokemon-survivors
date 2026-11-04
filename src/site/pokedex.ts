@@ -13,7 +13,7 @@ import { NIGHT_BOSSES } from '../data/halloween'
 import { ENDLESS, REAPER } from '../game/endless'
 import { MEOWTH_DEX } from '../game/mapEventRules'
 import { SPECIAL_COMPANION_IDS, SPECIAL_COMPANIONS, type SpecialCompanionId } from '../data/companions'
-import { EVENT_LEGENDS, LEGEND_IDS, legendFestival, type LegendId } from '../data/legends'
+import { EVENT_LEGENDS, LEGEND_IDS, PRIVATE_LEGENDS, legendFestival, type LegendId } from '../data/legends'
 
 /**
  * The site's Pokédex model: every species the game uses, derived from
@@ -281,8 +281,9 @@ export const dexPages = (): readonly DexPage[] => {
     const stage = (e: DexEntry) => (e.source.kind === 'starter' ? e.source.stage : 0)
     return { kind: 'family', id, slug: slugOf(PLAYABLE[id].line[0].name), entries: own.sort((a, b) => stage(a) - stage(b) || a.dex - b.dex) }
   })
-  // A festival legend (Cresselia) is a surprise for now: its page comes with its festival's announcement.
-  const legends = LEGEND_IDS.filter((id) => !legendFestival(id)).map((id): DexPage => {
+  // Festival surprises and private-only playable forms do not get public legendary pages.
+  // Shadow Mewtwo shares dex 150 with regular Mewtwo; it is not a wild species.
+  const legends = LEGEND_IDS.filter((id) => !legendFestival(id) && !PRIVATE_LEGENDS.some((privateId) => privateId === id)).map((id): DexPage => {
     const entry = entries.find((e) => e.source.kind === 'wild' && e.source.id === id)
     if (!entry) throw new Error(`No Pokédex entry for legend ${id}`)
     return { kind: 'legend', id, slug: entry.slug, entries: [entry] }
