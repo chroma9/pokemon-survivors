@@ -2256,8 +2256,6 @@ export const zh: Messages = {
         crossing: '塔燒起來了！一層一層往上爬！',
         phases: ['Ho-Oh 飛上天空！閃避牠燃燒的軌跡與 Brave Bird。', 'Ho-Oh *浴火重生*了！屋頂邊緣燃起了火焰。'],
       },
-      palkia: "空間之主。以空間裂斬穿透敵群。",
-    shadowMewtwo: '暗影超夢。隱藏的傳說寶可夢，擅長多種屬性的強力攻擊。',
     dialga: {
         place: '槍之柱',
         epithet: '時間之主',
