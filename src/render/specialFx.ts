@@ -102,6 +102,7 @@ const GLYPHS: Record<FormSpecial, { rows: readonly string[]; turn?: boolean }> =
   dracoMeteor: { rows: ['...3...', '..3.3..', '..232..', '.12321.', '.23432.', '1234321', '1234321', '.12321.', '..111..'] },
   diamondStorm: { rows: ['..1111..', '.122341.', '12223431', '12222341', '11222221', '.112221.', '..1111..'] },
   blizzard: { rows: ['12341', '12341', '.234.', '.234.', '.23..', '..3..', '..3..'] },
+  darkNova: { rows: ['...11111...', '..1222221..', '.123333321.', '12334443321', '12334443321', '12334443321', '.123333321.', '..1222221..', '...11111...'] },
   astralBarrage: { rows: ['..1111..', '.122221.', '12233221', '12334321', '12334321', '12233221', '.122221.', '..1111..'] },
   auraSphere: { rows: ['..2222..', '.233332.', '23344332', '23444432', '23444432', '23344332', '.233332.', '..2222..'] },
   attackOrder: { rows: ['1........', '11.......', '122233334', '11.......', '1........'], turn: true },
@@ -361,6 +362,16 @@ const flareOf = (a: Attack) => (a.type === 'dragon' ? FLARES.dragon : FLARES.fir
 export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
   const r = Math.round(radius(a))
   switch (a.visual) {
+    case 'darkNovaField': {
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
+      ctx.save()
+      ctx.globalAlpha = fade * 0.38
+      blitEllipse(ctx, r, Math.max(2, Math.round(r * 0.5)), '#26143d', a.x, a.y)
+      ctx.globalAlpha = fade * 0.52
+      blitEllipse(ctx, Math.round(r * 0.78), Math.max(2, Math.round(r * 0.39)), '#08040e', a.x, a.y)
+      ctx.restore()
+      return
+    }
     case 'fireTrail': {
       ctx.globalAlpha = Math.min(1, (a.ttl - a.age) / 0.4)
       blitEllipse(ctx, r, Math.max(1, Math.round(r * 0.5)), flareOf(a).scorch, a.x, a.y + 2)
@@ -395,6 +406,72 @@ export const drawSpecialGround = (ctx: Ctx, a: Attack) => {
 export const drawSpecialAttack = (ctx: Ctx, a: Attack, t: number) => {
   const r = radius(a)
   switch (a.visual) {
+    case 'darkNovaOrb': {
+      const n = Math.max(8, Math.round(r))
+      const cx = Math.round(a.x), cy = Math.round(a.y)
+      const tick = Math.floor(t * 9 + a.id * 0.37)
+      const visible = tick % 5 < 3
+      // The center of every ellipse stays on the sphere. Its inclination
+      // jumps between poses instead of spinning like a permanent Saturn ring.
+      const angle = tick * 2.399963 + a.id * 0.21
+      const major = n * 1.24
+      const minor = n * 0.57
+      const orbit = (theta: number): [number, number] => {
+        const x = Math.cos(theta) * major
+        const y = Math.sin(theta) * minor
+        return [cx + x * Math.cos(angle) - y * Math.sin(angle),
+          cy + x * Math.sin(angle) + y * Math.cos(angle)]
+      }
+      const arc = (start: number, end: number, color: string, width: number, alpha: number) => {
+        ctx.beginPath()
+        for (let i = 0; i <= 36; i++) {
+          const [x, y] = orbit(start + (end - start) * i / 36)
+          if (i === 0) ctx.moveTo(Math.round(x), Math.round(y))
+          else ctx.lineTo(Math.round(x), Math.round(y))
+        }
+        ctx.strokeStyle = color
+        ctx.lineWidth = width
+        ctx.globalAlpha = alpha
+        ctx.stroke()
+      }
+      ctx.save()
+      ctx.lineCap = 'round'
+      // The far half is behind the opaque black sun.
+      if (visible) arc(Math.PI, TAU, '#a83c88', Math.max(2, n * 0.085), 0.48)
+      blitEllipse(ctx, n, n, '#33134e', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.94), Math.round(n * 0.94), '#6d2c9a', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.82), Math.round(n * 0.82), '#321047', cx, cy)
+      blitEllipse(ctx, Math.round(n * 0.68), Math.round(n * 0.68), '#10071c', cx, cy)
+      if (visible) {
+        arc(0, Math.PI, '#b63178', Math.max(3, n * 0.11), 0.95)
+        arc(0.12, Math.PI - 0.12, '#ff9edb', Math.max(1, n * 0.045), 1)
+      }
+      ctx.restore()
+      return
+    }
+    case 'darkNovaBurst': {
+      const n = Math.round(r)
+      ctx.globalAlpha = Math.max(0, 1 - a.age / a.ttl)
+      blitEllipse(ctx, n, Math.round(n * 0.68), '#5a2682', a.x, a.y)
+      pixelRing(ctx, a.x, a.y, n, 3, '#d29aff')
+      ctx.globalAlpha = 1
+      return
+    }
+    case 'darkNovaField': {
+      // Dark Void-like wisps rising from the pool; no bright overhead halo.
+      const fade = Math.max(0, Math.min(1, a.age / 0.3, (a.ttl - a.age) / 0.8))
+      ctx.save()
+      for (let i = 0; i < 22; i++) {
+        const phase = (t * (0.45 + (i % 4) * 0.09) + i * 0.137 + a.id * 0.071) % 1
+        const angle = i * 2.39996 + a.id * 0.31
+        const d = r * (0.15 + (i % 7) * 0.11)
+        ctx.globalAlpha = fade * (1 - phase) * (i % 3 === 0 ? 0.65 : 0.42)
+        ctx.fillStyle = i % 3 === 0 ? '#5838a0' : i % 3 === 1 ? '#3a2468' : '#1c1030'
+        ctx.fillRect(Math.round(a.x + Math.cos(angle) * d), Math.round(a.y + Math.sin(angle) * d * 0.5 - phase * (12 + i % 9)), i % 4 === 0 ? 4 : 2, i % 4 === 0 ? 3 : 2)
+      }
+      ctx.restore()
+      return
+    }
     case 'fireTrail': {
       const left = a.ttl - a.age
       if (left < 0.3 && Math.floor(left * 30) % 2 === 0) return
