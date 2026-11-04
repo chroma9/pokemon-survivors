@@ -9,6 +9,7 @@ import { EDGE_HEADER, edgeOf } from './telemetry'
 export { Matchmaker } from './matchmakerObject'
 export { ShardObject } from './shardObject'
 export { Vault } from './vault'
+export { TrainerAccounts } from './trainerAccounts'
 
 /**
  * The relay's Worker: creates rooms in shards (`shards.ts`: many rooms per
@@ -54,7 +55,7 @@ const json = (body: unknown, status = 200, headers: HeadersInit = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } })
 
 const cors = (origin: string | null): Record<string, string> =>
-  origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' } : {}
+  origin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', Vary: 'Origin' } : {}
 
 const ipOf = (request: Request) => request.headers.get('CF-Connecting-IP') ?? 'unknown'
 
@@ -78,6 +79,16 @@ const createRoom = async (request: Request<unknown, IncomingRequestCfProperties>
     if (made) return reply({ code: made.code, region, claim: made.claim })
   }
   return reply({ error: 'busy' }, 503)
+}
+
+/** Compare fixed-length SHA-256 digests without early-exit byte comparisons. */
+const equalDigest = (left: ArrayBuffer, right: ArrayBuffer): boolean => {
+  const a = new Uint8Array(left)
+  const b = new Uint8Array(right)
+  if (a.length !== 32 || b.length !== 32) return false
+  let mismatch = 0
+  for (let i = 0; i < 32; i++) mismatch |= a[i]! ^ b[i]!
+  return mismatch === 0
 }
 
 /** Constant-time check of the admin bearer token. */
@@ -117,6 +128,184 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
     // The Worker answering is the check: no Durable Object is touched, so a flood of these costs nothing past the edge.
     if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
+    if (path === '/candy-goal' && request.method === 'GET') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'candy-goal:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const total = await env.TRAINER_ACCOUNTS.getByName('global').communityCandyGoal()
+      return json(total, 200, { ...headers, 'Cache-Control': 'public, max-age=60' })
+    }
+    if (path === '/health' && request.method === 'GET') return json({ ok: true, protocol: PROTOCOL }, 200, headers)
+    if (path === '/announcement' && request.method === 'GET') {
+      const announcement = await env.TRAINER_ACCOUNTS.getByName('global').announcement()
+      return json({ announcement }, 200, { ...headers, 'Cache-Control': 'no-store' })
+    }
+    if (path === '/admin/announcement' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-announcement:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const body = await request.json().catch(() => null) as { message?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').publishAnnouncement(body?.message)
+      return json(result, 'error' in result ? 400 : 200, headers)
+    }
+    // Held festival donations require the same signed admin token as other
+    // private moderation endpoints. No admin credentials enter the client.
+    if ((path === '/admin/festival' && request.method === 'GET') ||
+        (/^\/admin\/festival\/[0-9a-f-]{36}\/(approve|void)$/.test(path) && request.method === 'POST')) {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-festival:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const store = env.TRAINER_ACCOUNTS.getByName('global')
+      if (path === '/admin/festival') return json({ donations: await store.festivalHeld() }, 200, headers)
+      const [, , , id, action] = path.split('/')
+      const result = await store.reviewFestivalDonation(id!, action === 'approve')
+      return json(result, 'error' in result ? 404 : 200, headers)
+    }
+    // Verify an admin browser session without exposing the secret to the frontend bundle.
+    if (path === '/admin/verify' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-verify:' + ipOf(request) })).success) return json({ admin: false }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      const authorized = Boolean(secret && supplied) && equalDigest(await hash(secret), await hash(supplied))
+      return json({ admin: authorized }, authorized ? 200 : 401, headers)
+    }
+    if (path === '/admin/reset-password' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-password-reset:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: unknown; password?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').resetPassword(data?.handle, data?.password)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
+    if (path === '/admin/give-pokemon' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-give-pokemon:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: unknown; family?: unknown; shiny?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantPokemon(data?.handle, data?.family, data?.shiny)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
+    if (path === '/admin/grant-title' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-grant-title:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: unknown; title?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantTitle(data?.handle, data?.title)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
+    if (path === '/admin/shiny-tickets' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-shiny-ticket:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: unknown; count?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantShinyTickets(data?.handle, data?.count)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
+    if (path === '/admin/supporter' && request.method === 'POST') {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'admin-supporter:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const supplied = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      const secret = env.GAME_ADMIN_TOKEN ?? ''
+      const hash = async (v: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+      if (!secret || !supplied || !equalDigest(await hash(secret), await hash(supplied))) return json({ error: 'unauthorized' }, 401, headers)
+      const data = await request.json().catch(() => null) as { handle?: string; tier?: unknown } | null
+      const result = await env.TRAINER_ACCOUNTS.getByName('global').grantSupporter(data?.handle, data?.tier)
+      return json(result, 'error' in result ? (result.error === 'not_found' ? 404 : 400) : 200, headers)
+    }
+    if (path.startsWith('/trainers/') ) {
+      try {
+      if (!(await env.CONNECT_LIMIT.limit({ key: 'trainer:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      if ((path === '/trainers/login' || path === '/trainers/register') && !(await env.TRAINER_AUTH_LIMIT.limit({ key: 'trainer-login:' + ipOf(request) })).success) return json({ error: 'rate' }, 429, headers)
+      const store = env.TRAINER_ACCOUNTS.getByName('global')
+      const token = request.headers.get('Authorization')?.replace(/^Bearer /, '') ?? ''
+      if (path === '/trainers/register' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { handle?: string; password?: string; name?: string; referrer?: string } | null
+        const result = await store.register(data?.handle, data?.password, data?.name, data?.referrer)
+        return json(result, 'error' in result ? 400 : 200, headers)
+      }
+      if (path === '/trainers/login' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { handle?: string; password?: string } | null
+        const result = await store.login(data?.handle, data?.password)
+        return json(result, 'error' in result ? 401 : 200, headers)
+      }
+      if (path === '/trainers/me' && request.method === 'GET') {
+        const user = await store.identify(token)
+        return json(user ? { profile: { id: user.id, handle: user.handle, name: user.name, created: user.created, supporterTier: user.supporterTier ?? null, mustChangePassword: user.mustChangePassword === true } } : { error: 'unauthorized' }, user ? 200 : 401, headers)
+      }
+      if (path === '/trainers/password' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { current?: unknown; next?: unknown } | null
+        const result = await store.changePassword(token, data?.current, data?.next)
+        return json(result, 'error' in result ? (result.error === 'unauthorized' ? 401 : 400) : 200, headers)
+      }
+      if (path === '/trainers/name' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { name?: string } | null
+        const profile = await store.update(token, data?.name)
+        return json(profile ? { profile } : { error: 'unauthorized' }, profile ? 200 : 401, headers)
+      }
+      if (path === '/trainers/save' && request.method === 'GET') {
+        const result = await store.readSave(token)
+        return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/save' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { revision?: number; data?: unknown } | null
+        const result = await store.putSave(token, data?.revision, data?.data)
+        return json(result, 'error' in result ? (result.error === 'conflict' ? 409 : result.error === 'unauthorized' ? 401 : 400) : 200, headers)
+      }
+      // The private Festival da Praça runs on Trainer Accounts, not Clerk.
+      if (path === '/trainers/festival' && request.method === 'GET') {
+        return json(await store.festivalStatus(token), 200, headers)
+      }
+      if (path === '/trainers/festival/donate' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { amount?: unknown; revision?: unknown } | null
+        const result = await store.donateFestival(token, data?.amount, data?.revision)
+        const code = 'error' in result
+          ? result.error === 'unauthorized' ? 401 : result.error === 'invalid' ? 400 : result.error === 'stale' ? 409 : 403
+          : 200
+        return json(result, code, headers)
+      }
+      if (path === '/trainers/festival/public' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { public?: unknown } | null
+        const result = await store.setFestivalPublic(token, data?.public)
+        return json(result, 'error' in result ? 400 : 200, headers)
+      }
+      if (path === '/trainers/referrals' && request.method === 'GET') {
+        const result = await store.referrals(token)
+        return json(result ?? { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/gifts' && request.method === 'GET') {
+        const result = await store.gifts(token)
+        return json(result ? { gifts: result } : { error: 'unauthorized' }, result ? 200 : 401, headers)
+      }
+      if (path === '/trainers/run' && request.method === 'POST') {
+        const data = await request.json().catch(() => null) as { runId?: string } | null
+        const result = await store.referralRun(token, data?.runId)
+        return json(result, 'error' in result ? 400 : 200, headers)
+      }
+      if (path === '/trainers/logout' && request.method === 'POST') {
+        await store.logout(token)
+        return json({ ok: true }, 200, headers)
+      }
+      const found = /^\/trainers\/profile\/([a-z0-9_]{3,20})$/.exec(path)
+      if (found && request.method === 'GET') {
+        const profile = await store.profile(found[1])
+        return json(profile ? { profile } : { error: 'missing' }, profile ? 200 : 404, headers)
+      }
+      return new Response('Not found', { status: 404, headers })
+      } catch (error) {
+        console.error('trainer endpoint failed', { path, message: error instanceof Error ? error.message : String(error) })
+        return json({ error: 'server' }, 500, headers)
+      }
+    }
     if (path === '/rooms' && request.method === 'POST') return createRoom(request, env, headers)
     const ws = path.match(/^\/rooms\/([^/]+)\/ws$/)
     if (ws && request.method === 'GET') {
