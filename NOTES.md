@@ -70,3 +70,9 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - **Integration validation pending:** GitHub Actions private-port workflow is failing at the reviewed head `0f35e7207`; CI was in progress for that head at time of review. Earlier head `e7a1f4210` showed failures in both CI and private-port workflows. Causes have not been diagnosed, consistent with owner's migrate-first instruction.
 - Do not confuse **migration completeness** with **release readiness**: no production deployment, no confirmed successful full build or end-to-end multiplayer/cloud-save test yet.
 - **Next step:** complete feature parity review and missing port work on `Updated-11-3-2026`; then begin joint debugging, automated checks, smoke testing and Cloudflare deployment review before requesting owner approval.
+
+### Feature-parity fix — custom playable lobby sprite forms (2026-11-04)
+
+- **Ported in source, not yet runtime-verified.** In `src/ui/title.ts`, the updated lobby's partner stage loaded and displayed only the base dex sprite, ignoring `playableForm(save.partner)`. This could show regular Mewtwo in the lobby for the custom Shadow Mewtwo playable identity.
+- Commit `cf7bd20ad7e489e59e170a4d541a3451be3b2b41` restores `playableForm` and `playableShiny` selection, loads the correct form sheet, and uses the current upstream form-aware `sprites()` render lookup only when a custom form exists; ordinary Pokémon keep the original loaded sprite path.
+- Next verification after the full port: Shadow Mewtwo appears in custom form on the lobby stage, ordinary partners/shinies remain unchanged, and both form preloading and rendering work after reload.
