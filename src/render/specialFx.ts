@@ -79,6 +79,7 @@ const PALETTES: Record<PokeType, readonly [string, string, string, string]> = {
   ice: ['#3878a8', TYPE_COLORS.ice, '#d0f0f0', '#ffffff'],
   steel: ['#585870', TYPE_COLORS.steel, '#e0e0f0', '#ffffff'],
   dark: ['#281c20', TYPE_COLORS.dark, '#b098a0', '#e8d8e0'],
+  shadow: ['#24142c', TYPE_COLORS.shadow, '#b898e0', '#f0d8ff'],
   fairy: ['#a84868', TYPE_COLORS.fairy, '#f8d0e0', '#ffffff'],
   dragon: ['#301888', TYPE_COLORS.dragon, '#b090f8', '#f0e8ff'],
 }
