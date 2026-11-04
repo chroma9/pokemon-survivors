@@ -35,6 +35,13 @@ const account = save({
 })
 
 describe('mergeSaves', () => {
+  it('keeps an explicit No companion choice during private cloud-save merge', () => {
+    const equipped = save({ companion: { id: 'charmander', shiny: false } })
+    const unequipped = save({ companion: null })
+    expect(mergeSaves(equipped, unequipped).companion).toBeNull()
+    expect(mergeSaves(unequipped, equipped).companion).toEqual(equipped.companion)
+  })
+
   it("never pays back what one side spent on the Vitrine or on styles", () => {
     const before = save({ wallet: 20_000 })
     const v = vitrineOf('2026-10-21')
