@@ -82,7 +82,9 @@ const EGG_SIGNATURES: readonly MoveId[] = [
 export const neverEvolves = (id: MoveId) => {
   const def: MoveDef = MOVES[id]
   const eggs: readonly MoveId[] = [...EGG_SIGNATURES, ...EGG_MOVE_2_IDS, ...EGG_MOVE_3_IDS, ...SKETCH_MOVE_IDS]
-  const signature = id in SIGNATURE_MOVES || eggs.includes(id)
+  // The custom Spiritomb/Shadow Mewtwo attacks are complete level-8 moves
+  // with bespoke upgrades, not base moves with an item evolution.
+  const signature = id in SIGNATURE_MOVES || eggs.includes(id) || id === 'shadowBall' || id === 'darkPulse'
   return signature || isTmMove(id) || isShopTmMove(id) || isLegendary(id) || def.duo === true
 }
 
