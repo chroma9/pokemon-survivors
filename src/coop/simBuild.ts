@@ -1,3 +1,5 @@
+import * as ts from 'typescript'
+
 /**
  * The co-op build id: a hash of the simulation's source, so the relay pins a
  * room to the simulation it runs and not to the whole app. Pedro deploys many
@@ -15,17 +17,30 @@
 /** Where the co-op simulation starts: the lockstep step, the snapshots, and what the netcode feeds them. */
 export const SIM_ROOTS = ['src/game/lockstep.ts', 'src/game/snapshot.ts', 'src/game/coop.ts', 'src/coop/entries.ts', 'src/coop/start.ts', 'src/net/protocol.ts'] as const
 
-/** Import specifiers in a module's text: static imports and re-exports, side-effect imports and dynamic `import()`. */
+/** Actual runtime imports, not strings in comments or erased TypeScript type imports. */
 export const importsOf = (text: string): string[] => {
-  // Type-only edges vanish from the emitted JavaScript. Including them makes
-  // a visual/UI type import part of the simulation hash (and falsely subjects
-  // unrelated renderer code to deterministic-simulation rules).
-  const runtimeText = text
-    .replace(/\bimport\s+type\b[\s\S]*?\bfrom\s*['"][^'"]+['"]\s*;?/g, '')
-    .replace(/\bexport\s+type\s*\{[\s\S]*?\}\s*from\s*['"][^'"]+['"]\s*;?/g, '')
+  // The regex scanner used to recognize `from '../trainerAccounts'` in
+  // comments as a real import. That dragged UI, audio and input into the
+  // deterministic simulation hash even though the game never executes them.
+  const source = ts.createSourceFile('sim.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
   const out: string[] = []
-  const re = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]/g
-  for (let m = re.exec(runtimeText); m; m = re.exec(runtimeText)) out.push(m[1]!)
+  const visit = (node: ts.Node) => {
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+      const clause = node.importClause
+      const named = clause?.namedBindings
+      const allTypes = clause?.isTypeOnly || (clause && !clause.name && named && ts.isNamedImports(named) && named.elements.every((e) => e.isTypeOnly))
+      if (!allTypes) out.push(node.moduleSpecifier.text)
+    } else if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      const named = node.exportClause
+      const allTypes = node.isTypeOnly || (named && ts.isNamedExports(named) && named.elements.every((e) => e.isTypeOnly))
+      if (!allTypes) out.push(node.moduleSpecifier.text)
+    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      const arg = node.arguments[0]
+      if (arg && ts.isStringLiteral(arg)) out.push(arg.text)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
   return out
 }
 
