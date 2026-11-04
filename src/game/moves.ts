@@ -1436,6 +1436,64 @@ export const MOVES = {
     fire: (g, s) => chain(g, s, { move: 'shockWave', type: 'electric', visual: 'shock' }),
   },
 
+  /** Playable adaptation of Spiritomb's graveyard Shadow Ball barrage. */
+  shadowBall: {
+    name: 'Shadow Ball',
+    type: 'ghost',
+    base: stats({ damage: 17, cooldown: 1.7, amount: 1, speed: 165, pierce: 1, knockback: 25 }),
+    upgrades: [
+      { damage: 5 },
+      { amount: 1 },
+      { speed: 20 },
+      { damage: 6 },
+      { pierce: 1 },
+      { cooldown: -0.2 },
+      { amount: 2, area: 0.2 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      for (const angle of fan(aimAngle(g, 290), s.amount, 0.22)) {
+        const v = fromAngle(angle, s.speed)
+        spawnAttack(g, {
+          move: 'shadowBall', type: 'ghost', visual: 'shadowBall', x: p.x, y: p.y - 8,
+          shape: { kind: 'circle', r: 12 * s.area },
+          motion: { kind: 'linear', vx: v.x, vy: v.y },
+          damage: s.damage, knockback: s.knockback, pierce: s.pierce, ttl: 2,
+        })
+      }
+    },
+  },
+
+  /** Playable adaptation of Spiritomb's close-range Dark Pulse. */
+  darkPulse: {
+    name: 'Dark Pulse',
+    type: 'dark',
+    base: stats({ damage: 19, cooldown: 3.2, amount: 1, area: 1, knockback: 65 }),
+    upgrades: [
+      { damage: 5 },
+      { area: 0.15 },
+      { cooldown: -0.25 },
+      { damage: 6 },
+      { area: 0.2 },
+      { cooldown: -0.3 },
+      { damage: 8, area: 0.2 },
+    ],
+    fire: (g, s) => {
+      const p = g.player
+      // One circular wave, attached to Spiritomb as it expands.
+      // Amount bonuses extend the pulse's reach rather than creating puddles.
+      const reach = (50 + Math.max(0, s.amount - 1) * 6) * s.area
+      spawnAttack(g, {
+        move: 'darkPulse', type: 'dark', visual: 'darkPulse',
+        x: p.x, y: p.y - 7,
+        shape: { kind: 'circle', r: 6 },
+        motion: { kind: 'follow', ox: 0, oy: -7 },
+        damage: s.damage, knockback: s.knockback, pierce: Infinity,
+        ttl: 0.5, grow: (reach - 6) / 0.5,
+      })
+    },
+  },
+
   hex: {
     name: 'Hex',
     type: 'ghost',
