@@ -2258,13 +2258,22 @@ export const en: Messages = {
         crossing: 'The tower is on fire! Climb it floor by floor!',
         phases: ['Ho-Oh takes to the air! Dodge its burning trails and Brave Bird.', 'Ho-Oh *rises from its ashes*! The edge of the roof is ablaze.'],
       },
-      dialga: {
+      palkia: "Lord of space. Its dimensional cuts slice through hordes.",
+    shadowMewtwo: 'Shadow Mewtwo. A hidden legendary with devastating attacks of many types.',
+    dialga: {
         place: 'Spear Pillar',
         epithet: 'Lord of Time',
         omen: 'Time begins to stumble…',
         crossing: 'Time is coming apart! Push on through Spear Pillar!',
         phases: ['Time warps! During Roar of Time your attacks freeze in mid-air.', 'Time speeds up! Dialga keeps getting faster.'],
         cues: { stop: 'Time stopped!', forward: 'Time skipped ahead!', rewind: 'Time rewound!' },
+      },
+      palkia: {
+        place: 'Spear Pillar',
+        epithet: 'Lord of Space',
+        omen: 'The air ripples with a strange pink shimmer…',
+        crossing: 'Space is bending! Cross Spear Pillar before the void catches you!',
+        phases: ['Space twists around Palkia! Watch for converging attacks.', 'Palkia tears across the arena! Avoid the crossing Spacial Rend strikes.'],
       },
       latias: {
         place: 'Southern Island',
@@ -3421,6 +3430,14 @@ export const en: Messages = {
         { fork: [{ name: 'Static Field', desc: 'Each jump leaves sparks; +10% paralysis' }, { name: 'Branching', desc: 'Each jump forks to 2 more foes; -2 damage' }] },
         '+2 jumps',
       ],
+    },
+    shadowBall: {
+      description: "Launches shadowy projectiles through enemies ahead.",
+      upgrades: ["+5 damage", "+1 projectile", "+20 projectile speed", "+6 damage", "+1 pierce", "-0.2s cooldown", "+2 projectiles, +20% area"],
+    },
+    darkPulse: {
+      description: "A radial burst of dark energy hits nearby enemies.",
+      upgrades: ["+5 damage", "+15% area", "-0.25s cooldown", "+6 damage", "+20% area", "-0.3s cooldown", "+8 damage, +20% area"],
     },
     hex: {
       description: 'A curse jumps from foe to foe. Deals ×1.7 damage to foes with a status condition.',
@@ -4857,6 +4874,15 @@ export const en: Messages = {
         '0.6s faster cooldown and +25 damage',
       ],
     },
+    spacialRend: {
+      description: "Palkia tears a sharp dimensional slash through space, damaging enemies along its path.",
+      upgrades: [
+        "+18 damage",
+        "+20% area",
+        { fork: [{ name: "Parallel Rends", desc: "+1 slash per cast" }, { name: "Deep Fracture", desc: "+25 damage and cooldown 0.4s faster" }] },
+        "Cooldown 0.5s faster and +18 damage",
+      ],
+    },
     mistBall: {
       description: 'Latias\'s mist orbs drift to different foes and burst into a mist that lingers, hurting and weakening whoever is inside (they deal less contact damage).',
       upgrades: [
@@ -5230,6 +5256,7 @@ export const en: Messages = {
     dracoMeteor: 'A meteor shower around you that may burn.',
     diamondStorm: 'A rockfall around you that hits hard and pushes back.',
     blizzard: 'Icicles rain down around you and slow foes.',
+    darkNova: 'A colossal dark sphere explodes and leaves a vast damaging Shadow field.',
     astralBarrage: 'A ring of shadow balls fired every way that may paralyze.',
     auraSphere: 'A ring of energy spheres fired every way.',
     attackOrder: 'A ring of stingers fired every way that may poison.',
