@@ -133,3 +133,17 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - This restores the private cloud-sync UI refresh pathway without changing Clerk/upstream account listeners. Verify with two devices, a newly unlocked Pokémon and a save that changes companion/egg counts.
 - Together with `4968010`, local gameplay save changes now schedule private cloud sync, and a completed sync refreshes the lobby.
 - **Still not tested at runtime:** the changes are source-level only; integrated build and account/gameplay tests remain release gates.
+
+### Private co-op Legendary roster restored through the loadout pipeline — 2026-11-04
+
+**Material missing feature found:** The upstream co-op selector hid the Legendary tab, the co-op partner helper replaced legends with a regular starter, the wire parser rejected legends, and the co-op game loadout type excluded them. This silently lost a key private-fork feature.
+
+**Ported in source (not yet runtime-tested):**
+- `0f880987cbc3e0369b21e7fa8203f03c11745461` — allows Legendary tab and roster in the partner selector when the private co-op option is explicitly enabled; normal upstream co-op remains restricted by default.
+- `18429b26437c92cf09a3ff2a569d8996520edf14` — `coopStarter(partner, true)` preserves legendary picks for private co-op.
+- `928679ca421b4fa3e8ebc4dadad0fc210fa1e3ef` — co-op wire/loadout parser recognizes known `LEGEND_IDS` and widens `CoopPick` to `PlayableId`.
+- `0a8e4291e6768d71130c05e22c8d0c70dce574ca`, `af2a018e6eeaa5f13d523e6e67b0c635fa98b41d` — the co-op game loadout accepts playable legends and removes its obsolete roster type import.
+- `a0d9a58a54355b5c91cb435b4b6822994cbbd224` — private room loadout creation and partner selection preserve legends; Arena still uses its dedicated character roster.
+- `d7d9c52315c2d135c324c2318559e60da89e3f27`, `65911e80a9b0199e84650c3aa91eafb8cca83b52` — added regression assertions for private co-op Legendary selection and decoding.
+
+**Important test gate:** confirm host/guest clients accept captured legends, deterministic co-op simulation stays synchronized, co-op challenge and Arena remain correct, and Shadow Mewtwo/other private forms retain intended access rules. A malicious wire loadout can request a private legend because the relay treats this field as opaque; this is **not server-side authorization**. Do not claim that the custom Shadow Mewtwo identity is secure without additional relay-side checks. No deployment or production write.
