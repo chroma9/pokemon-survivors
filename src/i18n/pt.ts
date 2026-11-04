@@ -2755,7 +2755,7 @@ export const pt = {
   types: {
     normal: 'Normal', fire: 'Fogo', water: 'Água', grass: 'Planta', electric: 'Elétrico', poison: 'Veneno',
     flying: 'Voador', bug: 'Inseto', rock: 'Pedra', ground: 'Terra', ghost: 'Fantasma', fighting: 'Lutador',
-    psychic: 'Psíquico', ice: 'Gelo', steel: 'Aço', dark: 'Sombrio', fairy: 'Fada', dragon: 'Dragão',
+    psychic: 'Psíquico', ice: 'Gelo', steel: 'Aço', dark: 'Sombrio', fairy: 'Fada', dragon: 'Dragão', shadow: 'Sombra',
   } satisfies Record<PokeType, string>,
 
   /** Daily and weekly missions: the screen, the results section and the goal lines. `n` comes formatted. */
@@ -5572,6 +5572,11 @@ export const pt = {
     arceus: 'O deus. Seu tipo muda com cada bioma.',
     darkrai: 'Pesadelo. Adormece multidões e as fere em sonho.',
     cresselia: 'Lua crescente. Lâminas que voltam e uma lua cheia que cura.',
+    meowth: 'Ágil e oportunista. Seus ataques podem render moedas.',
+    onix: 'Serpente de pedra resistente. Evolui para Steelix.',
+    spiritomb: 'Espíritos selados. Ataques sombrios e fortalecimento.',
+    palkia: 'Senhor do espaço. Seus cortes dimensionais atravessam hordas.',
+    shadowMewtwo: 'Mewtwo Sombrio. Uma força lendária oculta com ataques devastadores.',
   },
 
   specials: {
