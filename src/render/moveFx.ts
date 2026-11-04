@@ -121,6 +121,38 @@ export const drawMoveFxAttack = (ctx: Ctx, a: Attack, t: number) => {
       ctx.globalAlpha = 1
       return
     }
+    case 'shadowBall': {
+      if (a.shape.kind !== 'circle') return
+      // Compact void projectile: its gameplay radius is unchanged, but its
+      // visible core is smaller, with a restrained translucent violet aura.
+      const r = Math.max(3, Math.round(a.shape.r * 0.68))
+      const fade = Math.max(0, Math.min(1, (a.ttl - a.age) / 0.18))
+      const cx = Math.round(a.x), cy = Math.round(a.y)
+      const pulse = 0.94 + 0.06 * Math.sin(t * 8 + a.id)
+      ctx.save()
+      ctx.globalAlpha = fade * 0.12
+      blitEllipse(ctx, Math.round((r + 7) * pulse), Math.round((r + 7) * pulse), '#a16bdd', cx, cy)
+      ctx.globalAlpha = fade * 0.24
+      blitEllipse(ctx, Math.round((r + 4) * pulse), Math.round((r + 4) * pulse), '#7143b2', cx, cy)
+      ctx.globalAlpha = fade * 0.56
+      blitEllipse(ctx, r + 2, r + 2, '#45236c', cx, cy)
+      ctx.globalAlpha = fade
+      blitEllipse(ctx, r, r, '#050309', cx, cy)
+      ctx.restore()
+      return
+    }
+    case 'darkPulse': {
+      if (a.shape.kind !== 'circle') return
+      const progress = Math.min(1, Math.max(0, a.age / a.ttl))
+      const r = Math.max(1, a.shape.r)
+      ctx.globalAlpha = Math.max(0, (1 - progress) * 0.65)
+      blitEllipse(ctx, r, r, '#381a58', a.x, a.y)
+      ctx.globalAlpha = Math.max(0, (1 - progress) * 0.95)
+      blitRing(ctx, Math.round(r), 3, '#b078e0', a.x, a.y)
+      blitRing(ctx, Math.max(1, Math.round(r - 4)), 1, '#e0b8ff', a.x, a.y)
+      ctx.globalAlpha = 1
+      return
+    }
     case 'shock':
     case 'thunderbolt':
     case 'hex': {
