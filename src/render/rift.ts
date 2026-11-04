@@ -57,7 +57,10 @@ const slabs: Pattern = (x, y, t) => {
   const S = 22
   const tx = Math.floor((x + 400) / S)
   const ty = Math.floor((y + 400) / S)
-  if ((x + 400) % S < 1 || (y + 400) % S < 1) return grout
+  // Use positive tile-local offsets: JS remainder is negative at Spear Pillar's northern coordinates.
+  const ox = x + 400 - tx * S
+  const oy = y + 400 - ty * S
+  if (ox < 1 || oy < 1) return grout
   const tone = (tx + ty) % 2 === 0 ? base : alt
   const vein = Math.abs(((x + y * 0.6 + hash2(tx, ty, 2) * 40 + 400) % 29) - 14) < 0.5 && hash2(tx, ty, 5) < 0.3 && hash2(Math.floor(x / 4), Math.floor(y / 4), 6) < 0.7
   return vein ? mix(tone, '#ffffff', 0.35) : tone
