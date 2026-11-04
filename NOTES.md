@@ -156,3 +156,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - `d54542c` adds the missing `pokemonGift` fixture entry to the development Mystery Gift helper.
 - **Not yet verified passing.** GitHub Actions for commit `d54542c` were pending/in progress at the time of this note. Inspect the latest failed run's actual errors before more fixes; do not assume the earlier log's list remains current. The accessible container cannot clone GitHub directly due to unavailable DNS, so use connected GitHub Actions logs/annotations or a user-provided updated log for the next TypeScript diagnostic.
 - This is an integration debugging milestone prompted by the owner's real build log, superseding the earlier instruction to defer debugging until transfer: concrete live evidence now exists. Continue fixing on the migration branch only. Do not deploy or modify production main.
+
+### Cloudflare Pages second TypeScript log — 2026-11-04
+
+- Owner supplied another build log at **commit `20d8207a8bccdf90e25e6b90c52c6ce9d3d2e922`**, timestamp `2026-11-04T08:28Z`. The errors are narrowed to missing Shadow type translations in game/site language tables, and missing custom Pokémon blurbs in English, Spanish, French, and Traditional Chinese. No additional TypeScript errors were shown before those stopped the build.
+- Fixed all eight affected files on `Updated-11-3-2026`: `src/i18n/{en,es,fr,zh}.ts` and `src/i18n/site/{en,es,fr,zh}.ts`. Each now has a Shadow type label, and the game dictionaries describe Meowth, Onix, Spiritomb, Palkia, and Shadow Mewtwo. Portuguese translations were already corrected in `51a7727` / `bc75315`.
+- Commits: `e9c13ad`, `d778034`, `ec34a9a`, `b7ce621`, `420440a`, `35eb5d5`, `74a216f`, `a425a30`.
+- **Still requires verification:** a fresh Cloudflare Pages or GitHub Actions build for at least `a425a30` should pass game TypeScript, then Vite and relay tests must pass. This note records source fixes, not a successful deployment.
