@@ -2315,6 +2315,13 @@ const endCoopRun = (r: Run, c: CoopRun) => {
   // An Arena match reports its own end (`versus_end`, `reportVersus`).
   if (!g.versus) track('coop', { step: 'end', players: g.players.length, minute: Math.floor(g.time / 60), outcome, difficulty: g.difficulty })
   reportNet(c, outcome)
+  // Only completed co-op runs contribute to private referral milestones.
+  // Arena matches and rooms abandoned before completion are excluded.
+  if (!g.versus && (wonRun(g) || coopOver(g)) && !referralReported.has(r) && trainerToken()) {
+    referralReported.add(r)
+    const relay = coopUrl()
+    if (relay) void submitTrainerReferralRun(relay, crypto.randomUUID()).catch((err) => console.warn('Co-op referral run could not be recorded', err))
+  }
   r.overlay?.dispose()
   r.closeText?.()
   r.hud.dispose()
