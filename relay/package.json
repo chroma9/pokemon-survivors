@@ -9,7 +9,9 @@
     "deploy:prod": "wrangler deploy --env production",
     "types": "wrangler types",
     "typecheck": "npm run types && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:private": "wrangler deploy --config wrangler.private.jsonc",
+    "typecheck:private": "wrangler types --config wrangler.private.jsonc && tsc --noEmit"
   },
   "license": "MIT",
   "devDependencies": {
