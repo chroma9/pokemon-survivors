@@ -7,6 +7,8 @@ import { MEDALS } from '../data/achievements'
 import { RIBBON_TIERS, ribbonCounts } from '../game/ribbons'
 import type { SupporterTier } from '../game/supporters'
 import { trainerAvatar } from '../game/trainer'
+import { canWalkWith } from '../game/supporters'
+import { playablePortrait } from '../playableForms'
 import { formatNumber, LOCALES, locale, t } from '../i18n'
 import { discordIcon, medalIcon, ogIcon, pokeballIcon, ribbonIcon, supporterIcon } from '../render/art'
 import { portraitUrl } from '../render/sprites'
@@ -37,8 +39,10 @@ const avatar = (s: AccountState, size: 'small' | 'big') => {
   const signedIn = s.kind === 'signedIn'
   const tier = displayedTier(save)
   const face = trainerAvatar(save, tier)
+  const walking = save.companion && canWalkWith(save, save.companion, tier) ? save.companion.id : save.partner
+  const facePortrait = walking === 'shadowMewtwo' ? playablePortrait(walking, face.dex, face.shiny) : portraitUrl(face.dex, face.shiny)
   const ring = (signedIn || Boolean(currentTrainer())) && tier ? ' supporter' : ''
-  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn || currentTrainer() ? h('img', { src: portraitUrl(face.dex, face.shiny), alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
+  return h('span', { class: `trainer-avatar ${size}${ring}`, 'aria-hidden': 'true' }, signedIn || currentTrainer() ? h('img', { src: facePortrait, alt: '' }) : h('img', { class: 'ball', src: pokeballIcon(), alt: '' }))
 }
 
 /** The equipped title, with the supporter's heart (and an OG's plate) before it, or null. */
