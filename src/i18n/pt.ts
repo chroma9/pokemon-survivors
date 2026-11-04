@@ -2570,13 +2570,22 @@ export const pt = {
         crossing: 'A torre está em chamas! Suba andar por andar!',
         phases: ['Ho-Oh levanta voo! Desvie dos rastros de fogo e do Brave Bird.', 'Ho-Oh *renasce das cinzas*! A beirada do telhado arde.'],
       },
-      dialga: {
+      palkia: 'Senhor do espaço. Seus cortes dimensionais atravessam hordas.',
+    shadowMewtwo: 'Mewtwo Sombrio. Uma força lendária oculta com ataques de vários tipos.',
+    dialga: {
         place: 'Pilar Lança',
         epithet: 'Senhor do Tempo',
         omen: 'O tempo começa a tropeçar…',
         crossing: 'O tempo está se desfazendo! Avance pelo Pilar Lança!',
         phases: ['O tempo se distorce! No Roar of Time, seus golpes congelam no ar.', 'O tempo acelera! Dialga fica cada vez mais rápido.'],
         cues: { stop: 'O tempo parou!', forward: 'O tempo saltou para frente!', rewind: 'O tempo voltou!' },
+      },
+      palkia: {
+        place: 'Pilar Lança',
+        epithet: 'Senhor do Espaço',
+        omen: 'O ar ondula com um estranho brilho rosado…',
+        crossing: 'O espaço está se curvando! Atravesse o Pilar Lança antes que o vazio alcance você!',
+        phases: ['O espaço se retorce ao redor de Palkia! Cuidado com os ataques convergentes.', 'Palkia rasga a arena! Desvie dos cortes cruzados de Spacial Rend.'],
       },
       latias: {
         place: 'Ilha do Sul',
@@ -3754,6 +3763,14 @@ export const pt = {
         { fork: [{ name: 'Campo estático', desc: 'Cada salto deixa faíscas; +10% de paralisia' }, { name: 'Ramificação', desc: 'Cada salto se divide em mais 2; -2 de dano' }] },
         '+2 saltos',
       ],
+    },
+    shadowBall: {
+      description: "Esferas sombrias atravessam inimigos à frente.",
+      upgrades: ["+5 de dano", "+1 projétil", "+20 de velocidade", "+6 de dano", "+1 perfuração", "Recarga -0.2s", "+2 projéteis, área +20%"],
+    },
+    darkPulse: {
+      description: "Uma onda de trevas atinge os inimigos próximos.",
+      upgrades: ["+5 de dano", "Área +15%", "Recarga -0.25s", "+6 de dano", "Área +20%", "Recarga -0.3s", "+8 de dano, área +20%"],
     },
     hex: {
       description: 'Uma maldição salta de inimigo em inimigo. Causa ×1.7 de dano em quem está com status.',
@@ -5190,6 +5207,15 @@ export const pt = {
         'Recarga 0.6s mais rápida e +25 de dano',
       ],
     },
+    spacialRend: {
+      description: "Um corte dimensional de Palkia rasga o espaço em linha reta, atingindo os inimigos ao longo da fenda.",
+      upgrades: [
+        "+18 de dano",
+        "+20% de área",
+        { fork: [{ name: "Fendas paralelas", desc: "+1 corte por lançamento" }, { name: "Corte profundo", desc: "+25 de dano e recarga 0.4s mais rápida" }] },
+        "Recarga 0.5s mais rápida e +18 de dano",
+      ],
+    },
     mistBall: {
       description: 'Esferas de névoa de Latias flutuam até inimigos diferentes e estouram numa névoa que fica no chão, ferindo e enfraquecendo quem está dentro (causam menos dano ao encostar).',
       upgrades: [
@@ -5563,6 +5589,7 @@ export const pt = {
     dracoMeteor: 'Chuva de meteoros ao seu redor que pode queimar.',
     diamondStorm: 'Chuva de pedras ao seu redor que empurra forte.',
     blizzard: 'Chuva de pingentes de gelo ao seu redor que desacelera.',
+    darkNova: 'Uma esfera colossal de trevas explode e deixa um enorme campo Sombrio que causa dano.',
     astralBarrage: 'Anel de bolas sombrias disparadas para todos os lados, que podem paralisar.',
     auraSphere: 'Anel de esferas de energia disparadas para todos os lados.',
     attackOrder: 'Anel de ferrões disparados para todos os lados, que podem envenenar.',
