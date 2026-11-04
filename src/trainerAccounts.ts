@@ -78,7 +78,8 @@ export const renameTrainer = async (relay: string, name: string) => {
 export const logoutTrainer = async (relay: string) => {
   // Do not discard pending debounced changes when a trainer signs out.
   if (syncTimer !== null) { clearTimeout(syncTimer); syncTimer = null }
-  await syncTrainerSave(relay)
+  const saved = await syncTrainerSave(relay)
+  if (!saved.synced) throw Error('Cloud save is still synchronizing. Please retry sign-out after it completes.')
   try { await request(relay, 'logout', 'POST') } finally {
     localStorage.removeItem(KEY)
     localStorage.removeItem(PROFILE)
