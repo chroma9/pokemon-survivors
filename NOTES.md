@@ -104,3 +104,10 @@ As of 2026-11-04, owner clarified: **Ignore all old branches for development. Us
 - Commit `1034a3c3dac3c8e5f7040312bec2e73ef008ef1d` protects `syncTrainerSave` against an in-flight request finishing after private account login/logout/switch. It captures the session token and Trainer ID, checks that they still match after each awaited request and before updating local data, and uses the captured token for the save POST.
 - **Why this matters:** old cloud data or revision metadata must not be written into a different signed-in Trainer's local storage. A stale response is ignored with `reason: 'accountChanged'`.
 - **Source only; tests pending:** verify delayed network responses, switching between two accounts, sign-out while sync is busy, new-device login, cloud revisions, and the explicit "No companion" merge behavior during integrated validation. Do not claim these scenarios passed until tested.
+
+### Additional private-profile safeguards and visual parity — 2026-11-04
+
+- `3dd9b870da2e138fbf98d074127edbebd95e83b1`: Trainer Card and lobby avatar now use the Shadow Mewtwo form portrait when Shadow Mewtwo is the active companion/partner, preserving standard companion and other Pokémon portraits.
+- `7dfd7310b04a4c59a907c0234abb625a21e3dfb9`: private Trainer sign-out now requires the final cloud-save synchronization to complete. If a sync is already busy or cannot finish, sign-out reports a retryable error rather than silently revoking the session while changes remain unsaved.
+- **Still unverified:** build, UI and cloud-save regression tests. The account-switch guard and sign-out change require manual two-account and delayed-network scenarios during validation.
+- **No action required from owner now.** Work remains isolated to `Updated-11-3-2026`; production main and Cloudflare deployments remain untouched.
