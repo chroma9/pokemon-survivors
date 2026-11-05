@@ -1,6 +1,7 @@
 import { blitCentered, blitPacked, blitRotated, ellipse, ring, textSprite } from '../engine/pixelart'
 import { TAU } from '../engine/math'
 import { COOP } from '../data/coop'
+import { playableForm } from '../playableForms'
 import { formAt } from '../game/branch'
 import { fainted } from '../game/coop'
 import { heldMega } from '../game/mega'
@@ -113,7 +114,7 @@ export const busyWith = (p: Player): TeamIcon | null => {
 /** The sheets a player wears: their stage (or branch) and, while it lasts, their Mega form. */
 const mateSprites = (g: Game, p: Player): SpeciesSprites => {
   const dex = formAt(p.starter, p.branch, p.stage).dex
-  if (p.mega.active <= 0) return sprites(dex, p.shiny)
+  if (p.mega.active <= 0) return sprites(dex, p.shiny, playableForm(p.starter))
   const before = actAs(g, p)
   const def = heldMega(g)
   actAs(g, before)
