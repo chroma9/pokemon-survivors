@@ -552,7 +552,7 @@ export const HATCHLINGS = {
     color: '#705078',
     egg: 'ultra',
     // A single-stage Pokémon like Smeargle: starts with its full stat budget instead of Strengthening.
-    stats: { maxHp: 95, armor: 2, speed: -6, might: 0.33, statusChance: 0.04, area: 0.1 },
+    stats: { maxHp: 65, armor: 1, speed: -6, might: 0.25, statusChance: 0.04, area: 0.1 },
     signature: 'shadowBall',
     learnset: [['shadowBall', 'darkPulse', 'hex', 'willOWisp', 'suckerPunch', 'dreamEater', 'snarl', 'venoshock', 'curse', 'psyshock']],
     line: [{ name: 'Spiritomb', dex: 442, types: ['ghost', 'dark'], bonus: {} }],
