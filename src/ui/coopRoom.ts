@@ -12,7 +12,7 @@ import { formatDay, t } from '../i18n'
 import { parseRoomCode, ROOM_CODE_LENGTH, MAX_PLAYERS, type Member } from '../net/protocol'
 import { arenaIcon, coopIcon, crownIcon, pokeballIcon } from '../render/art'
 import { slotColor } from '../render/team'
-import { portraitUrl } from '../render/sprites'
+import { playablePortrait } from '../playableForms'
 import { h, later } from './dom'
 import { confirmDialog, difficultyTag, hint, type Screen } from './screens'
 import { toast } from './toasts'
@@ -208,7 +208,7 @@ const seatCard = (member: Member, index: number, me: boolean, kick: (() => void)
   return h(
     'div',
     { class: `coop-seat ${state}${me ? ' me' : ''}${team !== null ? ` arena-seat team${team}` : ''}`, style: `--slot:${team !== null ? teamColor(team) : slotColor(index)}` },
-    h('img', { class: 'coop-seat-portrait', src: form && pick ? portraitUrl(form.dex, pick.shiny) : pokeballIcon(), alt: '' }),
+    h('img', { class: 'coop-seat-portrait', src: form && pick ? playablePortrait(pick.starter, form.dex, pick.shiny) : pokeballIcon(), alt: '' }),
     h(
       'div',
       { class: 'coop-seat-text' },
